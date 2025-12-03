@@ -1,0 +1,50 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model AppLog {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  logLevel  String   @map("log_level") @db.VarChar(10)
+  message   String   @db.Text
+  context   Json?
+  @@map("app_logs")
+  @@index([createdAt])
+  @@index([logLevel])
+}
+
+model Todo {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  title  String   @db.Text
+  status Int @db.Integer
+  userid String @db.Text
+  cost Int @db.Integer
+  name String @db.Text
+  updateAt DateTime? @map("update_at") @db.Timestamptz
+  record Record[]
+  @@index([createdAt])
+}
+
+model Record {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  todoid  String   @db.Uuid
+  status Int @db.Integer
+  updateAt DateTime? @map("update_at") @db.Timestamptz
+  ended DateTime? @db.Timestamptz
+  todo Todo @relation(fields: [todoid], references: [id], onDelete: Cascade)
+  @@index([todoid])
+  @@index([createdAt])
+}

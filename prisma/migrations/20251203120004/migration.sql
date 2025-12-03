@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Record" ALTER COLUMN "update_at" DROP NOT NULL,
+ALTER COLUMN "ended" DROP NOT NULL;
