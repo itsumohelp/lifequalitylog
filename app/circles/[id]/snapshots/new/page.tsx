@@ -1,4 +1,3 @@
-// app/snapshots/new/page.tsx
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
@@ -29,8 +28,6 @@ export default async function NewSnapshotPage({ params }: Props) {
     const amountRaw = formData.get("amount") as string;
     const dateRaw = (formData.get("recordedAt") as string) || "";
     const memo = (formData.get("memo") as string) || "";
-
-    console.log("check data " + ResCircleId);
 
     const amount = parseInt(amountRaw, 10);
     if (Number.isNaN(amount)) {

@@ -1,8 +1,9 @@
-import { PrismaClient } from '../app/generated/prisma/client'
+import { PrismaClient, CircleRole } from '../app/generated/prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 
 const globalForPrisma = global as unknown as {
     prisma: PrismaClient
+    CircleRole: CircleRole
 }
 
 const adapter = new PrismaPg({

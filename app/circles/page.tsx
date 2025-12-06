@@ -3,15 +3,15 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
-import type { CircleRole } from "@prisma/client";
+import { CircleRole } from "../generated/prisma/enums";
 
 function roleLabel(role: CircleRole) {
   switch (role) {
-    case "ADMIN":
+    case CircleRole.ADMIN:
       return "管理者";
-    case "EDITOR":
+    case CircleRole.EDITOR:
       return "登録者";
-    case "VIEWER":
+    case CircleRole.VIEWER:
       return "参照者";
     default:
       return role;
@@ -20,11 +20,11 @@ function roleLabel(role: CircleRole) {
 
 function roleBadgeClass(role: CircleRole) {
   switch (role) {
-    case "ADMIN":
+    case CircleRole.ADMIN:
       return "bg-emerald-500/15 text-emerald-300 border-emerald-500/40";
-    case "EDITOR":
+    case CircleRole.EDITOR:
       return "bg-sky-500/15 text-sky-300 border-sky-500/40";
-    case "VIEWER":
+    case CircleRole.VIEWER:
       return "bg-slate-500/15 text-slate-300 border-slate-500/40";
     default:
       return "bg-slate-500/15 text-slate-300 border-slate-500/40";

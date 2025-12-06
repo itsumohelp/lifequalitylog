@@ -1,4 +1,3 @@
-// app/circles/new/page.tsx
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";

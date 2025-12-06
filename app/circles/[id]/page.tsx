@@ -3,15 +3,15 @@ import { auth } from "@/auth";
 import { redirect, notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
-import type { CircleRole } from "@prisma/client";
+import { CircleRole } from "@/app/generated/prisma/enums";
 
 function roleLabel(role: CircleRole) {
   switch (role) {
-    case "ADMIN":
+    case CircleRole.ADMIN:
       return "管理者";
-    case "EDITOR":
+    case CircleRole.EDITOR:
       return "登録者";
-    case "VIEWER":
+    case CircleRole.VIEWER:
       return "参照者";
     default:
       return role;
@@ -129,7 +129,6 @@ export default async function CircleDetailPage({ params }: Props) {
             <p className="text-[11px] text-slate-400">
               このサークルの残高スナップショットを時系列で表示します。
             </p>
-            {/* ここは将来 /circles/[id]/snapshots/new を作ったら差し替える */}
             <Link
               href={`/circles/${circleId}/snapshots/new`}
               className="ml-2 text-[11px] text-sky-300"

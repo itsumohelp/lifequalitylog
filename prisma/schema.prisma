@@ -97,12 +97,6 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
-enum CircleRole {
-  ADMIN   // 管理者: 人の追加/削除/データ登録/削除
-  EDITOR  // 登録者: データ登録/削除
-  VIEWER  // 参照者: リードオンリー
-}
-
 model Circle {
   id          String          @id @default(cuid())
   name        String
@@ -138,4 +132,10 @@ model Snapshot {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   @@index([circleId, recordedAt])
+}
+
+enum CircleRole {
+  ADMIN
+  EDITOR
+  VIEWER
 }

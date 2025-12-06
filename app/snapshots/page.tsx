@@ -1,4 +1,3 @@
-// app/snapshots/page.tsx
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
@@ -46,12 +45,6 @@ export default async function SnapshotsPage() {
             <h1 className="text-sm font-semibold text-sky-100">
               残高タイムライン
             </h1>
-            <Link
-              href="/snapshots/new"
-              className="text-[11px] text-sky-300"
-            >
-              ＋ 追加
-            </Link>
           </div>
           <p className="text-[11px] text-slate-400">
             これまで登録してきた残高スナップショットを、
@@ -68,12 +61,6 @@ export default async function SnapshotsPage() {
             <p className="text-[11px] text-slate-500 mb-4">
               はじめての記録として、今日の残高を登録してみましょう。
             </p>
-            <Link
-              href="/snapshots/new"
-              className="inline-flex items-center justify-center rounded-2xl bg-sky-500 px-4 py-2 text-xs font-semibold text-white active:scale-[0.98] transition-transform"
-            >
-              残高を登録する
-            </Link>
           </div>
         ) : (
           <section className="mt-4">
