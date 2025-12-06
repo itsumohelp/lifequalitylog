@@ -1,85 +1,78 @@
-import Image from 'next/image';
-import Link from 'next/link';
+import { auth, signIn } from "@/auth";
+import { redirect } from "next/navigation";
 
-export default function Home() {
+export default async function HomePage() {
+  const session = await auth();
+
+  // すでにログインしている場合はダッシュボードへ
+  if (session) {
+    redirect("/dashboard");
+  }
+
+  // ログインボタン用のサーバーアクション
+  async function handleGoogleLogin() {
+    "use server";
+    await signIn("google");
+  }
+
   return (
-    <div className="min-h-screen flex flex-col text-gray-800">
-      {/* ■ ヘッダー部分 */}
-      <header className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-blue-600">サービス名</h1>
-          <nav>
-            <Link href="/login" className="px-4 py-2 text-gray-600 hover:text-blue-600">
-              ログイン
-            </Link>
-            <Link href="/signup" className="ml-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-              無料で始める
-            </Link>
-          </nav>
-        </div>
-      </header>
-
-      <main className="flex-grow">
-        {/* ■ ヒーローセクション（一番目立つ場所） */}
-        <section className="bg-gradient-to-b from-blue-50 to-white py-20 text-center px-4">
-          <h2 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">
-            あなたの課題を、<br />
-            <span className="text-blue-600">このサービス</span>が解決します
-          </h2>
-          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-            ここにサービスのキャッチコピーを入れます。ユーザーが得られるメリットを簡潔に書きましょう。
-            2025年の最新技術であなたの生活をサポートします。
+    <main className="min-h-screen flex items-center justify-center bg-slate-950">
+      <div className="w-full max-w-md mx-auto rounded-2xl bg-slate-900/80 border border-slate-700 p-8 shadow-xl">
+        <div className="mb-6 text-center">
+          <h1 className="text-2xl font-bold text-sky-100">
+            サークルラン
+          </h1>
+          <p className="mt-2 text-sm text-slate-300">
+            みんなのお金のタイムラインを共有する
+            <br />
+            シンプルなサークル家計アプリ <span className="text-sky-400">crun.click</span>
           </p>
-          <button className="px-8 py-4 bg-blue-600 text-white text-xl font-bold rounded-full shadow-lg hover:bg-blue-700 transition transform hover:-translate-y-1">
-            今すぐ使ってみる
-          </button>
-        </section>
-
-        {/* ■ 広告スペース 1（目立ちすぎない位置） */}
-        <div className="container mx-auto py-8 text-center bg-gray-100 rounded-lg my-8 max-w-4xl">
-          <p className="text-gray-400 text-sm">スポンサーリンク</p>
-          <div className="w-full h-24 bg-gray-200 flex items-center justify-center text-gray-400">
-            広告バナー (728x90など)
-          </div>
         </div>
 
-        {/* ■ 特徴・メリット部分 */}
-        <section className="container mx-auto px-4 py-16">
-          <h3 className="text-3xl font-bold text-center mb-12">選ばれる3つの理由</h3>
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* 特徴1 */}
-            <div className="p-6 border rounded-xl hover:shadow-md transition">
-              <div className="text-4xl mb-4">🚀</div>
-              <h4 className="text-xl font-bold mb-2">圧倒的なスピード</h4>
-              <p className="text-gray-600">Next.jsとAWSの最新構成により、ストレスのない高速な動作を実現しました。</p>
-            </div>
-            {/* 特徴2 */}
-            <div className="p-6 border rounded-xl hover:shadow-md transition">
-              <div className="text-4xl mb-4">🛡️</div>
-              <h4 className="text-xl font-bold mb-2">安心のセキュリティ</h4>
-              <p className="text-gray-600">最新の認証システムを採用。あなたのデータを安全に守ります。</p>
-            </div>
-            {/* 特徴3 */}
-            <div className="p-6 border rounded-xl hover:shadow-md transition">
-              <div className="text-4xl mb-4">💡</div>
-              <h4 className="text-xl font-bold mb-2">使いやすいデザイン</h4>
-              <p className="text-gray-600">直感的な操作画面で、マニュアルなしですぐに使い始めることができます。</p>
-            </div>
-          </div>
-        </section>
-      </main>
+        <div className="mt-6 space-y-4">
+          <p className="text-xs text-slate-400 leading-relaxed">
+            月に一度、「このサークルの口座はいくらか」だけを記録して、
+            <br />
+            家族・友人・サークルの「お金の歩み」をタイムラインで眺められます。
+          </p>
 
-      {/* ■ フッター */}
-      <footer className="bg-gray-800 text-white py-8">
-        <div className="container mx-auto px-4 text-center">
-          <p>&copy; 2025 Service Name. All rights reserved.</p>
-          <div className="mt-4 space-x-4 text-gray-400 text-sm">
-            <Link href="/terms" className="hover:text-white">利用規約</Link>
-            <Link href="/privacy" className="hover:text-white">プライバシーポリシー</Link>
-            <Link href="/contact" className="hover:text-white">お問い合わせ</Link>
-          </div>
+          <form action={handleGoogleLogin} className="mt-6">
+            <button
+              type="submit"
+              className="w-full flex items-center justify-center gap-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-white font-medium py-2.5 px-4 text-sm transition"
+            >
+              <svg
+                aria-hidden
+                className="w-4 h-4"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  fill="#EA4335"
+                  d="M12 10.2v3.7h5.2c-.2 1.2-.9 2.2-2 2.9l3.2 2.5c1.9-1.7 3-4.1 3-6.9 0-.7-.1-1.3-.2-1.9H12z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M6.5 14.3l-.8.6-2.6 2C4.6 19.6 8.1 21.5 12 21.5c2.7 0 4.9-.9 6.5-2.4l-3.2-2.5c-.9.6-2 1-3.3 1-2.6 0-4.8-1.8-5.6-4.3z"
+                />
+                <path
+                  fill="#4A90E2"
+                  d="M3.1 7.1C2.4 8.4 2 9.9 2 11.5c0 1.6.4 3.1 1.1 4.4l3.4-2.6c-.2-.6-.4-1.2-.4-1.8 0-.6.1-1.2.4-1.8z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M12 4.5c1.5 0 2.8.5 3.9 1.4l2.9-2.9C17 1.8 14.7.9 12 .9 8.1.9 4.6 2.8 3.1 7.1l3.4 2.6C7.2 6.3 9.4 4.5 12 4.5z"
+                />
+                <path fill="none" d="M2 2h20v20H2z" />
+              </svg>
+              <span>Googleでログイン</span>
+            </button>
+          </form>
+
+          <p className="mt-4 text-[10px] text-slate-500 text-center">
+            ※ 現時点のプロトタイプ版では Google アカウントのみでログインできます。
+          </p>
         </div>
-      </footer>
-    </div>
+      </div>
+    </main>
   );
 }

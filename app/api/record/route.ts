@@ -1,5 +1,5 @@
 import prisma from '@/lib/prisma'
-import type { NextRequest } from 'next/server'
+import { NextRequest } from 'next/server';
 
 interface todoList {
     id: string;
@@ -41,7 +41,7 @@ export async function GET(_req: NextRequest) {
 return Response.json(todoItem)
 }
 
-export async function POST(request: NextRequest,{ params, }:  { params: Promise<{ walletid: string }> }) {
+export async function POST(request: NextRequest,{ params, }:  { params: Promise<{}> }) {
     const receiveData = await request.json()
         try {
             const exitingRecord = await prisma.record.findFirst({
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest,{ params, }:  { params: Promise<
         }
 }
 
-export async function PUT(request: NextRequest,{ params, }:  { params: Promise<{ walletid: string }> }) {
+export async function PUT(request: NextRequest,{ params, }:  {params: Promise<{}>}) {
     const receiveData = await request.json()
         try {
             const exitingRecord = await prisma.record.findFirst({
