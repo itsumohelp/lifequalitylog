@@ -48,3 +48,94 @@ model Record {
   @@index([todoid])
   @@index([createdAt])
 }
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String  @map("user_id")
+  type               String
+  provider           String
+  providerAccountId  String  @map("provider_account_id")
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.Text
+  session_state      String?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+ 
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@map("sessions")
+}
+ 
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  circleMembers CircleMember[]
+  snapshots     Snapshot[]
+  @@map("users")
+}
+ 
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+enum CircleRole {
+  ADMIN   // 管理者: 人の追加/削除/データ登録/削除
+  EDITOR  // 登録者: データ登録/削除
+  VIEWER  // 参照者: リードオンリー
+}
+
+model Circle {
+  id          String          @id @default(cuid())
+  name        String
+  description String?
+  walletName  String?
+  currency    String          @default("JPY")
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  members     CircleMember[]
+  snapshots   Snapshot[]
+}
+
+model CircleMember {
+  id        String     @id @default(cuid())
+  circleId  String
+  userId    String
+  role      CircleRole
+  joinedAt  DateTime   @default(now())
+  circle    Circle     @relation(fields: [circleId], references: [id])
+  user      User       @relation(fields: [userId], references: [id])
+  @@unique([circleId, userId])
+}
+
+model Snapshot {
+  id               String   @id @default(cuid())
+  circleId         String
+  circle           Circle   @relation(fields: [circleId], references: [id])
+  userId           String
+  user             User     @relation(fields: [userId], references: [id])
+  amount           Int
+  memo             String?
+  recordedAt       DateTime
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  @@index([circleId, recordedAt])
+}

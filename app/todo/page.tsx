@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Plus, Trash2, CheckCircle, Circle } from 'lucide-react';
+import { Play, Pause, Plus, Circle } from 'lucide-react';
 import Modal from '../ui/Modal';
 
 // 型定義
@@ -21,6 +21,7 @@ interface Todo {
   userId: string;
   createdAt: string;
   cost: number;
+  name: string;
   record: {
     id: string;
     status: number;
@@ -97,14 +98,6 @@ export default function TodoTimeTracker() {
     e.preventDefault();
     if (!newTaskTitle.trim()) return;
 
-    const newTask: Task = {
-      id: crypto.randomUUID(),
-      title: newTaskTitle,
-      isCompleted: false,
-      accumulatedSeconds: 0,
-      lastStartTime: null,
-    };
-
     const newTodo: Todo = {
       id: '',
       title: newTaskTitle,
@@ -127,8 +120,7 @@ export default function TodoTimeTracker() {
     if (!res.ok) return null;
     newTodo.id = (await res.json()).id;
 
-    setTodos([...todos, newTodo]);  
-    setTasks([...tasks, newTask]);
+    setTodos([...todos, newTodo]);
     setNewTaskTitle('');
   };
 

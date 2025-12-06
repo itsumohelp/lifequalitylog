@@ -9,7 +9,7 @@ interface todoList {
     createdAt: Date;
     cost: number;
     name: string;
-    updateAt: Date;
+    updateAt: Date | null;
     record: {
         id: string;
         status: number;
@@ -24,6 +24,7 @@ export async function GET(_req: NextRequest) {
         title: true,
         status: true,
         createdAt: true,
+        updateAt: true,
         cost: true,
         name: true,
     },
@@ -36,25 +37,27 @@ export async function GET(_req: NextRequest) {
   for (const [i, todo] of todos.entries()) {
     todoItem.push({id: todo.id, title: todo.title, status: todo.status, createdAt: todo.createdAt, cost: todo.cost, name: todo.name, updateAt: todo.updateAt, record: {id: '', status: 0}})
     if(todo.status === 0) {
-    const records = await prisma.record.findMany({
+    const record = await prisma.record.findFirst({
         where: { 
             todoid: todo.id,
             ended: null
          },
         select: {
             id: true,
-            status: true
+            status: true,
+            createdAt: true,
         }
     });
-    if(records.length > 0) { 
-        todoItem[i].record = {id: records[0].id, status: records[0].status}
+    if(record) { 
+        todoItem[i].record = {id: record.id, status: record.status}
+        todoItem[i].cost += Math.floor((new Date().getTime() - record.createdAt.getTime()) / 60000);
     }
     }
 }
 return Response.json(todoItem)
 }
 
-export async function POST(request: NextRequest,{ params, }:  { params: Promise<{ walletid: string }> }) {
+export async function POST(request: NextRequest,{ params, }:  { params: Promise<{}> }) {
     const receiveData = await request.json()
     let createdTodo:Todo
         try {
