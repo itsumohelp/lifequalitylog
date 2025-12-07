@@ -4,6 +4,7 @@ import { redirect, notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { CircleRole } from "@/app/generated/prisma/enums";
+import InviteButton from "@/app/componets/InviteButton";
 
 function roleLabel(role: CircleRole) {
   switch (role) {
@@ -221,6 +222,10 @@ export default async function CircleDetailPage({ params }: Props) {
             </ol>
           </section>
         )}
+<div className="flex items-center justify-between mb-2">
+  <h1 className="text-sm font-semibold text-sky-100">{circle.name}</h1>
+  <InviteButton circleId={circle.id} />
+</div>
       </div>
     </main>
   );
