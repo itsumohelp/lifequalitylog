@@ -30,7 +30,7 @@ export default function TimeLineScroll({ children }: { children: ReactNode }) {
           px-3
           py-3
           /* ★ iPhone の Safari アドレスバー込みで動く dvh を使う */
-          h-[calc(100dvh-315px)]
+          h-[calc(100dvh-230px)]
           overflow-y-auto
         "
       >

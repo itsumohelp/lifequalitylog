@@ -148,22 +148,19 @@ export default async function DashboardPage() {
       {/* layout.tsx の <main className="flex-1"> の高さをまるっと受け取る */}
       <div className="h-full">
         {/* 中央寄せ＆上下余白、ここでタイムラインを縦に分割 */}
-        <div className="mx-auto max-w-md px-4 pt-4 pb-10 flex flex-col h-full">
+        <div className="mx-auto max-w-md px-4 pt-4 pb-2 flex flex-col h-full">
           {/* ページ内ヘッダー */}
-          <header className="mb-3 shrink-0">
-            <div className="flex items-center justify-between mb-1">
+          <header className="mb-1 shrink-0">
+            <div className="flex items-center justify-between">
               <h1 className="text-sm font-semibold text-sky-100">
                 みんなのお金のタイムライン
               </h1>
             </div>
-            <p className="text-[11px] text-slate-400">
-              サークルの残高記録と、参加イベントが時系列で流れます。
-            </p>
           </header>
 
           {/* サークルサマリ（横スクロール） */}
           {hasCircles && hasSummaries && (
-            <section className="mb-3 shrink-0">
+            <section className="mb-1 shrink-0">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[11px] text-slate-400">
                   サークル別の最新残高
@@ -281,10 +278,7 @@ export default async function DashboardPage() {
             )}
           </TimeLineScroll>
 
-          <footer className="mt-2 text-[10px] text-slate-500 shrink-0">
-            ※ 新しいイベントほど下に表示されます。
-            記録フリークのみなさん、無理のない頻度でどうぞ。
-          </footer>
+          <footer className="mt-3 shrink-0"></footer>
         </div>
       </div>
 
