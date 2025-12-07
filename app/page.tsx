@@ -19,13 +19,12 @@ export default async function HomePage() {
     <main className="min-h-screen flex items-center justify-center bg-slate-950">
       <div className="w-full max-w-md mx-auto rounded-2xl bg-slate-900/80 border border-slate-700 p-8 shadow-xl">
         <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-sky-100">
-            サークルラン
-          </h1>
+          <h1 className="text-2xl font-bold text-sky-100">サークルラン</h1>
           <p className="mt-2 text-sm text-slate-300">
             みんなのお金のタイムラインを共有する
             <br />
-            シンプルなサークル家計アプリ <span className="text-sky-400">crun.click</span>
+            シンプルなサークル家計アプリ{" "}
+            <span className="text-sky-400">crun.click</span>
           </p>
         </div>
 
@@ -41,11 +40,7 @@ export default async function HomePage() {
               type="submit"
               className="w-full flex items-center justify-center gap-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-white font-medium py-2.5 px-4 text-sm transition"
             >
-              <svg
-                aria-hidden
-                className="w-4 h-4"
-                viewBox="0 0 24 24"
-              >
+              <svg aria-hidden className="w-4 h-4" viewBox="0 0 24 24">
                 <path
                   fill="#EA4335"
                   d="M12 10.2v3.7h5.2c-.2 1.2-.9 2.2-2 2.9l3.2 2.5c1.9-1.7 3-4.1 3-6.9 0-.7-.1-1.3-.2-1.9H12z"
@@ -69,7 +64,8 @@ export default async function HomePage() {
           </form>
 
           <p className="mt-4 text-[10px] text-slate-500 text-center">
-            ※ 現時点のプロトタイプ版では Google アカウントのみでログインできます。
+            ※ 現時点のプロトタイプ版では Google
+            アカウントのみでログインできます。
           </p>
         </div>
       </div>
