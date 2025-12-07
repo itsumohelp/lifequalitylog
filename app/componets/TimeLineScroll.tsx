@@ -6,12 +6,11 @@ import { useEffect, useRef, type ReactNode } from "react";
 export default function TimeLineScroll({ children }: { children: ReactNode }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // 初期表示時に一番下までスクロール
+  // 初期表示で一番下までスクロール
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
 
-    // 一度レイアウトが終わってからスクロールした方が安定するので少し遅らせる
     requestAnimationFrame(() => {
       el.scrollTop = el.scrollHeight;
     });
@@ -19,7 +18,7 @@ export default function TimeLineScroll({ children }: { children: ReactNode }) {
 
   return (
     <div className="relative mt-2">
-      {/* スクロールできる本体 */}
+      {/* スクロールする本体 */}
       <div
         ref={containerRef}
         className="
@@ -30,14 +29,16 @@ export default function TimeLineScroll({ children }: { children: ReactNode }) {
           border-slate-800
           px-3
           py-3
-          max-h-[calc(100vh-315px)]
+          /* ★ iPhone の Safari アドレスバー込みで動く dvh を使う */
+          h-[calc(100dvh-315px)]
           overflow-y-auto
         "
       >
-        {children}
+        {/* ★ 中身を下寄せにするラッパー */}
+        <div className="min-h-full flex flex-col justify-end">{children}</div>
       </div>
 
-      {/* スクロールできそう感を出す半透明グラデーション（上部） */}
+      {/* スクロールできそう感を出す上部グラデーション */}
       <div
         className="
           pointer-events-none
