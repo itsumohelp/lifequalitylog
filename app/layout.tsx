@@ -3,7 +3,7 @@ import "./globals.css";
 import type { ReactNode } from "react";
 import { auth } from "@/auth";
 import Header from "@/app/componets/Header";
-
+import { GoogleAnalytics } from "@next/third-parties/google";
 export default async function RootLayout({
   children,
 }: {
@@ -20,11 +20,10 @@ export default async function RootLayout({
           <Header session={session} />
 
           {/* 残り全部がここに入る */}
-          <main className="flex-1 bg-slate-950">
-            {children}
-          </main>
+          <main className="flex-1 bg-slate-950">{children}</main>
         </div>
       </body>
+      <GoogleAnalytics gaId="G-64XWZ672CX" />
     </html>
   );
 }
