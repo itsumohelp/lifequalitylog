@@ -25,16 +25,16 @@ jobs:
       run: gcloud auth configure-docker asia-northeast1-docker.pkg.dev
     - name: Build Docker image
       run: |
-        docker build -t $REGISTRY/$PROJECT_ID/$REPOSITORY/$SERVICE_NAME:$GITHUB_SHA .
-        docker tag $REGISTRY/$PROJECT_ID/$REPOSITORY/$SERVICE_NAME:$GITHUB_SHA $REGISTRY/$PROJECT_ID/$REPOSITORY/$SERVICE_NAME:latest
+        docker build -t $REGISTRY/${{ secrets.GCP_PROJECT_ID }}/$REPOSITORY/$SERVICE_NAME:$GITHUB_SHA .
+        docker tag $REGISTRY/${{ secrets.GCP_PROJECT_ID }}/$REPOSITORY/$SERVICE_NAME:$GITHUB_SHA $REGISTRY/${{ secrets.GCP_PROJECT_ID }}/$REPOSITORY/$SERVICE_NAME:latest
     - name: Push Docker image
       run: |
-        docker push $REGISTRY/$PROJECT_ID/$REPOSITORY/$SERVICE_NAME:$GITHUB_SHA
-        docker push $REGISTRY/$PROJECT_ID/$REPOSITORY/$SERVICE_NAME:latest
+        docker push $REGISTRY/${{ secrets.GCP_PROJECT_ID }}/$REPOSITORY/$SERVICE_NAME:$GITHUB_SHA
+        docker push $REGISTRY/${{ secrets.GCP_PROJECT_ID }}/$REPOSITORY/$SERVICE_NAME:latest
     - name: Deploy to Cloud Run
       run: |
         gcloud run deploy $SERVICE_NAME \
-          --image $REGISTRY/$PROJECT_ID/$REPOSITORY/$SERVICE_NAME:latest \
+          --image $REGISTRY/${{ secrets.GCP_PROJECT_ID }}/$REPOSITORY/$SERVICE_NAME:latest \
           --region $REGION \
           --platform managed \
           --allow-unauthenticated \
