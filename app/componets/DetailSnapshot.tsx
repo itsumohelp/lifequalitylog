@@ -1,10 +1,11 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import BalanceInputInline from "./BalanceInputInline";
 import { CircleRow } from "../dashboard/page";
 import Fab from "./Fab";
+import { useTimelineScrollContainer } from "./TimeLineScroll";
 
 type Row = { id: string; title: string; content: string };
 
@@ -17,6 +18,9 @@ export default function DetailSnapshot({
   const [openId, setOpenId] = useState<string | null>(null);
 
   const detailsRef = useRef<HTMLDetailsElement | null>(null);
+  const containerRef = useTimelineScrollContainer();
+  const endRef = useRef<HTMLDivElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
 
   function formatYen(amount: number) {
     return new Intl.NumberFormat("ja-JP").format(amount);
@@ -36,6 +40,28 @@ export default function DetailSnapshot({
       day: "numeric",
     });
   }
+
+  const ensureEndVisible = (behavior: ScrollBehavior = "auto") => {
+    const container = containerRef.current;
+    const endEl = endRef.current;
+    if (!container || !endEl) return;
+
+    const margin = 12;
+
+    const containerRect = container.getBoundingClientRect();
+    const endRect = endEl.getBoundingClientRect();
+
+    // endEl の下端が container の下端より下にある分だけ scrollTop を増やす
+    const delta = endRect.bottom - (containerRect.bottom - margin);
+
+    if (delta > 0) {
+      container.scrollTo({
+        top: container.scrollTop + delta,
+        behavior,
+      });
+    }
+  };
+
   return (
     <ul className="space-y-2">
       {circleRows.map((row) => {
@@ -56,6 +82,23 @@ export default function DetailSnapshot({
                 if (ect.open) {
                   setOpenId(ect.open ? row.circleId : null);
                 }
+                const container = containerRef.current;
+                const details = detailsRef.current;
+                const endEl = endRef.current;
+                if (!details || !container || !endEl) return;
+
+                let tries = 0;
+                const pump = () => {
+                  if (!details.open) return;
+                  ensureEndVisible(tries === 0 ? "auto" : "auto"); // 初回はauto推奨（smoothだとズレ残ることがある）
+                  tries += 1;
+                  if (tries < 10) requestAnimationFrame(pump);
+                };
+                requestAnimationFrame(pump);
+
+                // open中：高さが変わるたびに末尾を追従（これが本命）
+                const content = contentRef.current;
+                if (!content) return;
               }}
               className="group rounded-2xl bg-slate-800/80"
             >
@@ -201,6 +244,7 @@ export default function DetailSnapshot({
                 </div>
               </div>
             </details>
+            <div ref={endRef} />
           </li>
         );
       })}
