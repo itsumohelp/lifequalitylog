@@ -7,6 +7,7 @@ import Fab from "@/app/componets/Fab";
 import TimeLineScroll from "../componets/TimeLineScroll";
 import BalanceInputInline from "../componets/BalanceInputInline";
 import Link from "next/link";
+import DetailSnapshot from "../componets/DetailSnapshot";
 
 function formatYen(amount: number) {
   return new Intl.NumberFormat("ja-JP").format(amount);
@@ -51,14 +52,13 @@ type TimelineEvent =
       circleId: string;
     };
 
-type CircleRow = {
+export type CircleRow = {
   circleId: string;
   circleName: string;
   latestAt: Date;
   latestAmount?: number | null; // snapshotがない場合はnull
   latestKind: TimelineEvent["kind"];
   count: number;
-  // 展開時に出す詳細（例: 直近20件）
   items: TimelineEvent[];
 };
 
@@ -140,9 +140,10 @@ export default async function DashboardPage() {
     const rows: CircleRow[] = [];
 
     for (const [circleId, items] of byCircle.entries()) {
-      // 既に events が desc なので items も概ねdesc
-      const sorted = [...items].sort((b, a) => b.at.getTime() - a.at.getTime());
-      const latest = sorted[0];
+      const sorted = [...items].sort((b, a) => a.at.getTime() - b.at.getTime());
+      const latest = sorted[sorted.length - 1];
+
+      const last5Item = sorted.slice(0, 5).reverse();
 
       // 最新snapshotのamountをサマリに出す（joinが最新でも、amountは直近snapshotから拾う）
       const latestSnapshot = sorted.find((x) => x.kind === "snapshot") as
@@ -156,7 +157,7 @@ export default async function DashboardPage() {
         latestKind: latest.kind,
         latestAmount: latestSnapshot ? latestSnapshot.amount : null,
         count: sorted.length,
-        items: sorted.slice(0, 5), // 展開時は直近20件だけ
+        items: last5Item,
       });
     }
 
@@ -249,150 +250,7 @@ export default async function DashboardPage() {
                 </div>
               </div>
             ) : (
-              <ul className="space-y-2">
-                {circleRows.map((row) => {
-                  const latestUserName =
-                    row.items[0]?.userName ?? "不明なユーザー";
-                  const latestUserImage = row.items[0]?.userImage;
-                  const latestAt = row.latestAt;
-
-                  return (
-                    <li key={row.circleId}>
-                      {/* ❗ bg-white を完全に排除 */}
-                      <details className="group rounded-2xl bg-slate-800/80">
-                        {/* ===== サークル最上位サマリ行 ===== */}
-                        <summary className="list-none cursor-pointer px-3 py-2 hover:bg-slate-800 transition-colors rounded-2xl">
-                          <div className="flex items-center justify-between gap-2">
-                            {/* 左：サークル名 */}
-                            <div className="min-w-0">
-                              <div className="truncate text-sm font-semibold text-slate-100">
-                                {row.circleName}
-                              </div>
-                              <div className="mt-0.5 text-[10px] text-slate-400">
-                                イベント {row.count}件
-                              </div>
-                            </div>
-
-                            {/* 右：更新情報 */}
-                            <div className="flex items-center gap-2 shrink-0">
-                              {/* 最新残高 */}
-                              <span className="text-[12px] font-semibold text-sky-200">
-                                {row.latestAmount != null
-                                  ? `¥ ${formatYen(row.latestAmount)}`
-                                  : "—"}
-                              </span>
-
-                              {/* 更新日 */}
-                              <span className="text-[10px] text-slate-400 whitespace-nowrap">
-                                {formatDateShort(latestAt)}
-                              </span>
-
-                              {/* 更新者 */}
-                              <div className="flex items-center gap-1">
-                                <div className="w-6 h-6 rounded-full bg-slate-700 overflow-hidden flex items-center justify-center">
-                                  {latestUserImage ? (
-                                    <Image
-                                      src={latestUserImage}
-                                      alt={latestUserName}
-                                      width={24}
-                                      height={24}
-                                      className="w-6 h-6 object-cover"
-                                    />
-                                  ) : (
-                                    <span className="text-[10px] text-slate-200">
-                                      {latestUserName.slice(0, 2)}
-                                    </span>
-                                  )}
-                                </div>
-                                <span className="text-[10px] text-slate-400 max-w-[72px] truncate">
-                                  {latestUserName}
-                                </span>
-                              </div>
-
-                              {/* 展開アイコン */}
-                              <span className="text-[10px] text-slate-400 group-open:rotate-180 transition-transform">
-                                ▼
-                              </span>
-                            </div>
-                          </div>
-                        </summary>
-
-                        {/* ===== 展開エリア ===== */}
-                        <div className="mt-1 border-t border-slate-700/50 px-3 py-2 space-y-2">
-                          <Link href={`/circles/${row.circleId}`}>
-                            <div className="mb-2 text-xs font-semibold text-slate-100">
-                              {row.circleName}の詳細ページへ移動
-                            </div>
-                          </Link>
-
-                          {/* 投稿詳細（チャット風） */}
-
-                          {row.items.map((e) => (
-                            <div key={e.id} className="flex gap-2 items-start">
-                              <div className="w-7 h-7 rounded-full bg-slate-700 overflow-hidden flex items-center justify-center shrink-0">
-                                {e.userImage ? (
-                                  <Image
-                                    src={e.userImage}
-                                    alt={e.userName}
-                                    width={28}
-                                    height={28}
-                                    className="w-7 h-7 object-cover"
-                                  />
-                                ) : (
-                                  <span className="text-[10px] text-slate-200">
-                                    {e.userName.slice(0, 2)}
-                                  </span>
-                                )}
-                              </div>
-
-                              <div className="flex-1">
-                                <div className="flex items-baseline gap-1">
-                                  <span className="text-xs font-semibold text-slate-100">
-                                    {e.userName}
-                                  </span>
-                                  <span className="text-[10px] text-slate-500">
-                                    {formatDateTime(e.at)}
-                                  </span>
-                                </div>
-
-                                <div className="mt-1 inline-block w-full rounded-2xl bg-slate-900/60 px-3 py-2">
-                                  <div className="flex items-center justify-between gap-2 mb-0.5">
-                                    <span className="text-[11px] text-sky-300">
-                                      {e.circleName}
-                                    </span>
-                                    {e.kind === "snapshot" && (
-                                      <span className="text-[12px] font-semibold text-sky-200">
-                                        ¥ {formatYen(e.amount)}
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  {e.kind === "snapshot" && e.memo && (
-                                    <p className="text-xs text-slate-100">
-                                      {e.memo}
-                                    </p>
-                                  )}
-
-                                  {e.kind === "join" && (
-                                    <p className="text-xs text-slate-100">
-                                      このサークルに参加しました。
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-
-                          {/* ===== 末尾：今日の残高を更新（既存コンポーネント） ===== */}
-                          <div className="pt-2">
-                            <BalanceInputInline circleId={row.circleId} />
-                          </div>
-                        </div>
-                      </details>
-                    </li>
-                  );
-                })}
-              </ul>
+              <DetailSnapshot circleRows={circleRows} />
             )}
           </TimeLineScroll>
 
