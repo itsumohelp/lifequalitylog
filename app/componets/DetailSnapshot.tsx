@@ -15,7 +15,9 @@ export default function DetailSnapshot({
 }) {
   const [enable, setEnable] = useState(true);
   const [openId, setOpenId] = useState<string | null>(null);
+
   const detailsRef = useRef<HTMLDetailsElement | null>(null);
+
   function formatYen(amount: number) {
     return new Intl.NumberFormat("ja-JP").format(amount);
   }
@@ -43,17 +45,16 @@ export default function DetailSnapshot({
 
         return (
           <li key={row.circleId}>
-            {/* ❗ bg-white を完全に排除 */}
             <details
               ref={detailsRef}
               key={row.circleId}
               open={openId === row.circleId}
               onToggle={(e) => {
-                const el = e.currentTarget;
-                if (!el) return;
+                const ect = e.currentTarget;
+                if (!ect) return;
 
-                if (el.open) {
-                  setOpenId(el.open ? row.circleId : null);
+                if (ect.open) {
+                  setOpenId(ect.open ? row.circleId : null);
                 }
               }}
               className="group rounded-2xl bg-slate-800/80"
