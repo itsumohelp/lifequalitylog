@@ -86,6 +86,7 @@ model User {
   sessions      Session[]
   circleMembers CircleMember[]
   snapshots     Snapshot[]
+  circleSnapshots CircleSnapshot[]
   @@map("users")
 }
  
@@ -107,6 +108,7 @@ model Circle {
   updatedAt   DateTime        @updatedAt
   members     CircleMember[]
   snapshots   Snapshot[]
+  circleSnapshots CircleSnapshot[]
 }
 
 model CircleMember {
@@ -138,4 +140,23 @@ enum CircleRole {
   ADMIN
   EDITOR
   VIEWER
+}
+
+model CircleSnapshot {
+  id        String   @id @default(cuid())
+  circleId  String
+  circle    Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  userId String
+  user   User     @relation(fields: [userId], references: [id])
+  amount    Int
+  note      String?
+  snapshotDate DateTime
+  createdAt    DateTime @default(now())
+　signature     String
+  signatureAlgo String
+  signatureAt   DateTime
+  isSignatureVerified Boolean @default(true)
+  diffFromPrev Int?
+  @@index([circleId, createdAt])
+  @@index([userId])
 }
