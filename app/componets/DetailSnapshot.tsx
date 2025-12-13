@@ -1,16 +1,20 @@
 "use client";
-
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import BalanceInputInline from "./BalanceInputInline";
 import { CircleRow } from "../dashboard/page";
+import Fab from "./Fab";
+
+type Row = { id: string; title: string; content: string };
 
 export default function DetailSnapshot({
   circleRows,
 }: {
   circleRows: CircleRow[];
 }) {
+  const [enable, setEnable] = useState(true);
+  const [openId, setOpenId] = useState<string | null>(null);
   const detailsRef = useRef<HTMLDetailsElement | null>(null);
   function formatYen(amount: number) {
     return new Intl.NumberFormat("ja-JP").format(amount);
@@ -42,19 +46,14 @@ export default function DetailSnapshot({
             {/* ❗ bg-white を完全に排除 */}
             <details
               ref={detailsRef}
-              onToggle={() => {
-                const el = detailsRef.current;
+              key={row.circleId}
+              open={openId === row.circleId}
+              onToggle={(e) => {
+                const el = e.currentTarget;
                 if (!el) return;
 
-                // open になった時だけスクロール
                 if (el.open) {
-                  requestAnimationFrame(() => {
-                    // 展開後の位置に合わせてスクロール
-                    el.scrollIntoView({
-                      behavior: "smooth",
-                      block: "start",
-                    });
-                  });
+                  setOpenId(el.open ? row.circleId : null);
                 }
               }}
               className="group rounded-2xl bg-slate-800/80"
@@ -68,7 +67,8 @@ export default function DetailSnapshot({
                       {row.circleName}
                     </div>
                     <div className="mt-0.5 text-[10px] text-slate-400">
-                      イベント {row.count}件
+                      {formatDateTime(latestAt)}
+                      {/* イベント {row.count}件 */}
                     </div>
                   </div>
 
@@ -81,21 +81,16 @@ export default function DetailSnapshot({
                         : "—"}
                     </span>
 
-                    {/* 更新日 */}
-                    <span className="text-[10px] text-slate-400 whitespace-nowrap">
-                      {formatDateShort(latestAt)}
-                    </span>
-
                     {/* 更新者 */}
                     <div className="flex items-center gap-1">
-                      <div className="w-6 h-6 rounded-full bg-slate-700 overflow-hidden flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full bg-slate-700 overflow-hidden flex items-center justify-center">
                         {latestUserImage ? (
                           <Image
                             src={latestUserImage}
                             alt={latestUserName}
-                            width={24}
-                            height={24}
-                            className="w-6 h-6 object-cover"
+                            width={32}
+                            height={32}
+                            className="w-8 h-8 object-cover"
                           />
                         ) : (
                           <span className="text-[10px] text-slate-200">
@@ -103,9 +98,9 @@ export default function DetailSnapshot({
                           </span>
                         )}
                       </div>
-                      <span className="text-[10px] text-slate-400 max-w-[72px] truncate">
+                      {/* <span className="text-[10px] text-slate-400 max-w-[72px] truncate">
                         {latestUserName}
-                      </span>
+                      </span> */}
                     </div>
 
                     {/* 展開アイコン */}
@@ -159,23 +154,34 @@ export default function DetailSnapshot({
 
                           <div className="mt-1 inline-block w-full rounded-2xl bg-slate-900/60 px-3 py-2">
                             <div className="flex items-center justify-between gap-2 mb-0.5">
-                              <span className="text-[11px] text-sky-300">
-                                {e.circleName}
-                              </span>
                               {e.kind === "snapshot" && (
-                                <span className="text-[12px] font-semibold text-sky-200">
-                                  ¥ {formatYen(e.amount)}
-                                </span>
+                                <>
+                                  <span className="text-[11px] text-sky-300">
+                                    残高更新
+                                  </span>
+
+                                  <span className="text-[12px] font-semibold text-sky-200">
+                                    ¥ {formatYen(e.amount)}
+                                  </span>
+                                </>
                               )}
                             </div>
 
                             {e.kind === "snapshot" && e.memo && (
-                              <p className="text-xs text-slate-100">{e.memo}</p>
+                              <>
+                                <span className="text-[11px] text-sky-300">
+                                  残高更新
+                                </span>
+
+                                <p className="text-xs text-slate-100">
+                                  {e.memo}
+                                </p>
+                              </>
                             )}
 
                             {e.kind === "join" && (
                               <p className="text-xs text-slate-100">
-                                このサークルに参加しました。
+                                サークルに参加しました。
                               </p>
                             )}
                           </div>
@@ -183,9 +189,12 @@ export default function DetailSnapshot({
                       </div>
                     ))}
 
-                    {/* ===== 末尾：今日の残高を更新（既存コンポーネント） ===== */}
                     <div className="pt-2">
-                      <BalanceInputInline circleId={row.circleId} />
+                      <BalanceInputInline
+                        circleId={row.circleId}
+                        enable={enable}
+                        setEnable={setEnable}
+                      />
                     </div>
                   </div>
                 </div>
@@ -194,6 +203,7 @@ export default function DetailSnapshot({
           </li>
         );
       })}
+      <Fab enable={enable} setEnable={setEnable} />
     </ul>
   );
 }

@@ -1,11 +1,8 @@
-// app/dashboard/page.tsx
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
-import Image from "next/image";
 import Fab from "@/app/componets/Fab";
 import TimeLineScroll from "../componets/TimeLineScroll";
-import BalanceInputInline from "../componets/BalanceInputInline";
 import Link from "next/link";
 import DetailSnapshot from "../componets/DetailSnapshot";
 
@@ -143,7 +140,7 @@ export default async function DashboardPage() {
       const sorted = [...items].sort((b, a) => a.at.getTime() - b.at.getTime());
       const latest = sorted[sorted.length - 1];
 
-      const last5Item = sorted.slice(0, 5).reverse();
+      const last3Item = sorted.slice(0, 3).reverse();
 
       // 最新snapshotのamountをサマリに出す（joinが最新でも、amountは直近snapshotから拾う）
       const latestSnapshot = sorted.find((x) => x.kind === "snapshot") as
@@ -157,7 +154,7 @@ export default async function DashboardPage() {
         latestKind: latest.kind,
         latestAmount: latestSnapshot ? latestSnapshot.amount : null,
         count: sorted.length,
-        items: last5Item,
+        items: last3Item,
       });
     }
 
@@ -257,8 +254,6 @@ export default async function DashboardPage() {
           <footer className="mt-3 shrink-0"></footer>
         </div>
       </div>
-
-      <Fab />
     </>
   );
 }

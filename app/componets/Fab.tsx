@@ -1,12 +1,17 @@
 // components/Fab.tsx
 "use client";
 
-import { useState } from "react";
+import { createContext, useState } from "react";
 import Link from "next/link";
 
-export default function Fab() {
+export default function Fab({
+  enable,
+  setEnable,
+}: {
+  enable: boolean;
+  setEnable: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
   const [open, setOpen] = useState(false);
-
   return (
     <div className="fixed right-4 bottom-4 z-40">
       {/* メニュー（開いている時だけ表示） */}
@@ -31,15 +36,16 @@ export default function Fab() {
         </div>
       )}
 
-      {/* 本体の＋ボタン */}
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="w-12 h-12 rounded-full bg-sky-600 hover:bg-sky-500 text-white shadow-lg flex items-center justify-center text-2xl leading-none"
-        aria-label="アクションを開く"
-      >
-        +
-      </button>
+      {enable && (
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="w-12 h-12 rounded-full bg-sky-600 hover:bg-sky-500 text-white shadow-lg flex items-center justify-center text-2xl leading-none"
+          aria-label="アクションを開く"
+        >
+          +
+        </button>
+      )}
     </div>
   );
 }
