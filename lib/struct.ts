@@ -8,11 +8,15 @@ export type CircleBalanceSnapshot = ({
   };
 } & {
   id: string;
-  createdAt: Date;
-  updatedAt: Date;
   circleId: string;
   userId: string;
   amount: number;
-  memo: string | null;
-  recordedAt: Date;
+  note: string | null;
+  snapshotDate: Date;
+  createdAt: Date;
+  signature: string;
+  signatureAlgo: string;
+  signatureAt: Date;
+  isSignatureVerified: boolean;
+  diffFromPrev: number | null;
 })[];

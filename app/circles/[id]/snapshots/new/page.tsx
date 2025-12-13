@@ -16,10 +16,7 @@ export default async function NewSnapshotPage({ params }: Props) {
 
   const resolvedParams = await params;
   const ResCircleId = resolvedParams.id;
-  console.log("check circleId in new snapshot page: " + ResCircleId);
-  
-  
-  // サーバーアクション
+
   async function createSnapshot(formData: FormData) {
     "use server";
 
@@ -37,13 +34,18 @@ export default async function NewSnapshotPage({ params }: Props) {
 
     const recordedAt = dateRaw ? new Date(dateRaw) : new Date();
 
-    await prisma.snapshot.create({
+    await prisma.circleSnapshot.create({
       data: {
         userId,
         amount,
-        memo,
-        recordedAt,
-        circleId: ResCircleId
+        note: "test",
+        circleId: ResCircleId,
+        createdAt: new Date(),
+        snapshotDate: new Date(),
+        signature: "placeholder-signature",
+        signatureAlgo: "RS256",
+        signatureAt: new Date(),
+        isSignatureVerified: true,
       },
     });
 
@@ -56,10 +58,7 @@ export default async function NewSnapshotPage({ params }: Props) {
       <div className="mx-auto max-w-md px-4 pt-4 pb-10">
         {/* ヘッダー（スマホ1行） */}
         <header className="flex items-center justify-between mb-4">
-          <Link
-            href="/dashboard"
-            className="text-xs text-sky-300"
-          >
+          <Link href="/dashboard" className="text-xs text-sky-300">
             ← 戻る
           </Link>
           <h1 className="text-sm font-semibold text-sky-100">

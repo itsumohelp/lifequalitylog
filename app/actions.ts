@@ -1,4 +1,3 @@
-// app/actions.ts
 "use server";
 
 import { auth } from "@/auth";
@@ -15,24 +14,65 @@ export async function addBalanceSnapshot(formData: FormData) {
   const circleId = formData.get("circleId") as string;
   const amountRaw = formData.get("amount") as string;
   const dateRaw = (formData.get("date") as string) || "";
-  const memo = (formData.get("memo") as string) || "";
+  const note = (formData.get("note") as string) || "";
 
   const amount = Number(amountRaw);
   if (!circleId || Number.isNaN(amount)) {
     throw new Error("invalid input");
   }
 
-  const recordedAt = dateRaw ? new Date(dateRaw) : new Date();
+  const snapshotDate = dateRaw ? new Date(dateRaw) : new Date();
 
-  await prisma.snapshot.create({
+  await prisma.circleSnapshot.create({
     data: {
       circleId,
       amount,
-      recordedAt,
+      snapshotDate: snapshotDate,
       userId,
-      memo,
+      note,
+      createdAt: new Date(),
+      signature: "dummy",
+      signatureAlgo: "none",
+      signatureAt: new Date(),
+      isSignatureVerified: false,
+      diffFromPrev: null,
     },
   });
-
   revalidatePath(`/circles/${circleId}`);
+}
+
+export async function addBalanceSnapshotBasic(formData: FormData) {
+  const session = await auth();
+  if (!session || !session.user?.id) {
+    redirect("/");
+  }
+  const userId = session!.user!.id as string;
+  const circleId = formData.get("circleId") as string;
+  const amountRaw = formData.get("amount") as string;
+  const dateRaw = (formData.get("date") as string) || "";
+  const note = (formData.get("note") as string) || "";
+
+  const amount = Number(amountRaw);
+  if (!circleId || Number.isNaN(amount)) {
+    throw new Error("invalid input");
+  }
+
+  const snapshotDate = dateRaw ? new Date(dateRaw) : new Date();
+
+  await prisma.circleSnapshot.create({
+    data: {
+      circleId,
+      amount,
+      snapshotDate: snapshotDate,
+      userId,
+      note,
+      createdAt: new Date(),
+      signature: "dummy",
+      signatureAlgo: "none",
+      signatureAt: new Date(),
+      isSignatureVerified: false,
+      diffFromPrev: null,
+    },
+  });
+  revalidatePath(`/dashboard`);
 }
