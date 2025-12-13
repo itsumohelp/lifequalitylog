@@ -30,28 +30,13 @@ export default function TimeLineScroll({ children }: { children: ReactNode }) {
           px-3
           py-3
           /* ★ iPhone の Safari アドレスバー込みで動く dvh を使う */
-          h-[calc(100dvh-230px)]
+          h-[calc(100dvh-214px)]
           overflow-y-auto
         "
       >
         {/* ★ 中身を下寄せにするラッパー */}
         <div className="min-h-full flex flex-col justify-end">{children}</div>
       </div>
-
-      {/* スクロールできそう感を出す上部グラデーション */}
-      <div
-        className="
-          pointer-events-none
-          absolute
-          inset-x-0
-          top-0
-          h-5
-          rounded-t-2xl
-          bg-gradient-to-b
-          from-slate-950/85
-          to-transparent
-        "
-      />
     </div>
   );
 }
