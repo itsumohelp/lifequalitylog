@@ -1,42 +1,50 @@
 // components/TimeLineScroll.tsx
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useRef,
+  type ReactNode,
+} from "react";
+
+const TimelineScrollContext =
+  createContext<React.RefObject<HTMLDivElement> | null>(null);
+
+export function useTimelineScrollContainer() {
+  const ctx = useContext(TimelineScrollContext);
+  if (!ctx)
+    throw new Error(
+      "useTimelineScrollContainer must be used within TimeLineScroll",
+    );
+  return ctx;
+}
 
 export default function TimeLineScroll({ children }: { children: ReactNode }) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-
-  // 初期表示で一番下までスクロール
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    requestAnimationFrame(() => {
-      el.scrollTop = el.scrollHeight;
-    });
-  }, []);
+  const containerRef = useRef<HTMLDivElement>(null!);
 
   return (
-    <div className="relative mt-2">
-      {/* スクロールする本体 */}
-      <div
-        ref={containerRef}
-        className="
-          no-scrollbar
-          rounded-2xl
-          bg-slate-900/40
-          border
-          border-slate-800
-          px-3
-          py-3
-          /* ★ iPhone の Safari アドレスバー込みで動く dvh を使う */
-          h-[calc(100dvh-214px)]
-          overflow-y-auto
-        "
-      >
-        {/* ★ 中身を下寄せにするラッパー */}
-        <div className="min-h-full flex flex-col justify-end">{children}</div>
+    <TimelineScrollContext.Provider value={containerRef}>
+      <div className="relative mt-2">
+        <div
+          ref={containerRef}
+          className="
+            no-scrollbar
+            rounded-2xl
+            bg-slate-900/40
+            border
+            border-slate-800
+            px-3
+            py-3
+            h-[calc(100dvh-214px)]
+            overflow-y-auto
+            [overflow-anchor:none]
+          "
+        >
+          {/* 上から積む */}
+          <div className="min-h-full flex flex-col">{children}</div>
+        </div>
       </div>
-    </div>
+    </TimelineScrollContext.Provider>
   );
 }
