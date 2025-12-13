@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { addBalanceSnapshotBasic } from "../actions";
 
 function formatYen(amount: number) {
@@ -10,11 +10,25 @@ function formatYen(amount: number) {
 export default function BalanceInputInline({ circleId }: { circleId: string }) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
+
+  // ✅ input 用の ref
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  // ✅ open になった瞬間に focus
+  useEffect(() => {
+    if (open) {
+      // モバイルSafari対策で 1tick 遅らせると安定
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+      });
+    }
+  }, [open]);
+
   return (
     <div className="mb-2">
       <div className="rounded-2xl bg-slate-800/80 px-3 py-2 border border-slate-700">
         {!open ? (
-          // 通常時：＋アイコンのみ（＋簡単な説明）
+          // 通常時
           <button
             onClick={() => setOpen(true)}
             className="w-full flex items-center gap-2 text-left"
@@ -43,13 +57,14 @@ export default function BalanceInputInline({ circleId }: { circleId: string }) {
               <div className="flex items-center gap-1">
                 <span className="text-xs text-slate-400">¥</span>
                 <input
+                  ref={inputRef} // ✅ ここ
                   type="number"
                   inputMode="numeric"
                   name="amount"
                   pattern="\d*"
                   value={value}
                   onChange={(e) => setValue(e.target.value)}
-                  className="flex-1 rounded bg-slate-900 px-2 py-1 text-sm text-slate-100 outline-none"
+                  className="flex-1 text-base rounded bg-slate-900 px-2 py-1 text-slate-100 outline-none"
                   placeholder="1234567"
                 />
               </div>
@@ -62,7 +77,9 @@ export default function BalanceInputInline({ circleId }: { circleId: string }) {
                   value={new Date().toISOString()}
                 />
                 <input type="hidden" name="note" value="" />
+
                 <button
+                  type="button"
                   onClick={() => {
                     setOpen(false);
                     setValue("");
@@ -71,6 +88,7 @@ export default function BalanceInputInline({ circleId }: { circleId: string }) {
                 >
                   キャンセル
                 </button>
+
                 <button
                   type="submit"
                   className="text-[11px] font-semibold text-sky-300"
