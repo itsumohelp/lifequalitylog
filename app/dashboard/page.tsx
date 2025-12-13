@@ -3,9 +3,10 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import Image from "next/image";
-import Link from "next/link";
 import Fab from "@/app/componets/Fab";
 import TimeLineScroll from "../componets/TimeLineScroll";
+import BalanceInputInline from "../componets/BalanceInputInline";
+import Link from "next/link";
 
 function formatYen(amount: number) {
   return new Intl.NumberFormat("ja-JP").format(amount);
@@ -50,6 +51,17 @@ type TimelineEvent =
       circleId: string;
     };
 
+type CircleRow = {
+  circleId: string;
+  circleName: string;
+  latestAt: Date;
+  latestAmount?: number | null; // snapshotがない場合はnull
+  latestKind: TimelineEvent["kind"];
+  count: number;
+  // 展開時に出す詳細（例: 直近20件）
+  items: TimelineEvent[];
+};
+
 export default async function DashboardPage() {
   const session = await auth();
   if (!session || !session.user?.id) {
@@ -67,41 +79,18 @@ export default async function DashboardPage() {
   const hasCircles = circleIds.length > 0;
 
   let events: TimelineEvent[] = [];
-  let circleSummaries:
-    | {
-        circleId: string;
-        circleName: string;
-        amount: number;
-        createdAt: Date;
-      }[]
-    | [] = [];
+  let circleRows: CircleRow[] = [];
 
   if (hasCircles) {
-    const snapshots = await prisma.snapshot.findMany({
+    const snapshots = await prisma.circleSnapshot.findMany({
       where: { circleId: { in: circleIds } },
       include: {
         circle: { select: { id: true, name: true } },
         user: { select: { id: true, name: true, email: true, image: true } },
       },
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: "asc" }, // ここはサマリに寄せてdesc推奨
       take: 200,
     });
-
-    const latestByCircle = new Map<
-      string,
-      { circleId: string; circleName: string; amount: number; createdAt: Date }
-    >();
-
-    for (const s of snapshots) {
-      latestByCircle.set(s.circleId, {
-        circleId: s.circleId,
-        circleName: s.circle.name,
-        amount: s.amount,
-        createdAt: s.createdAt,
-      });
-    }
-
-    circleSummaries = Array.from(latestByCircle.values());
 
     const snapshotEvents: TimelineEvent[] = snapshots.map((s) => ({
       id: `snapshot-${s.id}`,
@@ -111,10 +100,11 @@ export default async function DashboardPage() {
       userImage: s.user?.image,
       circleName: s.circle.name,
       amount: s.amount,
-      memo: s.memo ?? undefined,
+      note: s.note ?? undefined,
       circleId: s.circleId,
     }));
 
+    // joinイベントも取得
     const joins = await prisma.circleMember.findMany({
       where: { circleId: { in: circleIds } },
       include: {
@@ -135,21 +125,61 @@ export default async function DashboardPage() {
       circleId: m.circleId,
     }));
 
-    events = [...snapshotEvents, ...joinEvents].sort(
-      (a, b) => a.at.getTime() - b.at.getTime(),
+    // 全イベント（必要ならデバッグ用に残す）
+    events = [...joinEvents, ...snapshotEvents].sort(
+      (a, b) => b.at.getTime() - a.at.getTime(),
+    );
+
+    // circleごとにサマリ（1行）を作る
+    const byCircle = new Map<string, TimelineEvent[]>();
+    for (const e of events) {
+      if (!byCircle.has(e.circleId)) byCircle.set(e.circleId, []);
+      byCircle.get(e.circleId)!.push(e);
+    }
+
+    const rows: CircleRow[] = [];
+
+    for (const [circleId, items] of byCircle.entries()) {
+      // 既に events が desc なので items も概ねdesc
+      const sorted = [...items].sort((b, a) => b.at.getTime() - a.at.getTime());
+      const latest = sorted[0];
+
+      // 最新snapshotのamountをサマリに出す（joinが最新でも、amountは直近snapshotから拾う）
+      const latestSnapshot = sorted.find((x) => x.kind === "snapshot") as
+        | Extract<TimelineEvent, { kind: "snapshot" }>
+        | undefined;
+
+      rows.push({
+        circleId,
+        circleName: latest.circleName,
+        latestAt: latest.at,
+        latestKind: latest.kind,
+        latestAmount: latestSnapshot ? latestSnapshot.amount : null,
+        count: sorted.length,
+        items: sorted.slice(0, 5), // 展開時は直近20件だけ
+      });
+    }
+
+    // サークル行は「最新更新順」
+    circleRows = rows.sort(
+      (b, a) => b.latestAt.getTime() - a.latestAt.getTime(),
     );
   }
 
-  const hasEvents = events.length > 0;
-  const hasSummaries = circleSummaries.length > 0;
+  const latestSnapshots = await prisma.snapshot.findMany({
+    where: { circleId: { in: circleIds } },
+    orderBy: { createdAt: "asc" },
+    distinct: ["circleId"],
+    include: {
+      circle: { select: { id: true, name: true } },
+    },
+  });
+  const hasRows = circleRows.length > 0;
 
   return (
     <>
-      {/* layout.tsx の <main className="flex-1"> の高さをまるっと受け取る */}
       <div className="h-full">
-        {/* 中央寄せ＆上下余白、ここでタイムラインを縦に分割 */}
         <div className="mx-auto max-w-md px-4 pt-4 pb-2 flex flex-col h-full">
-          {/* ページ内ヘッダー */}
           <header className="mb-1 shrink-0">
             <div className="flex items-center justify-between">
               <h1 className="text-sm font-semibold text-sky-100">
@@ -158,39 +188,42 @@ export default async function DashboardPage() {
             </div>
           </header>
 
-          {/* サークルサマリ（横スクロール） */}
-          {hasCircles && hasSummaries && (
-            <section className="mb-1 shrink-0">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] text-slate-400">
-                  サークル別の最新残高
-                </span>
-              </div>
-              <div className="-mx-1 px-1 pb-1 overflow-x-auto no-scrollbar">
-                <div className="flex gap-2">
-                  {circleSummaries.map((c) => (
-                    <Link
-                      key={c.circleId}
-                      href={`/circles/${c.circleId}`}
-                      className="min-w-[150px] max-w-[180px] rounded-2xl bg-slate-900/70 border border-slate-800 px-3 py-2 flex-shrink-0 hover:border-sky-500/70 transition-colors"
-                    >
-                      <div className="text-[11px] font-semibold text-sky-100 truncate">
-                        {c.circleName}
-                      </div>
-                      <div className="mt-1 text-[13px] font-bold text-sky-300">
-                        ¥ {formatYen(c.amount)}
-                      </div>
-                      <div className="mt-0.5 text-[10px] text-slate-500">
-                        更新: {formatDateShort(c.createdAt)}
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </section>
-          )}
+          {/* ===== 上部：サークル残高サマリ（横スクロール） ===== */}
+          <section className="mt-2 mb-3">
+            <h2 className="text-[11px] text-slate-400 mb-2">サークル残高</h2>
 
-          {/* タイムライン本体：ここだけがスクロール */}
+            <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+              {latestSnapshots.map((s) => (
+                <div
+                  key={s.circleId}
+                  className="min-w-[220px] shrink-0 rounded-2xl bg-slate-800/80 px-3 py-2"
+                >
+                  <Link href={`/circles/${s.circleId}`}>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="truncate text-xs font-semibold text-slate-100">
+                          {s.circle.name}
+                        </div>
+                        <div className="text-[10px] text-slate-500">
+                          最終更新: {formatDateTime(s.createdAt)}
+                        </div>
+                      </div>
+
+                      <div className="text-right">
+                        <div className="text-[12px] font-semibold text-sky-200">
+                          ¥ {formatYen(s.amount)}
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                </div>
+              ))}
+
+              {/* スナップショットが1件もないサークルも出したい場合は、ここで補完表示します（必要なら書きます） */}
+            </div>
+          </section>
+
+          {/* タイムライン本体：ここだけスクロール */}
           <TimeLineScroll>
             {!hasCircles ? (
               <div className="h-full flex items-center justify-center text-center">
@@ -203,7 +236,7 @@ export default async function DashboardPage() {
                   </p>
                 </div>
               </div>
-            ) : !hasEvents ? (
+            ) : !hasRows ? (
               <div className="h-full flex items-center justify-center text-center">
                 <div>
                   <p className="text-xs text-slate-300 mb-1">
@@ -217,63 +250,148 @@ export default async function DashboardPage() {
               </div>
             ) : (
               <ul className="space-y-2">
-                {events.map((e) => (
-                  <li key={e.id} className="flex gap-2 items-start">
-                    <div className="w-8 h-8 rounded-full bg-slate-700 overflow-hidden flex items-center justify-center shrink-0">
-                      {e.userImage ? (
-                        <Image
-                          src={e.userImage}
-                          alt={e.userName}
-                          width={32}
-                          height={32}
-                          className="w-8 h-8 object-cover"
-                        />
-                      ) : (
-                        <span className="text-[10px] text-slate-200">
-                          {e.userName.slice(0, 2)}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-xs font-semibold text-slate-100">
-                          {e.userName}
-                        </span>
-                        <span className="text-[10px] text-slate-500">
-                          {formatDateTime(e.at)}
-                        </span>
-                      </div>
+                {circleRows.map((row) => {
+                  const latestUserName =
+                    row.items[0]?.userName ?? "不明なユーザー";
+                  const latestUserImage = row.items[0]?.userImage;
+                  const latestAt = row.latestAt;
 
-                      <Link
-                        key={e.circleId}
-                        href={`/circles/${e.circleId}`}
-                        className="mt-1 inline-block rounded-2xl bg-slate-800/80 px-3 py-2"
-                      >
-                        <div className="flex items-center justify-between gap-2 mb-0.5">
-                          <span className="text-[11px] text-sky-300">
-                            {e.circleName}
-                          </span>
+                  return (
+                    <li key={row.circleId}>
+                      {/* ❗ bg-white を完全に排除 */}
+                      <details className="group rounded-2xl bg-slate-800/80">
+                        {/* ===== サークル最上位サマリ行 ===== */}
+                        <summary className="list-none cursor-pointer px-3 py-2 hover:bg-slate-800 transition-colors rounded-2xl">
+                          <div className="flex items-center justify-between gap-2">
+                            {/* 左：サークル名 */}
+                            <div className="min-w-0">
+                              <div className="truncate text-sm font-semibold text-slate-100">
+                                {row.circleName}
+                              </div>
+                              <div className="mt-0.5 text-[10px] text-slate-400">
+                                イベント {row.count}件
+                              </div>
+                            </div>
 
-                          {e.kind === "snapshot" && (
-                            <span className="text-[12px] font-semibold text-sky-200">
-                              ¥ {formatYen(e.amount)}
-                            </span>
-                          )}
+                            {/* 右：更新情報 */}
+                            <div className="flex items-center gap-2 shrink-0">
+                              {/* 最新残高 */}
+                              <span className="text-[12px] font-semibold text-sky-200">
+                                {row.latestAmount != null
+                                  ? `¥ ${formatYen(row.latestAmount)}`
+                                  : "—"}
+                              </span>
+
+                              {/* 更新日 */}
+                              <span className="text-[10px] text-slate-400 whitespace-nowrap">
+                                {formatDateShort(latestAt)}
+                              </span>
+
+                              {/* 更新者 */}
+                              <div className="flex items-center gap-1">
+                                <div className="w-6 h-6 rounded-full bg-slate-700 overflow-hidden flex items-center justify-center">
+                                  {latestUserImage ? (
+                                    <Image
+                                      src={latestUserImage}
+                                      alt={latestUserName}
+                                      width={24}
+                                      height={24}
+                                      className="w-6 h-6 object-cover"
+                                    />
+                                  ) : (
+                                    <span className="text-[10px] text-slate-200">
+                                      {latestUserName.slice(0, 2)}
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="text-[10px] text-slate-400 max-w-[72px] truncate">
+                                  {latestUserName}
+                                </span>
+                              </div>
+
+                              {/* 展開アイコン */}
+                              <span className="text-[10px] text-slate-400 group-open:rotate-180 transition-transform">
+                                ▼
+                              </span>
+                            </div>
+                          </div>
+                        </summary>
+
+                        {/* ===== 展開エリア ===== */}
+                        <div className="mt-1 border-t border-slate-700/50 px-3 py-2 space-y-2">
+                          <Link href={`/circles/${row.circleId}`}>
+                            <div className="mb-2 text-xs font-semibold text-slate-100">
+                              {row.circleName}の詳細ページへ移動
+                            </div>
+                          </Link>
+
+                          {/* 投稿詳細（チャット風） */}
+
+                          {row.items.map((e) => (
+                            <div key={e.id} className="flex gap-2 items-start">
+                              <div className="w-7 h-7 rounded-full bg-slate-700 overflow-hidden flex items-center justify-center shrink-0">
+                                {e.userImage ? (
+                                  <Image
+                                    src={e.userImage}
+                                    alt={e.userName}
+                                    width={28}
+                                    height={28}
+                                    className="w-7 h-7 object-cover"
+                                  />
+                                ) : (
+                                  <span className="text-[10px] text-slate-200">
+                                    {e.userName.slice(0, 2)}
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="flex-1">
+                                <div className="flex items-baseline gap-1">
+                                  <span className="text-xs font-semibold text-slate-100">
+                                    {e.userName}
+                                  </span>
+                                  <span className="text-[10px] text-slate-500">
+                                    {formatDateTime(e.at)}
+                                  </span>
+                                </div>
+
+                                <div className="mt-1 inline-block w-full rounded-2xl bg-slate-900/60 px-3 py-2">
+                                  <div className="flex items-center justify-between gap-2 mb-0.5">
+                                    <span className="text-[11px] text-sky-300">
+                                      {e.circleName}
+                                    </span>
+                                    {e.kind === "snapshot" && (
+                                      <span className="text-[12px] font-semibold text-sky-200">
+                                        ¥ {formatYen(e.amount)}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {e.kind === "snapshot" && e.memo && (
+                                    <p className="text-xs text-slate-100">
+                                      {e.memo}
+                                    </p>
+                                  )}
+
+                                  {e.kind === "join" && (
+                                    <p className="text-xs text-slate-100">
+                                      このサークルに参加しました。
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+
+                          {/* ===== 末尾：今日の残高を更新（既存コンポーネント） ===== */}
+                          <div className="pt-2">
+                            <BalanceInputInline circleId={row.circleId} />
+                          </div>
                         </div>
-
-                        {e.kind === "snapshot" && e.memo && (
-                          <p className="text-xs text-slate-100">{e.memo}</p>
-                        )}
-
-                        {e.kind === "join" && (
-                          <p className="text-xs text-slate-100">
-                            このサークルに参加しました。
-                          </p>
-                        )}
-                      </Link>
-                    </div>
-                  </li>
-                ))}
+                      </details>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </TimeLineScroll>
@@ -282,7 +400,6 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* 右下のフローティング＋ボタン */}
       <Fab />
     </>
   );

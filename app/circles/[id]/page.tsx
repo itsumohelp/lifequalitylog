@@ -80,14 +80,15 @@ export default async function CircleDetailPage({ params }: Props) {
     redirect("/circles");
   }
 
-  // このサークルの残高スナップショット一覧
-  const snapshots: CircleBalanceSnapshot = await prisma.snapshot.findMany({
-    where: { circleId },
-    orderBy: { recordedAt: "desc" },
-    include: {
-      user: true,
+  const snapshots: CircleBalanceSnapshot = await prisma.circleSnapshot.findMany(
+    {
+      where: { circleId },
+      orderBy: { createdAt: "asc" },
+      include: {
+        user: true,
+      },
     },
-  });
+  );
 
   const memberCount = circle.members.length;
 
@@ -103,36 +104,30 @@ export default async function CircleDetailPage({ params }: Props) {
             <h1 className="text-sm font-semibold text-sky-100 line-clamp-1">
               {circle.name}
             </h1>
-            <span className="text-[10px] text-slate-400">
+            <span className="text-slate-400">
               {roleLabel(myMembership.role)}
             </span>
           </div>
 
           <div className="rounded-2xl bg-slate-900/70 border border-slate-800 px-3 py-3 mb-3">
             {circle.walletName && (
-              <p className="text-xs text-sky-300 mb-1">
+              <div className="text-xs text-sky-300 mb-1">
                 ウォレット: {circle.walletName}
-              </p>
+              </div>
             )}
             {circle.description && (
-              <p className="text-[11px] text-slate-200 mb-1">
-                {circle.description}
-              </p>
+              <div className="text-slate-200 mb-1">{circle.description}</div>
             )}
             <div className="flex items-center justify-between mt-1">
-              <span className="text-[10px] text-slate-500">
+              <span className="text-slate-500">
                 メンバー {memberCount} / 50
               </span>
-              <span className="text-[10px] text-slate-500">
-                通貨: {circle.currency}
-              </span>
+              <span className="text-slate-500">通貨: {circle.currency}</span>
             </div>
           </div>
 
           <div className="flex items-center justify-between">
-            <p className="text-[11px] text-slate-400">
-              残高を時系列で表示します。
-            </p>
+            <div className="text-slate-400">残高を時系列で表示します。</div>
             <InviteButton circleId={circle.id} />
           </div>
         </header>
@@ -140,12 +135,12 @@ export default async function CircleDetailPage({ params }: Props) {
         {/* タイムライン */}
         {snapshots.length === 0 ? (
           <div className="mt-6 rounded-2xl border border-dashed border-slate-700 bg-slate-900/40 px-4 py-6 text-center">
-            <p className="text-xs text-slate-300 mb-2">
+            <div className="text-xs text-slate-300 mb-2">
               まだこのサークルのスナップショットがありません。
-            </p>
-            <p className="text-[11px] text-slate-500 mb-4">
+            </div>
+            <div className="text-slate-500 mb-4">
               最初の記録として、今日の残高を登録してみましょう。
-            </p>
+            </div>
             <Link
               href={`/circles/${circleId}/snapshots/new`}
               className="inline-flex items-center justify-center rounded-2xl bg-sky-500 px-4 py-2 text-xs font-semibold text-white active:scale-[0.98] transition-transform"
@@ -161,15 +156,13 @@ export default async function CircleDetailPage({ params }: Props) {
                   {circle.name || "残高タイムライン"}
                 </h1>
               </div>
-              <span className="text-[10px] text-slate-500">
-                合計 {snapshots.length} 件
-              </span>
+              <span className="text-slate-500">合計 {snapshots.length} 件</span>
             </div>
 
             <ol className="space-y-2">
               {snapshots.map((s, index) => {
                 const isFirst = index === 0;
-                const isLocked = isOlderThan3Years(s.recordedAt);
+                const isLocked = isOlderThan3Years(s.snapshotDate);
                 return (
                   <li key={s.id} className="relative pl-4">
                     {/* タイムラインの線 */}
@@ -185,46 +178,48 @@ export default async function CircleDetailPage({ params }: Props) {
                     <article className="ml-2 rounded-2xl bg-slate-900/60 border border-slate-800 px-4 py-3">
                       <div className="flex items-baseline justify-between mb-1">
                         <span className="text-[11px] text-slate-400">
-                          {formatDate(s.recordedAt)}
+                          {formatDate(s.createdAt)}
                         </span>
                         <span className="text-xs font-semibold text-sky-300">
                           ¥ {formatYen(s.amount)}
                         </span>
                       </div>
 
-                      {s.memo && (
-                        <p className="text-xs text-slate-200 mb-1">{s.memo}</p>
+                      {s.note && (
+                        <div className="text-xs text-slate-200 mb-1">
+                          {s.note}
+                        </div>
                       )}
 
                       <div className="flex items-center justify-between">
-                        <p className="text-[10px] text-slate-500">
+                        <div className="text-slate-500">
                           <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-slate-700 overflow-hidden flex items-center justify-center shrink-0">
+                            <div className="text-[10px] w-6 h-6 rounded-full bg-slate-700 overflow-hidden flex items-center justify-center shrink-0">
                               {s.user?.image ? (
                                 <Image
                                   src={s.user.image}
                                   alt={s.user.name || "User"}
                                   width={32}
                                   height={32}
-                                  className="w-6 h-6 object-cover"
+                                  className="text-[10px] w-6 h-6 object-cover"
                                 />
                               ) : s.user.name ? (
                                 <span className="text-[10px] text-slate-200">
                                   {s.user.name.slice(0, 2)}
                                 </span>
                               ) : (
-                                <span className="text-[10px] text-slate-200">
-                                  User
-                                </span>
+                                <span className="text-slate-200">User</span>
                               )}
                             </div>
                             <div className="flex-1">
                               <div className="flex items-baseline gap-1">
-                                <span>{s.user?.name || "不明なユーザー"}</span>
+                                <span className="text-[12px] text-slate-200">
+                                  {s.user?.name || "不明なユーザー"}
+                                </span>
                               </div>
                             </div>
                           </div>
-                        </p>
+                        </div>
                         {isLocked ? (
                           <span className="text-[10px] text-slate-500">
                             3年以上前（編集不可）
