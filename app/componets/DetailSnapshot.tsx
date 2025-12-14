@@ -1,18 +1,21 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import BalanceInputInline from "./BalanceInputInline";
 import { CircleRow } from "../dashboard/page";
 import Fab from "./Fab";
 import { useTimelineScrollContainer } from "./TimeLineScroll";
+import TimeLineDel from "./TimeLineDel";
 
 type Row = { id: string; title: string; content: string };
 
 export default function DetailSnapshot({
   circleRows,
+  userId,
 }: {
   circleRows: CircleRow[];
+  userId: string;
 }) {
   const [enable, setEnable] = useState(true);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -96,21 +99,18 @@ export default function DetailSnapshot({
                 };
                 requestAnimationFrame(pump);
 
-                // open中：高さが変わるたびに末尾を追従（これが本命）
                 const content = contentRef.current;
                 if (!content) return;
               }}
-              className="group rounded-2xl bg-slate-800/80"
+              className="group rounded-2xl bg-slate-200"
             >
-              {/* ===== サークル最上位サマリ行 ===== */}
               <summary className="list-none cursor-pointer px-3 py-2 hover:bg-slate-800 transition-colors rounded-2xl">
                 <div className="flex items-center justify-between gap-2">
-                  {/* 左：サークル名 */}
                   <div className="min-w-0">
-                    <div className="truncate text-sm font-semibold text-slate-100">
+                    <div className="truncate text-sm font-semibold text-slate-600">
                       {row.circleName}
                     </div>
-                    <div className="mt-0.5 text-[10px] text-slate-400">
+                    <div className="mt-0.5 text-[10px] text-slate-800">
                       {formatDateTime(latestAt)}
                       {/* イベント {row.count}件 */}
                     </div>
@@ -119,7 +119,7 @@ export default function DetailSnapshot({
                   {/* 右：更新情報 */}
                   <div className="flex items-center gap-2 shrink-0">
                     {/* 最新残高 */}
-                    <span className="text-[12px] font-semibold text-sky-200">
+                    <span className="text-[12px] font-semibold text-sky-800">
                       {row.latestAmount != null
                         ? `¥ ${formatYen(row.latestAmount)}`
                         : "—"}
@@ -137,17 +137,12 @@ export default function DetailSnapshot({
                             className="w-8 h-8 object-cover"
                           />
                         ) : (
-                          <span className="text-[10px] text-slate-200">
+                          <span className="text-[10px] text-slate-800">
                             {latestUserName.slice(0, 2)}
                           </span>
                         )}
                       </div>
-                      {/* <span className="text-[10px] text-slate-400 max-w-[72px] truncate">
-                        {latestUserName}
-                      </span> */}
                     </div>
-
-                    {/* 展開アイコン */}
                     <span className="text-[10px] text-slate-400 group-open:rotate-180 transition-transform">
                       ▼
                     </span>
@@ -161,16 +156,16 @@ export default function DetailSnapshot({
 
                   <div className="mt-1 border-t border-slate-700/50 px-3 py-2 space-y-2">
                     <Link href={`/circles/${row.circleId}`}>
-                      <div className="mb-2 text-xs font-semibold text-slate-100">
+                      <div className="mb-2 text-xs text-slate-1000">
                         {row.circleName}の詳細ページへ移動
                       </div>
                     </Link>
 
                     {/* 投稿詳細（チャット風） */}
 
-                    {row.items.map((e) => (
+                    {row.items.map((e, index) => (
                       <div key={e.id} className="flex gap-2 items-start">
-                        <div className="w-7 h-7 rounded-full bg-slate-700 overflow-hidden flex items-center justify-center shrink-0">
+                        <div className="w-7 h-7 rounded-full bg-slate-400 overflow-hidden flex items-center justify-center shrink-0">
                           {e.userImage ? (
                             <Image
                               src={e.userImage}
@@ -180,51 +175,50 @@ export default function DetailSnapshot({
                               className="w-7 h-7 object-cover"
                             />
                           ) : (
-                            <span className="text-[10px] text-slate-200">
+                            <span className="text-[10px] text-slate-600">
                               {e.userName.slice(0, 2)}
                             </span>
                           )}
                         </div>
-
                         <div className="flex-1">
                           <div className="flex items-baseline gap-1">
-                            <span className="text-xs font-semibold text-slate-100">
+                            <span className="text-xs font-semibold text-slate-600">
                               {e.userName}
                             </span>
-                            <span className="text-[10px] text-slate-500">
+                            <span className="text-[10px] text-sky-800">
                               {formatDateTime(e.at)}
                             </span>
                           </div>
 
-                          <div className="mt-1 inline-block w-full rounded-2xl bg-slate-900/60 px-3 py-2">
+                          <div className="relative mt-1 inline-block w-full rounded-2xl bg-slate-400 px-3 py-2">
+                            {e.kind === "snapshot" && userId === e.userId ? (
+                              <TimeLineDel row={e} />
+                            ) : null}
                             <div className="flex items-center justify-between gap-2 mb-0.5">
                               {e.kind === "snapshot" && (
                                 <>
-                                  <span className="text-[11px] text-sky-300">
+                                  <span className="text-[11px] text-sky-800">
                                     残高更新
                                   </span>
 
-                                  <span className="text-[12px] font-semibold text-sky-200">
+                                  <span className="text-[12px] font-semibold text-sky-800">
                                     ¥ {formatYen(e.amount)}
                                   </span>
                                 </>
                               )}
                             </div>
-
                             {e.kind === "snapshot" && e.memo && (
                               <>
-                                <span className="text-[11px] text-sky-300">
+                                <span className="text-[11px] text-sky-800">
                                   残高更新
                                 </span>
 
-                                <p className="text-xs text-slate-100">
-                                  {e.memo}
-                                </p>
+                                <p className="text-xs text-sky-800">{e.memo}</p>
                               </>
                             )}
 
                             {e.kind === "join" && (
-                              <p className="text-xs text-slate-100">
+                              <p className="text-xs text-sky-800">
                                 サークルに参加しました。
                               </p>
                             )}

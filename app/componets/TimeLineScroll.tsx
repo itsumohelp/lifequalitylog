@@ -30,12 +30,6 @@ export default function TimeLineScroll({ children }: { children: ReactNode }) {
           ref={containerRef}
           className="
             no-scrollbar
-            rounded-2xl
-            bg-slate-900/40
-            border
-            border-slate-800
-            px-3
-            py-3
             h-[calc(100dvh-214px)]
             overflow-y-auto
             [overflow-anchor:none]

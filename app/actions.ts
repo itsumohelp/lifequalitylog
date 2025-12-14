@@ -76,3 +76,27 @@ export async function addBalanceSnapshotBasic(formData: FormData) {
   });
   revalidatePath(`/dashboard`);
 }
+
+export async function delBalanceSnapshot(formData: FormData) {
+  const session = await auth();
+  if (!session || !session.user?.id) {
+    redirect("/");
+  }
+  const userId = session!.user!.id as string;
+  const snapshotId = formData.get("snapshotId") as string;
+
+  await prisma.circleSnapshot.findFirstOrThrow({
+    where: {
+      id: snapshotId,
+      userId: userId,
+    },
+  });
+
+  await prisma.circleSnapshot.delete({
+    where: {
+      id: snapshotId,
+      userId: userId,
+    },
+  });
+  revalidatePath(`/dashboard`);
+}
