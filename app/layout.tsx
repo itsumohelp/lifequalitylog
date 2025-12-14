@@ -13,14 +13,10 @@ export default async function RootLayout({
 
   return (
     <html lang="ja">
-      <body className="bg-slate-950 text-slate-50">
-        {/* 画面全体：縦にヘッダー＋コンテンツ */}
-        <div className="min-h-screen flex flex-col bg-slate-950">
-          {/* 共通ヘッダー（高さぶんだけ上に積まれる） */}
+      <body className="text-slate-50 bg-slate-50">
+        <div className="min-h-screen flex flex-col bg-slate-50">
           <Header session={session} />
-
-          {/* 残り全部がここに入る */}
-          <main className="flex-1 bg-slate-950">{children}</main>
+          <main className="flex-1 bg-slate-50">{children}</main>
         </div>
       </body>
       <GoogleAnalytics gaId="G-64XWZ672CX" />

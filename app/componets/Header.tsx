@@ -23,11 +23,11 @@ export default function Header({ session }: HeaderProps) {
   }
 
   return (
-    <header className="border-b border-slate-800 bg-slate-900/80 backdrop-blur">
+    <header className="backdrop-blur">
       <div className="mx-auto max-w-md px-4 py-2 flex items-center justify-between">
         {/* 左：ロゴ */}
         <Link href="/dashboard" className="flex items-center gap-2">
-          <span className="text-sm font-bold tracking-wide text-sky-100">
+          <span className="text-sm font-bold tracking-wide text-sky-1200">
             Circlerun
           </span>
         </Link>
@@ -48,12 +48,12 @@ export default function Header({ session }: HeaderProps) {
                       className="w-7 h-7 object-cover"
                     />
                   ) : (
-                    <span className="text-[11px] text-slate-200">
+                    <span className="text-[11px] text-slate-1000">
                       {(user.name ?? user.email ?? "?").slice(0, 2)}
                     </span>
                   )}
                 </div>
-                <span className="text-[11px] text-slate-200 max-w-[90px] truncate">
+                <span className="text-[11px] text-slate-1000 max-w-[90px] truncate">
                   {user.name ?? user.email}
                 </span>
               </div>
@@ -62,7 +62,7 @@ export default function Header({ session }: HeaderProps) {
               <form action={handleSignOut}>
                 <button
                   type="submit"
-                  className="text-[11px] px-2 py-1 rounded-full border border-slate-600 text-slate-200 hover:bg-slate-800"
+                  className="text-[11px] px-2 py-1 rounded-full border border-slate-600 text-slate-1000 hover:bg-slate-800"
                 >
                   ログアウト
                 </button>
@@ -73,7 +73,7 @@ export default function Header({ session }: HeaderProps) {
             <form action={handleSignIn}>
               <button
                 type="submit"
-                className="text-[11px] px-3 py-1 rounded-full border border-sky-500 text-sky-100 hover:bg-sky-700/30"
+                className="text-[11px] px-3 py-1 rounded-full border border-sky-500 text-sky-1000 hover:bg-sky-700/30"
               >
                 ログイン
               </button>

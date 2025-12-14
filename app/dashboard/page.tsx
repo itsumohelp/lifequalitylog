@@ -1,9 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
-import Fab from "@/app/componets/Fab";
 import TimeLineScroll from "../componets/TimeLineScroll";
-import Link from "next/link";
 import DetailSnapshot from "../componets/DetailSnapshot";
 
 function formatYen(amount: number) {
@@ -27,7 +25,7 @@ function formatDateShort(date: Date) {
   });
 }
 
-type TimelineEvent =
+export type TimelineEvent =
   | {
       id: string;
       kind: "snapshot";
@@ -38,6 +36,8 @@ type TimelineEvent =
       amount: number;
       memo?: string | null;
       circleId: string;
+      snapshotId: string;
+      userId?: string;
     }
   | {
       id: string;
@@ -50,6 +50,7 @@ type TimelineEvent =
     };
 
 export type CircleRow = {
+  id: string;
   circleId: string;
   circleName: string;
   latestAt: Date;
@@ -74,6 +75,7 @@ export default async function DashboardPage() {
 
   const circleIds = memberships.map((m) => m.circleId);
   const hasCircles = circleIds.length > 0;
+  let allMasnagedCircles: number = 0;
 
   let events: TimelineEvent[] = [];
   let circleRows: CircleRow[] = [];
@@ -99,9 +101,10 @@ export default async function DashboardPage() {
       amount: s.amount,
       note: s.note ?? undefined,
       circleId: s.circleId,
+      userId: s.userId,
+      snapshotId: s.id,
     }));
 
-    // joinイベントも取得
     const joins = await prisma.circleMember.findMany({
       where: { circleId: { in: circleIds } },
       include: {
@@ -148,6 +151,7 @@ export default async function DashboardPage() {
         | undefined;
 
       rows.push({
+        id: latest.id,
         circleId,
         circleName: latest.circleName,
         latestAt: latest.at,
@@ -156,6 +160,8 @@ export default async function DashboardPage() {
         count: sorted.length,
         items: last3Item,
       });
+      allMasnagedCircles +=
+        latestSnapshot && latestSnapshot.amount ? latestSnapshot.amount : 0;
     }
 
     // サークル行は「最新更新順」
@@ -164,64 +170,35 @@ export default async function DashboardPage() {
     );
   }
 
-  const latestSnapshots = await prisma.snapshot.findMany({
-    where: { circleId: { in: circleIds } },
-    orderBy: { createdAt: "asc" },
-    distinct: ["circleId"],
-    include: {
-      circle: { select: { id: true, name: true } },
-    },
-  });
   const hasRows = circleRows.length > 0;
 
   return (
     <>
-      <div className="h-full">
-        <div className="mx-auto max-w-md px-4 pt-4 pb-2 flex flex-col h-full">
+      <div className="h-full bg-slate-50">
+        <div className="mx-auto max-w-md px-1 pt-2 pb-2 flex flex-col h-full">
           <header className="mb-1 shrink-0">
             <div className="flex items-center justify-between">
-              <h1 className="text-sm font-semibold text-sky-100">
-                みんなのお金のタイムライン
+              <h1 className="text-sm font-semibold text-sky-900">
+                管理するサークルの合計
               </h1>
             </div>
           </header>
 
           {/* ===== 上部：サークル残高サマリ（横スクロール） ===== */}
-          <section className="mt-2 mb-3">
-            <h2 className="text-[11px] text-slate-400 mb-2">サークル残高</h2>
-
-            <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
-              {latestSnapshots.map((s) => (
-                <div
-                  key={s.circleId}
-                  className="min-w-[220px] shrink-0 rounded-2xl bg-slate-800/80 px-3 py-2"
-                >
-                  <Link href={`/circles/${s.circleId}`}>
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="truncate text-xs font-semibold text-slate-100">
-                          {s.circle.name}
-                        </div>
-                        <div className="text-[10px] text-slate-500">
-                          最終更新: {formatDateTime(s.createdAt)}
-                        </div>
-                      </div>
-
-                      <div className="text-right">
-                        <div className="text-[12px] font-semibold text-sky-200">
-                          ¥ {formatYen(s.amount)}
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
+          <section className="mt-1 mb-1">
+            <div className="overflow-x-auto pb-2 -mx-1 px-1">
+              <div className="shrink-0 rounded-2xl bg-slate-800/80 px-3 py-2">
+                <div className="font-semibold text-sky-200 text-4xl text-center">
+                  ¥ {formatYen(allMasnagedCircles)}
                 </div>
-              ))}
-
-              {/* スナップショットが1件もないサークルも出したい場合は、ここで補完表示します（必要なら書きます） */}
+              </div>
             </div>
           </section>
 
           {/* タイムライン本体：ここだけスクロール */}
+          <h1 className="text-sm font-semibold text-sky-900">
+            各サークルの記録
+          </h1>
           <TimeLineScroll>
             {!hasCircles ? (
               <div className="h-full flex items-center justify-center text-center">
@@ -247,7 +224,10 @@ export default async function DashboardPage() {
                 </div>
               </div>
             ) : (
-              <DetailSnapshot circleRows={circleRows} />
+              <DetailSnapshot
+                circleRows={circleRows}
+                userId={session?.user?.id}
+              />
             )}
           </TimeLineScroll>
 
