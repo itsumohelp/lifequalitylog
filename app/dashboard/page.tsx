@@ -1,63 +1,34 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
-import TimeLineScroll from "../componets/TimeLineScroll";
-import DetailSnapshot from "../componets/DetailSnapshot";
+import UnifiedChat from "../componets/UnifiedChat";
+import Link from "next/link";
 
 function formatYen(amount: number) {
   return new Intl.NumberFormat("ja-JP").format(amount);
 }
 
-function formatDateTime(date: Date) {
-  return date.toLocaleString("ja-JP", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function formatDateShort(date: Date) {
-  return date.toLocaleDateString("ja-JP", {
-    month: "short",
-    day: "numeric",
-  });
-}
-
-export type TimelineEvent =
-  | {
-      id: string;
-      kind: "snapshot";
-      at: Date;
-      userName: string;
-      userImage?: string | null;
-      circleName: string;
-      amount: number;
-      memo?: string | null;
-      circleId: string;
-      snapshotId: string;
-      userId?: string;
-    }
-  | {
-      id: string;
-      kind: "join";
-      at: Date;
-      userName: string;
-      userImage?: string | null;
-      circleName: string;
-      circleId: string;
-    };
-
-export type CircleRow = {
+type FeedItem = {
   id: string;
+  kind: "snapshot" | "expense";
   circleId: string;
   circleName: string;
-  latestAt: Date;
-  latestAmount?: number | null; // snapshotがない場合はnull
-  latestKind: TimelineEvent["kind"];
+  userId: string;
+  userName: string;
+  userImage: string | null;
+  amount: number;
+  description?: string;
+  place?: string | null;
+  category?: string;
+  tags?: string[];
+  note?: string | null;
+  createdAt: string;
+};
+
+type TagSummary = {
+  tag: string;
+  total: number;
   count: number;
-  items: TimelineEvent[];
 };
 
 export default async function DashboardPage() {
@@ -68,6 +39,7 @@ export default async function DashboardPage() {
 
   const userId = session.user.id as string;
 
+  // ユーザーが参加しているサークルを取得
   const memberships = await prisma.circleMember.findMany({
     where: { userId },
     select: { circleId: true },
@@ -75,165 +47,175 @@ export default async function DashboardPage() {
 
   const circleIds = memberships.map((m) => m.circleId);
   const hasCircles = circleIds.length > 0;
-  let allMasnagedCircles: number = 0;
 
-  let events: TimelineEvent[] = [];
-  let circleRows: CircleRow[] = [];
+  let feed: FeedItem[] = [];
+  let circles: { id: string; name: string }[] = [];
+  let totalBalance = 0;
+  let tagSummary: TagSummary[] = [];
 
   if (hasCircles) {
+    // サークル情報を取得
+    circles = await prisma.circle.findMany({
+      where: { id: { in: circleIds } },
+      select: { id: true, name: true },
+    });
+
+    // 残高スナップショットを取得
     const snapshots = await prisma.circleSnapshot.findMany({
       where: { circleId: { in: circleIds } },
+      orderBy: { createdAt: "desc" },
+      take: 50,
       include: {
-        circle: { select: { id: true, name: true } },
+        circle: { select: { name: true } },
         user: { select: { id: true, name: true, email: true, image: true } },
       },
-      orderBy: { createdAt: "asc" }, // ここはサマリに寄せてdesc推奨
-      take: 200,
     });
 
-    const snapshotEvents: TimelineEvent[] = snapshots.map((s) => ({
-      id: `snapshot-${s.id}`,
-      kind: "snapshot",
-      at: s.createdAt,
-      userName: s.user?.name || s.user?.email || "不明なユーザー",
-      userImage: s.user?.image,
-      circleName: s.circle.name,
-      amount: s.amount,
-      note: s.note ?? undefined,
-      circleId: s.circleId,
-      userId: s.userId,
-      snapshotId: s.id,
-    }));
-
-    const joins = await prisma.circleMember.findMany({
+    // 支出を取得
+    const expenses = await prisma.expense.findMany({
       where: { circleId: { in: circleIds } },
+      orderBy: { createdAt: "desc" },
+      take: 50,
       include: {
-        circle: { select: { id: true, name: true } },
+        circle: { select: { name: true } },
         user: { select: { id: true, name: true, email: true, image: true } },
       },
-      orderBy: { joinedAt: "asc" },
-      take: 200,
     });
 
-    const joinEvents: TimelineEvent[] = joins.map((m) => ({
-      id: `join-${m.id}`,
-      kind: "join",
-      at: m.joinedAt,
-      userName: m.user?.name || m.user?.email || "不明なユーザー",
-      userImage: m.user?.image,
-      circleName: m.circle.name,
-      circleId: m.circleId,
-    }));
+    // 各サークルの最新残高を計算
+    const latestByCircle = new Map<string, number>();
+    for (const s of snapshots) {
+      if (!latestByCircle.has(s.circleId)) {
+        latestByCircle.set(s.circleId, s.amount);
+      }
+    }
+    totalBalance = Array.from(latestByCircle.values()).reduce((a, b) => a + b, 0);
 
-    // 全イベント（必要ならデバッグ用に残す）
-    events = [...joinEvents, ...snapshotEvents].sort(
-      (a, b) => b.at.getTime() - a.at.getTime(),
-    );
+    // 統合してソート
+    feed = [
+      ...snapshots.map((s) => ({
+        id: `snapshot-${s.id}`,
+        kind: "snapshot" as const,
+        circleId: s.circleId,
+        circleName: s.circle.name,
+        userId: s.userId,
+        userName: s.user?.name || s.user?.email || "不明",
+        userImage: s.user?.image || null,
+        amount: s.amount,
+        note: s.note,
+        createdAt: s.createdAt.toISOString(),
+      })),
+      ...expenses.map((e) => ({
+        id: `expense-${e.id}`,
+        kind: "expense" as const,
+        circleId: e.circleId,
+        circleName: e.circle.name,
+        userId: e.userId,
+        userName: e.user?.name || e.user?.email || "不明",
+        userImage: e.user?.image || null,
+        amount: e.amount,
+        description: e.description,
+        place: e.place,
+        category: e.category,
+        tags: e.tags,
+        createdAt: e.createdAt.toISOString(),
+      })),
+    ].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
-    // circleごとにサマリ（1行）を作る
-    const byCircle = new Map<string, TimelineEvent[]>();
-    for (const e of events) {
-      if (!byCircle.has(e.circleId)) byCircle.set(e.circleId, []);
-      byCircle.get(e.circleId)!.push(e);
+    // タグ別集計を計算（今月分）
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const tagMap = new Map<string, { total: number; count: number }>();
+
+    for (const e of expenses) {
+      if (new Date(e.createdAt) >= startOfMonth && e.tags) {
+        for (const tag of e.tags) {
+          const existing = tagMap.get(tag) || { total: 0, count: 0 };
+          tagMap.set(tag, {
+            total: existing.total + e.amount,
+            count: existing.count + 1,
+          });
+        }
+      }
     }
 
-    const rows: CircleRow[] = [];
-
-    for (const [circleId, items] of byCircle.entries()) {
-      const sorted = [...items].sort((b, a) => a.at.getTime() - b.at.getTime());
-      const latest = sorted[sorted.length - 1];
-
-      const last3Item = sorted.slice(0, 3).reverse();
-
-      // 最新snapshotのamountをサマリに出す（joinが最新でも、amountは直近snapshotから拾う）
-      const latestSnapshot = sorted.find((x) => x.kind === "snapshot") as
-        | Extract<TimelineEvent, { kind: "snapshot" }>
-        | undefined;
-
-      rows.push({
-        id: latest.id,
-        circleId,
-        circleName: latest.circleName,
-        latestAt: latest.at,
-        latestKind: latest.kind,
-        latestAmount: latestSnapshot ? latestSnapshot.amount : null,
-        count: sorted.length,
-        items: last3Item,
-      });
-      allMasnagedCircles +=
-        latestSnapshot && latestSnapshot.amount ? latestSnapshot.amount : 0;
-    }
-
-    // サークル行は「最新更新順」
-    circleRows = rows.sort(
-      (b, a) => b.latestAt.getTime() - a.latestAt.getTime(),
-    );
+    tagSummary = Array.from(tagMap.entries())
+      .map(([tag, data]) => ({ tag, ...data }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 5); // 上位5件
   }
 
-  const hasRows = circleRows.length > 0;
-
   return (
-    <>
-      <div className="h-full bg-slate-50">
-        <div className="mx-auto max-w-md px-1 pt-2 pb-2 flex flex-col h-full">
-          <header className="mb-1 shrink-0">
-            <div className="flex items-center justify-between">
-              <h1 className="text-sm font-semibold text-sky-900">
-                管理するサークルの合計
-              </h1>
+    <div className="h-full bg-white">
+      <div className="mx-auto max-w-md flex flex-col h-full">
+        {/* 合計残高 */}
+        <div className="px-3 pt-3 pb-2">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs text-slate-600">合計残高</span>
+            <Link
+              href="/circles"
+              className="text-xs text-slate-500 hover:text-slate-700"
+            >
+              サークル管理 →
+            </Link>
+          </div>
+          <div className="rounded-2xl bg-slate-900 px-4 py-3">
+            <div className="font-semibold text-white text-3xl text-center">
+              ¥ {formatYen(totalBalance)}
             </div>
-          </header>
+          </div>
 
-          {/* ===== 上部：サークル残高サマリ（横スクロール） ===== */}
-          <section className="mt-1 mb-1">
-            <div className="overflow-x-auto pb-2 -mx-1 px-1">
-              <div className="shrink-0 rounded-2xl bg-slate-800/80 px-3 py-2">
-                <div className="font-semibold text-sky-200 text-4xl text-center">
-                  ¥ {formatYen(allMasnagedCircles)}
-                </div>
+          {/* タグ別集計（今月） */}
+          {tagSummary.length > 0 && (
+            <div className="mt-2">
+              <div className="text-[10px] text-slate-500 mb-1">今月のタグ別支出</div>
+              <div className="flex gap-1.5 overflow-x-auto pb-1">
+                {tagSummary.map((item) => (
+                  <div
+                    key={item.tag}
+                    className="flex-shrink-0 bg-slate-100 rounded-lg px-2 py-1.5 border border-slate-200"
+                  >
+                    <div className="flex items-center gap-1 text-[10px] text-slate-600 mb-0.5">
+                      <span>🏷️</span>
+                      <span>{item.tag}</span>
+                      <span className="text-slate-400">×{item.count}</span>
+                    </div>
+                    <div className="text-xs font-semibold text-slate-900">
+                      ¥{formatYen(item.total)}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          </section>
-
-          {/* タイムライン本体：ここだけスクロール */}
-          <h1 className="text-sm font-semibold text-sky-900">
-            各サークルの記録
-          </h1>
-          <TimeLineScroll>
-            {!hasCircles ? (
-              <div className="h-full flex items-center justify-center text-center">
-                <div>
-                  <p className="text-xs text-slate-300 mb-1">
-                    まだサークルに参加していません。
-                  </p>
-                  <p className="text-[11px] text-slate-500">
-                    まずはサークルを作成するか、招待リンクから参加してください。
-                  </p>
-                </div>
-              </div>
-            ) : !hasRows ? (
-              <div className="h-full flex items-center justify-center text-center">
-                <div>
-                  <p className="text-xs text-slate-300 mb-1">
-                    まだイベントがありません。
-                  </p>
-                  <p className="text-[11px] text-slate-500 mb-1">
-                    残高を登録すると記録が、招待リンクから参加すると参加イベントが
-                    ここに流れます。
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <DetailSnapshot
-                circleRows={circleRows}
-                userId={session?.user?.id}
-              />
-            )}
-          </TimeLineScroll>
-
-          <footer className="mt-3 shrink-0"></footer>
+          )}
         </div>
+
+        {/* メインコンテンツ */}
+        {!hasCircles ? (
+          <div className="flex-1 flex items-center justify-center text-center px-6">
+            <div>
+              <p className="text-slate-700 mb-2">
+                まだサークルに参加していません
+              </p>
+              <p className="text-sm text-slate-500 mb-4">
+                サークルを作成するか、招待リンクから参加してください
+              </p>
+              <Link
+                href="/circles/new"
+                className="inline-block bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium"
+              >
+                サークルを作成
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <UnifiedChat
+            initialFeed={feed}
+            circles={circles}
+            currentUserId={userId}
+          />
+        )}
       </div>
-    </>
+    </div>
   );
 }
