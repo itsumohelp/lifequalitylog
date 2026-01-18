@@ -103,5 +103,28 @@ export async function POST(request: NextRequest) {
     },
   });
 
+  // 月次集計を更新（YYYYMM形式）
+  const now = new Date();
+  const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+  await prisma.monthlySnapshot.upsert({
+    where: {
+      circleId_yearMonth: {
+        circleId,
+        yearMonth,
+      },
+    },
+    create: {
+      circleId,
+      yearMonth,
+      totalExpense: parsed.amount,
+      expenseCount: 1,
+    },
+    update: {
+      totalExpense: { increment: parsed.amount },
+      expenseCount: { increment: 1 },
+    },
+  });
+
   return NextResponse.json({ expense, parsed });
 }

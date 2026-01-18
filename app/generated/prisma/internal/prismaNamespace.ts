@@ -395,6 +395,7 @@ export const ModelName = {
   CircleMember: 'CircleMember',
   Snapshot: 'Snapshot',
   CircleSnapshot: 'CircleSnapshot',
+  MonthlySnapshot: 'MonthlySnapshot',
   Expense: 'Expense'
 } as const
 
@@ -411,7 +412,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "appLog" | "todo" | "record" | "account" | "session" | "user" | "verificationToken" | "circle" | "circleMember" | "snapshot" | "circleSnapshot" | "expense"
+    modelProps: "appLog" | "todo" | "record" | "account" | "session" | "user" | "verificationToken" | "circle" | "circleMember" | "snapshot" | "circleSnapshot" | "monthlySnapshot" | "expense"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1229,6 +1230,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    MonthlySnapshot: {
+      payload: Prisma.$MonthlySnapshotPayload<ExtArgs>
+      fields: Prisma.MonthlySnapshotFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MonthlySnapshotFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonthlySnapshotPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MonthlySnapshotFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonthlySnapshotPayload>
+        }
+        findFirst: {
+          args: Prisma.MonthlySnapshotFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonthlySnapshotPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MonthlySnapshotFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonthlySnapshotPayload>
+        }
+        findMany: {
+          args: Prisma.MonthlySnapshotFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonthlySnapshotPayload>[]
+        }
+        create: {
+          args: Prisma.MonthlySnapshotCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonthlySnapshotPayload>
+        }
+        createMany: {
+          args: Prisma.MonthlySnapshotCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MonthlySnapshotCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonthlySnapshotPayload>[]
+        }
+        delete: {
+          args: Prisma.MonthlySnapshotDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonthlySnapshotPayload>
+        }
+        update: {
+          args: Prisma.MonthlySnapshotUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonthlySnapshotPayload>
+        }
+        deleteMany: {
+          args: Prisma.MonthlySnapshotDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MonthlySnapshotUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MonthlySnapshotUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonthlySnapshotPayload>[]
+        }
+        upsert: {
+          args: Prisma.MonthlySnapshotUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MonthlySnapshotPayload>
+        }
+        aggregate: {
+          args: Prisma.MonthlySnapshotAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMonthlySnapshot>
+        }
+        groupBy: {
+          args: Prisma.MonthlySnapshotGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MonthlySnapshotGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MonthlySnapshotCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MonthlySnapshotCountAggregateOutputType> | number
+        }
+      }
+    }
     Expense: {
       payload: Prisma.$ExpensePayload<ExtArgs>
       fields: Prisma.ExpenseFieldRefs
@@ -1481,6 +1556,19 @@ export const CircleSnapshotScalarFieldEnum = {
 } as const
 
 export type CircleSnapshotScalarFieldEnum = (typeof CircleSnapshotScalarFieldEnum)[keyof typeof CircleSnapshotScalarFieldEnum]
+
+
+export const MonthlySnapshotScalarFieldEnum = {
+  id: 'id',
+  circleId: 'circleId',
+  yearMonth: 'yearMonth',
+  totalExpense: 'totalExpense',
+  expenseCount: 'expenseCount',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MonthlySnapshotScalarFieldEnum = (typeof MonthlySnapshotScalarFieldEnum)[keyof typeof MonthlySnapshotScalarFieldEnum]
 
 
 export const ExpenseScalarFieldEnum = {
@@ -1740,6 +1828,7 @@ export type GlobalOmitConfig = {
   circleMember?: Prisma.CircleMemberOmit
   snapshot?: Prisma.SnapshotOmit
   circleSnapshot?: Prisma.CircleSnapshotOmit
+  monthlySnapshot?: Prisma.MonthlySnapshotOmit
   expense?: Prisma.ExpenseOmit
 }
 

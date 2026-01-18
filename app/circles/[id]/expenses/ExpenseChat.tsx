@@ -209,7 +209,7 @@ export default function ExpenseChat({ circleId, initialExpenses }: Props) {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="コンビニで500円"
+            placeholder="「〇〇で△△円」「〇〇 △△円」の形式で入力"
             disabled={isLoading}
             className="flex-1 bg-slate-800 border border-slate-700 rounded-full px-4 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-sky-500 disabled:opacity-50"
           />
@@ -221,9 +221,6 @@ export default function ExpenseChat({ circleId, initialExpenses }: Props) {
             {isLoading ? "..." : "送信"}
           </button>
         </div>
-        <p className="text-xs text-slate-500 mt-2 text-center">
-          「〇〇で△△円」「〇〇 △△円」の形式で入力
-        </p>
       </form>
     </div>
   );

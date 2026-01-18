@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { parseExpenseInput, getCategoryEmoji } from "@/lib/expenseParser";
 
 type FeedItem = {
   id: string;
@@ -55,6 +54,44 @@ function formatDate(dateStr: string) {
   });
 }
 
+const RECENT_TAGS_KEY = "recentTags";
+const MAX_RECENT_TAGS = 10;
+
+// ローカルストレージから直近タグを取得
+function getRecentTags(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const stored = localStorage.getItem(RECENT_TAGS_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+// ローカルストレージに直近タグを保存
+function saveRecentTags(tags: string[]) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(RECENT_TAGS_KEY, JSON.stringify(tags));
+  } catch {
+    // ストレージ容量オーバー等は無視
+  }
+}
+
+// タグを使用した際に履歴に追加（重複は先頭に移動）
+function addToRecentTags(newTags: string[]) {
+  const current = getRecentTags();
+  const updated = [...newTags];
+  for (const tag of current) {
+    if (!updated.includes(tag)) {
+      updated.push(tag);
+    }
+  }
+  const trimmed = updated.slice(0, MAX_RECENT_TAGS);
+  saveRecentTags(trimmed);
+  return trimmed;
+}
+
 export default function UnifiedChat({ initialFeed, circles, currentUserId }: Props) {
   const [feed, setFeed] = useState<FeedItem[]>(initialFeed);
   const [selectedCircleId, setSelectedCircleId] = useState<string>(circles[0]?.id || "");
@@ -62,10 +99,17 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [recentTags, setRecentTags] = useState<string[]>([]);
+  const [isInputFocused, setIsInputFocused] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const selectedCircle = circles.find((c) => c.id === selectedCircleId);
+
+  // 初期読み込み時に直近タグを取得
+  useEffect(() => {
+    setRecentTags(getRecentTags());
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -151,6 +195,12 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
           tags: data.expense.tags || [],
           createdAt: new Date().toISOString(),
         };
+
+        // 使用したタグを直近タグに追加
+        if (data.expense.tags && data.expense.tags.length > 0) {
+          const updated = addToRecentTags(data.expense.tags);
+          setRecentTags(updated);
+        }
 
         setFeed((prev) => [...prev, newItem]);
       } else {
@@ -252,17 +302,16 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
 
                       {/* メッセージバブル */}
                       <div className={`max-w-[75%] ${isOwnMessage ? "items-end" : ""}`}>
-                        {/* サークル名ラベル */}
+                        {/* ユーザー名 */}
                         <div
                           className={`text-[10px] text-slate-500 mb-0.5 ${
                             isOwnMessage ? "text-right" : ""
                           }`}
                         >
-                          {item.circleName}
+                          {item.userName}
                         </div>
-
                         <div
-                          className={`rounded-2xl px-4 py-2 ${
+                          className={`rounded-2xl px-3 py-1.5 ${
                             isOwnMessage
                               ? "bg-slate-900 text-white rounded-tr-sm"
                               : "bg-white border border-slate-200 rounded-tl-sm"
@@ -270,52 +319,58 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
                         >
                           {item.kind === "expense" ? (
                             <>
-                              {/* タグ表示 */}
-                              {item.tags && item.tags.length > 0 && (
-                                <div className="flex flex-wrap gap-1 mb-1">
-                                  {item.tags.map((tag, idx) => (
-                                    <span
-                                      key={idx}
-                                      className={`inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full ${
-                                        isOwnMessage
-                                          ? "bg-slate-700 text-slate-300"
-                                          : "bg-slate-100 text-slate-600"
-                                      }`}
-                                    >
-                                      <span>🏷️</span>
-                                      {tag}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-base">
-                                  {getCategoryEmoji(item.category as any) || "📝"}
-                                </span>
+                              {/* サークル名 + 時間（1行目） */}
+                              <div
+                                className={`flex items-center justify-between text-xs mb-0.5 ${
+                                  isOwnMessage ? "text-slate-300" : "text-slate-600"
+                                }`}
+                              >
+                                <span className="font-medium">{item.circleName}</span>
+                                <span className="text-[10px]">{formatTime(item.createdAt)}</span>
+                              </div>
+                              {/* 金額 + タグ（2行目） */}
+                              <div className="flex items-center gap-1.5">
                                 <span
-                                  className={`font-semibold ${
+                                  className={`font-semibold text-sm ${
                                     isOwnMessage ? "text-red-300" : "text-red-600"
                                   }`}
                                 >
                                   ¥{formatYen(item.amount)}
                                 </span>
+                                {item.tags && item.tags.length > 0 && (
+                                  <div className="flex flex-wrap gap-1">
+                                    {item.tags.map((tag, idx) => (
+                                      <span
+                                        key={idx}
+                                        className={`text-[10px] ${
+                                          isOwnMessage ? "text-slate-400" : "text-slate-500"
+                                        }`}
+                                      >
+                                        🏷️{tag}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
-                              <p
-                                className={`text-sm ${
-                                  isOwnMessage ? "text-slate-200" : "text-slate-700"
-                                }`}
-                              >
-                                {item.description}
-                              </p>
-                            </>
-                          ) : item.kind === "invite" ? (
-                            <>
+                              {/* ユーザー入力（3行目） */}
                               <div
-                                className={`text-[11px] mb-1 ${
+                                className={`text-[10px] mt-0.5 ${
                                   isOwnMessage ? "text-slate-400" : "text-slate-500"
                                 }`}
                               >
-                                招待リンク（コピー済み）
+                                {item.description}
+                              </div>
+                            </>
+                          ) : item.kind === "invite" ? (
+                            <>
+                              {/* サークル名 + 時間 */}
+                              <div
+                                className={`flex items-center justify-between text-xs mb-0.5 ${
+                                  isOwnMessage ? "text-slate-300" : "text-slate-600"
+                                }`}
+                              >
+                                <span className="font-medium">{item.circleName}</span>
+                                <span className="text-[10px]">{formatTime(item.createdAt)}</span>
                               </div>
                               <p
                                 className={`text-xs break-all ${
@@ -324,6 +379,13 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
                               >
                                 {item.inviteUrl}
                               </p>
+                              <div
+                                className={`text-[10px] mt-0.5 ${
+                                  isOwnMessage ? "text-slate-400" : "text-slate-500"
+                                }`}
+                              >
+                                招待リンク（コピー済み）
+                              </div>
                               <button
                                 onClick={async () => {
                                   if (item.inviteUrl) {
@@ -341,15 +403,17 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
                             </>
                           ) : (
                             <>
+                              {/* サークル名 + 時間 */}
                               <div
-                                className={`text-[11px] mb-1 ${
-                                  isOwnMessage ? "text-slate-400" : "text-slate-500"
+                                className={`flex items-center justify-between text-xs mb-0.5 ${
+                                  isOwnMessage ? "text-slate-300" : "text-slate-600"
                                 }`}
                               >
-                                残高更新
+                                <span className="font-medium">{item.circleName}</span>
+                                <span className="text-[10px]">{formatTime(item.createdAt)}</span>
                               </div>
                               <div
-                                className={`font-semibold ${
+                                className={`font-semibold text-sm ${
                                   isOwnMessage ? "text-white" : "text-slate-900"
                                 }`}
                               >
@@ -357,7 +421,7 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
                               </div>
                               {item.note && (
                                 <p
-                                  className={`text-sm mt-1 ${
+                                  className={`text-[10px] mt-0.5 ${
                                     isOwnMessage ? "text-slate-300" : "text-slate-600"
                                   }`}
                                 >
@@ -366,14 +430,6 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
                               )}
                             </>
                           )}
-                        </div>
-
-                        <div
-                          className={`text-[10px] text-slate-400 mt-1 ${
-                            isOwnMessage ? "text-right" : ""
-                          }`}
-                        >
-                          {formatTime(item.createdAt)}
                         </div>
                       </div>
                     </div>
@@ -394,6 +450,27 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
           </div>
         )}
 
+        {/* 直近タグ（フォーカス時は非表示） */}
+        {!isInputFocused && recentTags.length > 0 && inputMode === "expense" && (
+          <div className="px-3 py-1.5 overflow-x-auto">
+            <div className="flex gap-1.5 whitespace-nowrap">
+              {recentTags.map((tag, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    setInput(tag + "　");
+                    inputRef.current?.focus();
+                  }}
+                  className="inline-flex items-center gap-0.5 text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 active:bg-slate-300 transition"
+                >
+                  🏷️{tag}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* サークル選択 + モード切替 */}
         <div className="flex items-center gap-2 px-3 py-2">
           <select
@@ -411,6 +488,7 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
           {/* モード切替トグル */}
           <div className="flex bg-slate-100 rounded-lg p-0.5">
             <button
+              type="button"
               onClick={() => setInputMode("expense")}
               className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${
                 inputMode === "expense"
@@ -421,6 +499,7 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
               支出
             </button>
             <button
+              type="button"
               onClick={() => setInputMode("snapshot")}
               className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${
                 inputMode === "snapshot"
@@ -445,10 +524,12 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
               inputMode={inputMode === "snapshot" ? "numeric" : "text"}
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              onFocus={() => setIsInputFocused(true)}
+              onBlur={() => setIsInputFocused(false)}
               placeholder={
                 inputMode === "expense"
-                  ? "コンビニで500円"
-                  : "現在の残高を入力"
+                  ? "「〇〇 △△円」の形式で入力"
+                  : "現在の残高を数字で入力"
               }
               disabled={isLoading || !selectedCircleId}
               className="flex-1 bg-slate-100 border border-slate-200 rounded-full px-4 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 disabled:opacity-50"
@@ -461,11 +542,6 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
               {isLoading ? "..." : "送信"}
             </button>
           </div>
-          <p className="text-[10px] text-slate-400 mt-1.5 text-center">
-            {inputMode === "expense"
-              ? "「〇〇で△△円」の形式で入力"
-              : "現在の口座残高を数字で入力"}
-          </p>
         </form>
       </div>
     </div>
