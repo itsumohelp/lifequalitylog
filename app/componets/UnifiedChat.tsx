@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
+import { getCategoryEmoji } from "@/lib/expenseParser";
+import type { ExpenseCategory } from "@/app/generated/prisma/enums";
 
 type FeedItem = {
   id: string;
@@ -250,11 +252,11 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
   );
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-100px)]">
+    <div className="flex flex-col flex-1 min-h-0">
       {/* フィード表示 */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto px-3 py-4 space-y-4 bg-slate-50"
+        className="flex-1 overflow-y-auto px-3 py-4 space-y-4 bg-slate-50 min-h-0"
       >
         {feed.length === 0 ? (
           <div className="text-center text-slate-500 mt-8">
@@ -308,6 +310,7 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
                             isOwnMessage ? "text-right" : ""
                           }`}
                         >
+                          <span className="text-[10px]">{formatTime(item.createdAt)}</span>　
                           {item.userName}
                         </div>
                         <div
@@ -326,10 +329,12 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
                                 }`}
                               >
                                 <span className="font-medium">{item.circleName}</span>
-                                <span className="text-[10px]">{formatTime(item.createdAt)}</span>
                               </div>
-                              {/* 金額 + タグ（2行目） */}
-                              <div className="flex items-center gap-1.5">
+                              {/* カテゴリ絵文字 + 金額 + タグバッジ（2行目） */}
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="text-sm">
+                                  {getCategoryEmoji((item.category || "OTHER") as ExpenseCategory)}
+                                </span>
                                 <span
                                   className={`font-semibold text-sm ${
                                     isOwnMessage ? "text-red-300" : "text-red-600"
@@ -338,28 +343,32 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
                                   ¥{formatYen(item.amount)}
                                 </span>
                                 {item.tags && item.tags.length > 0 && (
-                                  <div className="flex flex-wrap gap-1">
+                                  <>
                                     {item.tags.map((tag, idx) => (
                                       <span
                                         key={idx}
-                                        className={`text-[10px] ${
-                                          isOwnMessage ? "text-slate-400" : "text-slate-500"
+                                        className={`text-[10px] px-2 py-0.5 rounded-full ${
+                                          isOwnMessage
+                                            ? "bg-sky-600 text-sky-100"
+                                            : "bg-sky-100 text-sky-700"
                                         }`}
                                       >
-                                        🏷️{tag}
+                                        {tag}
                                       </span>
                                     ))}
-                                  </div>
+                                  </>
                                 )}
                               </div>
                               {/* ユーザー入力（3行目） */}
-                              <div
-                                className={`text-[10px] mt-0.5 ${
-                                  isOwnMessage ? "text-slate-400" : "text-slate-500"
-                                }`}
-                              >
-                                {item.description}
-                              </div>
+                              {item.description && (
+                                <div
+                                  className={`text-[10px] mt-0.5 ${
+                                    isOwnMessage ? "text-slate-400" : "text-slate-500"
+                                  }`}
+                                >
+                                  {item.description}
+                                </div>
+                              )}
                             </>
                           ) : item.kind === "invite" ? (
                             <>
@@ -410,7 +419,6 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
                                 }`}
                               >
                                 <span className="font-medium">{item.circleName}</span>
-                                <span className="text-[10px]">{formatTime(item.createdAt)}</span>
                               </div>
                               <div
                                 className={`font-semibold text-sm ${

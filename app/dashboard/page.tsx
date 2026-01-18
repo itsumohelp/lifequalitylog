@@ -218,10 +218,10 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="h-full bg-white overflow-hidden">
+    <div className="h-dvh bg-white overflow-hidden">
       <div className="mx-auto max-w-md flex flex-col h-full">
         {/* 合計残高（上部固定） */}
-        <div className="sticky top-0 z-10 bg-white px-3 pt-2 pb-1.5 border-b border-slate-100">
+        <div className="flex-shrink-0 bg-white px-3 pt-2 pb-1.5 border-b border-slate-100">
           <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] text-slate-600">合計残高</span>
             <Link

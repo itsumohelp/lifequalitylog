@@ -7,6 +7,26 @@ export interface ParsedExpense {
   tags: string[];
 }
 
+/**
+ * 全角数字を半角に変換し、カンマを除去する
+ */
+function normalizeNumber(str: string): string {
+  // 全角数字→半角数字
+  const fullWidthToHalf = str.replace(/[０-９]/g, (char) =>
+    String.fromCharCode(char.charCodeAt(0) - 0xfee0)
+  );
+  // カンマ（全角・半角）を除去
+  return fullWidthToHalf.replace(/[,，]/g, "");
+}
+
+/**
+ * 金額文字列をパースする（全角数字・カンマ対応）
+ */
+function parseAmount(str: string): number {
+  const normalized = normalizeNumber(str);
+  return parseInt(normalized, 10);
+}
+
 // カテゴリ判定用のキーワード辞書
 const categoryKeywords: Record<ExpenseCategory, string[]> = {
   FOOD: [
@@ -44,40 +64,46 @@ const categoryKeywords: Record<ExpenseCategory, string[]> = {
 /**
  * 自然言語の支出入力をパースする
  * 対応パターン:
- * - 「コンビニで500円」
- * - 「ランチ 800円」
- * - 「スタバ1200」
+ * - 「コンビニで500円」「コンビニで５００円」
+ * - 「ランチ 800円」「ランチ 1,000円」
+ * - 「スタバ1200」「スタバ１，２００」
  * - 「電車代 220円」
  */
 export function parseExpenseInput(input: string): ParsedExpense | null {
   const trimmed = input.trim();
   if (!trimmed) return null;
 
+  // 入力を正規化（全角数字→半角、カンマ除去）してからマッチング
+  const normalized = normalizeNumber(trimmed);
+
+  // 数字パターン（半角のみ、カンマ除去済み）
+  const numPattern = "\\d+";
+
   // パターン1: 「〇〇で△△円」
-  const pattern1 = /(.+?)で\s*(\d+)\s*円?$/;
+  const pattern1 = new RegExp(`(.+?)で\\s*(${numPattern})\\s*円?$`);
   // パターン2: 「〇〇 △△円」または「〇〇　△△円」（全角スペース対応）
-  const pattern2 = /(.+?)[\s　]+(\d+)\s*円?$/;
+  const pattern2 = new RegExp(`(.+?)[\\s　]+(${numPattern})\\s*円?$`);
   // パターン3: 「〇〇△△」（スペースなし、数字で終わる）
-  const pattern3 = /^(.+?)(\d+)円?$/;
+  const pattern3 = new RegExp(`^(.+?)(${numPattern})円?$`);
 
   let place: string | null = null;
   let amount: number | null = null;
 
   // 各パターンを順に試行
   for (const pattern of [pattern1, pattern2, pattern3]) {
-    const match = trimmed.match(pattern);
+    const match = normalized.match(pattern);
     if (match) {
       place = match[1].trim();
-      amount = parseInt(match[2], 10);
+      amount = parseAmount(match[2]);
       break;
     }
   }
 
-  // 金額のみのパターン（例: 「500円」「1000」）
+  // 金額のみのパターン（例: 「500円」「1000」「１，０００円」）
   if (amount === null) {
-    const amountOnly = trimmed.match(/^(\d+)\s*円?$/);
+    const amountOnly = normalized.match(new RegExp(`^(${numPattern})\\s*円?$`));
     if (amountOnly) {
-      amount = parseInt(amountOnly[1], 10);
+      amount = parseAmount(amountOnly[1]);
       place = null;
     }
   }
