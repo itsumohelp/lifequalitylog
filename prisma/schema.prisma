@@ -111,6 +111,7 @@ model Circle {
   snapshots   Snapshot[]
   circleSnapshots CircleSnapshot[]
   expenses    Expense[]
+  monthlySnapshots MonthlySnapshot[]
 }
 
 model CircleMember {
@@ -161,6 +162,20 @@ model CircleSnapshot {
   diffFromPrev Int?
   @@index([circleId, createdAt])
   @@index([userId])
+}
+
+// 月次集計スナップショット（YYYYMM形式）
+model MonthlySnapshot {
+  id          String   @id @default(cuid())
+  circleId    String
+  circle      Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  yearMonth   String   // YYYYMM形式（例: "202601"）
+  totalExpense Int     @default(0) // 当月の支出合計
+  expenseCount Int     @default(0) // 当月の支出件数
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@unique([circleId, yearMonth])
+  @@index([yearMonth])
 }
 
 // 支出カテゴリ

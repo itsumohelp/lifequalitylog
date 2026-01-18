@@ -62,6 +62,7 @@ export const ModelName = {
   CircleMember: 'CircleMember',
   Snapshot: 'Snapshot',
   CircleSnapshot: 'CircleSnapshot',
+  MonthlySnapshot: 'MonthlySnapshot',
   Expense: 'Expense'
 } as const
 
@@ -220,6 +221,19 @@ export const CircleSnapshotScalarFieldEnum = {
 } as const
 
 export type CircleSnapshotScalarFieldEnum = (typeof CircleSnapshotScalarFieldEnum)[keyof typeof CircleSnapshotScalarFieldEnum]
+
+
+export const MonthlySnapshotScalarFieldEnum = {
+  id: 'id',
+  circleId: 'circleId',
+  yearMonth: 'yearMonth',
+  totalExpense: 'totalExpense',
+  expenseCount: 'expenseCount',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MonthlySnapshotScalarFieldEnum = (typeof MonthlySnapshotScalarFieldEnum)[keyof typeof MonthlySnapshotScalarFieldEnum]
 
 
 export const ExpenseScalarFieldEnum = {

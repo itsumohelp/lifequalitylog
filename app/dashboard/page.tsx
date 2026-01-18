@@ -25,7 +25,9 @@ type FeedItem = {
   createdAt: string;
 };
 
-type TagSummary = {
+type TagSummaryItem = {
+  circleId: string;
+  circleName: string;
   tag: string;
   total: number;
   count: number;
@@ -57,7 +59,8 @@ export default async function DashboardPage() {
   let totalBalance = 0;
   let yesterdayBalance = 0;
   let balanceDiff = 0;
-  let tagSummary: TagSummary[] = [];
+  let monthlyExpense = 0;
+  let tagSummary: TagSummaryItem[] = [];
 
   if (hasCircles) {
     // サークル情報を取得
@@ -137,6 +140,18 @@ export default async function DashboardPage() {
 
     balanceDiff = totalBalance - yesterdayBalance;
 
+    // 当月の月次集計を取得
+    const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
+    if (adminCircleIds.length > 0) {
+      const monthlySnapshots = await prisma.monthlySnapshot.findMany({
+        where: {
+          circleId: { in: adminCircleIds },
+          yearMonth,
+        },
+      });
+      monthlyExpense = monthlySnapshots.reduce((sum: number, m) => sum + m.totalExpense, 0);
+    }
+
     // 統合してソート
     feed = [
       ...snapshots.map((s) => ({
@@ -168,15 +183,23 @@ export default async function DashboardPage() {
       })),
     ].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
-    // タグ別集計を計算（今月分）
+    // サークル×タグ別集計を計算（今月分）、金額順に並べる
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const tagMap = new Map<string, { total: number; count: number }>();
+    const tagMap = new Map<string, { circleId: string; circleName: string; total: number; count: number }>();
 
     for (const e of expenses) {
-      if (new Date(e.createdAt) >= startOfMonth && e.tags) {
+      if (new Date(e.createdAt) >= startOfMonth && e.tags && e.tags.length > 0) {
+        const circle = circles.find((c) => c.id === e.circleId);
         for (const tag of e.tags) {
-          const existing = tagMap.get(tag) || { total: 0, count: 0 };
-          tagMap.set(tag, {
+          const key = `${e.circleId}:${tag}`;
+          const existing = tagMap.get(key) || {
+            circleId: e.circleId,
+            circleName: circle?.name || "不明",
+            total: 0,
+            count: 0,
+          };
+          tagMap.set(key, {
+            ...existing,
             total: existing.total + e.amount,
             count: existing.count + 1,
           });
@@ -184,10 +207,14 @@ export default async function DashboardPage() {
       }
     }
 
+    // 金額順に並べる
     tagSummary = Array.from(tagMap.entries())
-      .map(([tag, data]) => ({ tag, ...data }))
+      .map(([key, data]) => ({
+        tag: key.split(":").slice(1).join(":"), // サークルID以降をタグ名として取得
+        ...data,
+      }))
       .sort((a, b) => b.total - a.total)
-      .slice(0, 5); // 上位5件
+      .slice(0, 10); // 上位10件
   }
 
   return (
@@ -219,20 +246,30 @@ export default async function DashboardPage() {
                 </span>
               )}
             </div>
+            {/* 当月支出 */}
+            <div className="flex items-center justify-center gap-1 mt-0.5">
+              <span className="text-[10px] text-slate-400">当月支出</span>
+              <span className="text-[10px] text-red-400">
+                -¥{formatYen(monthlyExpense)}
+              </span>
+            </div>
           </div>
 
-          {/* タグ別集計（今月） */}
+          {/* タグ別集計（今月・金額順） */}
           {tagSummary.length > 0 && (
-            <div className="mt-1.5">
-              <div className="flex gap-1 overflow-x-auto pb-0.5">
-                {tagSummary.map((item) => (
+            <div className="mt-1.5 overflow-x-auto pb-0.5">
+              <div className="flex gap-1.5 whitespace-nowrap">
+                {tagSummary.map((item, idx) => (
                   <div
-                    key={item.tag}
-                    className="flex-shrink-0 bg-slate-100 rounded px-1.5 py-0.5 border border-slate-200"
+                    key={`${item.circleId}-${item.tag}-${idx}`}
+                    className="flex-shrink-0 bg-slate-100 rounded px-2 py-1 border border-slate-200"
                   >
-                    <span className="text-[9px] text-slate-600">
-                      {item.tag} <span className="text-red-500">-¥{formatYen(item.total)}</span>
-                    </span>
+                    <div className="text-[9px] text-slate-500">
+                      {item.circleName}
+                    </div>
+                    <div className="text-[9px] text-slate-700">
+                      🏷️{item.tag} <span className="text-red-500">-¥{formatYen(item.total)}</span>
+                    </div>
                   </div>
                 ))}
               </div>

@@ -95,6 +95,11 @@ export type Snapshot = Prisma.SnapshotModel
  */
 export type CircleSnapshot = Prisma.CircleSnapshotModel
 /**
+ * Model MonthlySnapshot
+ * 
+ */
+export type MonthlySnapshot = Prisma.MonthlySnapshotModel
+/**
  * Model Expense
  * 
  */
