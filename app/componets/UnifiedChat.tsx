@@ -7,7 +7,7 @@ import type { ExpenseCategory } from "@/app/generated/prisma/enums";
 
 type FeedItem = {
   id: string;
-  kind: "snapshot" | "expense" | "invite";
+  kind: "snapshot" | "expense" | "invite" | "link";
   circleId: string;
   circleName: string;
   userId: string;
@@ -20,6 +20,8 @@ type FeedItem = {
   tags?: string[];
   note?: string | null;
   inviteUrl?: string;
+  linkUrl?: string;
+  linkLabel?: string;
   createdAt: string;
 };
 
@@ -103,6 +105,9 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
   const [error, setError] = useState<string | null>(null);
   const [recentTags, setRecentTags] = useState<string[]>([]);
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [isCircleModalOpen, setIsCircleModalOpen] = useState(false);
+  const [newCircleName, setNewCircleName] = useState("");
+  const [isCreatingCircle, setIsCreatingCircle] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -123,6 +128,31 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
   const isInviteCommand = (text: string) => {
     const normalized = text.trim().toLowerCase();
     return normalized === "招待" || normalized === "しょうたい" || normalized === "invite";
+  };
+
+  // サークルコマンドかどうかをチェック
+  const isCircleCommand = (text: string) => {
+    const normalized = text.trim().toLowerCase();
+    return (
+      normalized === "サークル" ||
+      normalized === "さーくる" ||
+      normalized === "circle" ||
+      normalized === "cl" ||
+      normalized === "さ" ||
+      normalized === "サ"
+    );
+  };
+
+  // サークル追加コマンドかどうかをチェック
+  const isCircleAddCommand = (text: string) => {
+    const normalized = text.trim().toLowerCase();
+    return (
+      normalized === "サークル追加" ||
+      normalized === "さーくるついか" ||
+      normalized === "さつ" ||
+      normalized === "circleadd" ||
+      normalized === "ca"
+    );
   };
 
   // 招待リンクを生成してクリップボードにコピー
@@ -160,6 +190,33 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
     // 招待コマンドの処理
     if (isInviteCommand(input)) {
       await handleInvite();
+      return;
+    }
+
+    // サークル追加コマンドの処理（モーダルを表示）
+    if (isCircleAddCommand(input)) {
+      setInput("");
+      setIsCircleModalOpen(true);
+      return;
+    }
+
+    // サークルコマンドの処理（サークル一覧へのリンクを表示）
+    if (isCircleCommand(input)) {
+      const linkItem: FeedItem = {
+        id: `link-${Date.now()}`,
+        kind: "link",
+        circleId: selectedCircleId,
+        circleName: selectedCircle?.name || "",
+        userId: currentUserId,
+        userName: "自分",
+        userImage: null,
+        amount: 0,
+        linkUrl: "/circles",
+        linkLabel: "サークル一覧",
+        createdAt: new Date().toISOString(),
+      };
+      setFeed((prev) => [...prev, linkItem]);
+      setInput("");
       return;
     }
 
@@ -410,6 +467,29 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
                                 再コピー
                               </button>
                             </>
+                          ) : item.kind === "link" ? (
+                            <>
+                              {/* リンク表示 */}
+                              <div
+                                className={`text-[10px] mb-1 ${
+                                  isOwnMessage ? "text-slate-400" : "text-slate-500"
+                                }`}
+                              >
+                                {formatTime(item.createdAt)}
+                              </div>
+                              <a
+                                href={item.linkUrl}
+                                className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                                  isOwnMessage
+                                    ? "bg-sky-600 text-white hover:bg-sky-500"
+                                    : "bg-sky-100 text-sky-700 hover:bg-sky-200"
+                                }`}
+                              >
+                                <span>👥</span>
+                                <span>{item.linkLabel}</span>
+                                <span>→</span>
+                              </a>
+                            </>
                           ) : (
                             <>
                               {/* サークル名 + 時間 */}
@@ -551,7 +631,81 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
             </button>
           </div>
         </form>
+
+        {/* iPhoneセーフエリア用スペース */}
+        <div className="h-6" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} />
       </div>
+
+      {/* サークル追加モーダル */}
+      {isCircleModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* オーバーレイ */}
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => {
+              setIsCircleModalOpen(false);
+              setNewCircleName("");
+            }}
+          />
+          {/* モーダル本体 */}
+          <div className="relative bg-white rounded-2xl shadow-xl w-[90%] max-w-sm p-4">
+            <h2 className="text-sm font-semibold text-slate-900 mb-3">
+              サークルを追加
+            </h2>
+            <input
+              type="text"
+              value={newCircleName}
+              onChange={(e) => setNewCircleName(e.target.value)}
+              placeholder="サークル名を入力"
+              autoFocus
+              className="w-full bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 mb-3"
+            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsCircleModalOpen(false);
+                  setNewCircleName("");
+                }}
+                className="flex-1 px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition"
+              >
+                キャンセル
+              </button>
+              <button
+                type="button"
+                disabled={!newCircleName.trim() || isCreatingCircle}
+                onClick={async () => {
+                  if (!newCircleName.trim()) return;
+                  setIsCreatingCircle(true);
+                  try {
+                    const res = await fetch("/api/circles", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ name: newCircleName.trim() }),
+                    });
+                    if (res.ok) {
+                      setIsCircleModalOpen(false);
+                      setNewCircleName("");
+                      // ページをリロードして新しいサークルを反映
+                      window.location.reload();
+                    } else {
+                      const data = await res.json();
+                      setError(data.error || "サークルの作成に失敗しました");
+                    }
+                  } catch {
+                    setError("通信エラーが発生しました");
+                  } finally {
+                    setIsCreatingCircle(false);
+                  }
+                }}
+                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-slate-900 rounded-lg hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                {isCreatingCircle ? "作成中..." : "登録"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
