@@ -25,7 +25,7 @@ export async function joinCircle(formData: FormData) {
 
   const userId = session.user.id as string;
 
-  // すでにメンバーなら何もしない（VIEWER として upsert）
+  // すでにメンバーなら何もしない（EDITOR として upsert）
   await prisma.circleMember.upsert({
     where: {
       circleId_userId: {
@@ -37,7 +37,7 @@ export async function joinCircle(formData: FormData) {
     create: {
       circleId,
       userId,
-      role: "VIEWER", // 招待参加は VIEWER として参加
+      role: "EDITOR", // 招待参加は EDITOR として参加
     },
   });
 

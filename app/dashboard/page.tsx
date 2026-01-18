@@ -39,18 +39,24 @@ export default async function DashboardPage() {
 
   const userId = session.user.id as string;
 
-  // ユーザーが参加しているサークルを取得
+  // ユーザーが参加しているサークルを取得（ロール情報も含む）
   const memberships = await prisma.circleMember.findMany({
     where: { userId },
-    select: { circleId: true },
+    select: { circleId: true, role: true },
   });
 
   const circleIds = memberships.map((m) => m.circleId);
+  // 管理者（ADMIN）のサークルIDのみ
+  const adminCircleIds = memberships
+    .filter((m) => m.role === "ADMIN")
+    .map((m) => m.circleId);
   const hasCircles = circleIds.length > 0;
 
   let feed: FeedItem[] = [];
   let circles: { id: string; name: string }[] = [];
   let totalBalance = 0;
+  let yesterdayBalance = 0;
+  let balanceDiff = 0;
   let tagSummary: TagSummary[] = [];
 
   if (hasCircles) {
@@ -60,36 +66,76 @@ export default async function DashboardPage() {
       select: { id: true, name: true },
     });
 
-    // 残高スナップショットを取得
+    // 残高スナップショットを取得（全サークル分）
     const snapshots = await prisma.circleSnapshot.findMany({
       where: { circleId: { in: circleIds } },
       orderBy: { createdAt: "desc" },
-      take: 50,
+      take: 200,
       include: {
         circle: { select: { name: true } },
         user: { select: { id: true, name: true, email: true, image: true } },
       },
     });
 
-    // 支出を取得
+    // 支出を取得（全サークル分）
     const expenses = await prisma.expense.findMany({
       where: { circleId: { in: circleIds } },
       orderBy: { createdAt: "desc" },
-      take: 50,
+      take: 200,
       include: {
         circle: { select: { name: true } },
         user: { select: { id: true, name: true, email: true, image: true } },
       },
     });
 
-    // 各サークルの最新残高を計算
-    const latestByCircle = new Map<string, number>();
-    for (const s of snapshots) {
-      if (!latestByCircle.has(s.circleId)) {
-        latestByCircle.set(s.circleId, s.amount);
+    // 管理者サークルの残高計算（最新残高 - 残高記入後の支出合計）
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    for (const circleId of adminCircleIds) {
+      // このサークルの最新残高スナップショット
+      const latestSnapshot = snapshots.find((s) => s.circleId === circleId);
+      if (!latestSnapshot) continue;
+
+      const snapshotDate = new Date(latestSnapshot.createdAt);
+
+      // 最新残高
+      let circleBalance = latestSnapshot.amount;
+
+      // スナップショット以降の支出を引く
+      const expensesAfterSnapshot = expenses.filter(
+        (e) => e.circleId === circleId && new Date(e.createdAt) > snapshotDate
+      );
+      const expenseSum = expensesAfterSnapshot.reduce((sum, e) => sum + e.amount, 0);
+      circleBalance -= expenseSum;
+
+      totalBalance += circleBalance;
+
+      // 昨日時点の残高を計算
+      // 昨日終了時点で有効だった最新のスナップショット
+      const yesterdayEndSnapshot = snapshots.find(
+        (s) => s.circleId === circleId && new Date(s.createdAt) < todayStart
+      );
+
+      if (yesterdayEndSnapshot) {
+        let yesterdayCircleBalance = yesterdayEndSnapshot.amount;
+        // そのスナップショット以降、昨日終了までの支出を引く
+        const expensesAfterYesterdaySnapshot = expenses.filter(
+          (e) =>
+            e.circleId === circleId &&
+            new Date(e.createdAt) > new Date(yesterdayEndSnapshot.createdAt) &&
+            new Date(e.createdAt) < todayStart
+        );
+        const yesterdayExpenseSum = expensesAfterYesterdaySnapshot.reduce(
+          (sum, e) => sum + e.amount,
+          0
+        );
+        yesterdayCircleBalance -= yesterdayExpenseSum;
+        yesterdayBalance += yesterdayCircleBalance;
       }
     }
-    totalBalance = Array.from(latestByCircle.values()).reduce((a, b) => a + b, 0);
+
+    balanceDiff = totalBalance - yesterdayBalance;
 
     // 統合してソート
     feed = [
@@ -113,7 +159,7 @@ export default async function DashboardPage() {
         userId: e.userId,
         userName: e.user?.name || e.user?.email || "不明",
         userImage: e.user?.image || null,
-        amount: e.amount,
+        amount: -e.amount, // 支出はマイナス表記
         description: e.description,
         place: e.place,
         category: e.category,
@@ -123,7 +169,6 @@ export default async function DashboardPage() {
     ].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
     // タグ別集計を計算（今月分）
-    const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const tagMap = new Map<string, { total: number; count: number }>();
 
@@ -159,9 +204,20 @@ export default async function DashboardPage() {
               サークル管理 →
             </Link>
           </div>
-          <div className="rounded-2xl bg-slate-900 px-4 py-3">
-            <div className="font-semibold text-white text-3xl text-center">
-              ¥ {formatYen(totalBalance)}
+          <div className="rounded-2xl bg-slate-900 px-4 py-2.5">
+            <div className="flex items-center justify-center gap-3">
+              <span className="font-semibold text-white text-2xl">
+                ¥ {formatYen(totalBalance)}
+              </span>
+              {yesterdayBalance !== 0 && (
+                <span
+                  className={`text-sm ${
+                    balanceDiff >= 0 ? "text-emerald-400" : "text-red-400"
+                  }`}
+                >
+                  ({balanceDiff >= 0 ? "+" : ""}¥{formatYen(balanceDiff)})
+                </span>
+              )}
             </div>
           </div>
 
@@ -180,8 +236,8 @@ export default async function DashboardPage() {
                       <span>{item.tag}</span>
                       <span className="text-slate-400">×{item.count}</span>
                     </div>
-                    <div className="text-xs font-semibold text-slate-900">
-                      ¥{formatYen(item.total)}
+                    <div className="text-xs font-semibold text-red-600">
+                      -¥{formatYen(item.total)}
                     </div>
                   </div>
                 ))}
