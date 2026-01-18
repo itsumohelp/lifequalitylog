@@ -1,9 +1,18 @@
 // app/layout.tsx
 import "./globals.css";
 import type { ReactNode } from "react";
+import type { Viewport } from "next";
 import { auth } from "@/auth";
 import Header from "@/app/componets/Header";
 import { GoogleAnalytics } from "@next/third-parties/google";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export default async function RootLayout({
   children,
 }: {
