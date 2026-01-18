@@ -6,7 +6,7 @@ import { parseExpenseInput, getCategoryEmoji } from "@/lib/expenseParser";
 
 type FeedItem = {
   id: string;
-  kind: "snapshot" | "expense";
+  kind: "snapshot" | "expense" | "invite";
   circleId: string;
   circleName: string;
   userId: string;
@@ -18,6 +18,7 @@ type FeedItem = {
   category?: string;
   tags?: string[];
   note?: string | null;
+  inviteUrl?: string;
   createdAt: string;
 };
 
@@ -72,9 +73,49 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
     }
   }, [feed]);
 
+  // 招待コマンドかどうかをチェック
+  const isInviteCommand = (text: string) => {
+    const normalized = text.trim().toLowerCase();
+    return normalized === "招待" || normalized === "しょうたい" || normalized === "invite";
+  };
+
+  // 招待リンクを生成してクリップボードにコピー
+  const handleInvite = async () => {
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const inviteUrl = `${origin}/join?circleId=${encodeURIComponent(selectedCircleId)}`;
+
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+    } catch {
+      // クリップボードへのコピーに失敗してもフィードには表示
+    }
+
+    const inviteItem: FeedItem = {
+      id: `invite-${Date.now()}`,
+      kind: "invite",
+      circleId: selectedCircleId,
+      circleName: selectedCircle?.name || "",
+      userId: currentUserId,
+      userName: "自分",
+      userImage: null,
+      amount: 0,
+      inviteUrl,
+      createdAt: new Date().toISOString(),
+    };
+
+    setFeed((prev) => [...prev, inviteItem]);
+    setInput("");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading || !selectedCircleId) return;
+
+    // 招待コマンドの処理
+    if (isInviteCommand(input)) {
+      await handleInvite();
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -103,7 +144,7 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
           userId: currentUserId,
           userName: data.expense.user.name || "自分",
           userImage: data.expense.user.image,
-          amount: data.expense.amount,
+          amount: -data.expense.amount, // 支出はマイナス表記
           description: data.expense.description,
           place: data.expense.place,
           category: data.expense.category,
@@ -253,7 +294,7 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
                                 </span>
                                 <span
                                   className={`font-semibold ${
-                                    isOwnMessage ? "text-sky-300" : "text-slate-900"
+                                    isOwnMessage ? "text-red-300" : "text-red-600"
                                   }`}
                                 >
                                   ¥{formatYen(item.amount)}
@@ -266,6 +307,37 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
                               >
                                 {item.description}
                               </p>
+                            </>
+                          ) : item.kind === "invite" ? (
+                            <>
+                              <div
+                                className={`text-[11px] mb-1 ${
+                                  isOwnMessage ? "text-slate-400" : "text-slate-500"
+                                }`}
+                              >
+                                招待リンク（コピー済み）
+                              </div>
+                              <p
+                                className={`text-xs break-all ${
+                                  isOwnMessage ? "text-sky-300" : "text-sky-600"
+                                }`}
+                              >
+                                {item.inviteUrl}
+                              </p>
+                              <button
+                                onClick={async () => {
+                                  if (item.inviteUrl) {
+                                    await navigator.clipboard.writeText(item.inviteUrl);
+                                  }
+                                }}
+                                className={`mt-2 text-[10px] px-2 py-1 rounded-full border ${
+                                  isOwnMessage
+                                    ? "border-slate-600 text-slate-300 hover:bg-slate-700"
+                                    : "border-slate-300 text-slate-600 hover:bg-slate-100"
+                                }`}
+                              >
+                                再コピー
+                              </button>
                             </>
                           ) : (
                             <>
@@ -313,86 +385,89 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
         )}
       </div>
 
-      {/* エラー表示 */}
-      {error && (
-        <div className="mx-3 mb-2 px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-          {error}
-        </div>
-      )}
+      {/* 入力エリア（画面下部に固定） */}
+      <div className="sticky bottom-0 bg-white border-t border-slate-200">
+        {/* エラー表示 */}
+        {error && (
+          <div className="mx-3 mt-2 px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            {error}
+          </div>
+        )}
 
-      {/* サークル選択 + モード切替（入力欄の上） */}
-      <div className="flex items-center gap-2 px-3 py-2 border-t border-slate-200 bg-white">
-        <select
-          value={selectedCircleId}
-          onChange={(e) => setSelectedCircleId(e.target.value)}
-          className="flex-1 bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-slate-400"
+        {/* サークル選択 + モード切替 */}
+        <div className="flex items-center gap-2 px-3 py-2">
+          <select
+            value={selectedCircleId}
+            onChange={(e) => setSelectedCircleId(e.target.value)}
+            className="flex-1 bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-slate-400"
+          >
+            {circles.map((circle) => (
+              <option key={circle.id} value={circle.id}>
+                {circle.name}
+              </option>
+            ))}
+          </select>
+
+          {/* モード切替トグル */}
+          <div className="flex bg-slate-100 rounded-lg p-0.5">
+            <button
+              onClick={() => setInputMode("expense")}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${
+                inputMode === "expense"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500"
+              }`}
+            >
+              支出
+            </button>
+            <button
+              onClick={() => setInputMode("snapshot")}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${
+                inputMode === "snapshot"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500"
+              }`}
+            >
+              残高
+            </button>
+          </div>
+        </div>
+
+        {/* 入力フォーム */}
+        <form
+          onSubmit={handleSubmit}
+          className="px-3 pb-3 pt-0"
         >
-          {circles.map((circle) => (
-            <option key={circle.id} value={circle.id}>
-              {circle.name}
-            </option>
-          ))}
-        </select>
-
-        {/* モード切替トグル */}
-        <div className="flex bg-slate-100 rounded-lg p-0.5">
-          <button
-            onClick={() => setInputMode("expense")}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${
-              inputMode === "expense"
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-500"
-            }`}
-          >
-            支出
-          </button>
-          <button
-            onClick={() => setInputMode("snapshot")}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${
-              inputMode === "snapshot"
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-500"
-            }`}
-          >
-            残高
-          </button>
-        </div>
+          <div className="flex gap-2">
+            <input
+              ref={inputRef}
+              type={inputMode === "snapshot" ? "number" : "text"}
+              inputMode={inputMode === "snapshot" ? "numeric" : "text"}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={
+                inputMode === "expense"
+                  ? "コンビニで500円"
+                  : "現在の残高を入力"
+              }
+              disabled={isLoading || !selectedCircleId}
+              className="flex-1 bg-slate-100 border border-slate-200 rounded-full px-4 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 disabled:opacity-50"
+            />
+            <button
+              type="submit"
+              disabled={isLoading || !input.trim() || !selectedCircleId}
+              className="bg-slate-900 text-white rounded-full px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-transform"
+            >
+              {isLoading ? "..." : "送信"}
+            </button>
+          </div>
+          <p className="text-[10px] text-slate-400 mt-1.5 text-center">
+            {inputMode === "expense"
+              ? "「〇〇で△△円」の形式で入力"
+              : "現在の口座残高を数字で入力"}
+          </p>
+        </form>
       </div>
-
-      {/* 入力フォーム */}
-      <form
-        onSubmit={handleSubmit}
-        className="px-3 pb-3 pt-0 bg-white"
-      >
-        <div className="flex gap-2">
-          <input
-            ref={inputRef}
-            type={inputMode === "snapshot" ? "number" : "text"}
-            inputMode={inputMode === "snapshot" ? "numeric" : "text"}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={
-              inputMode === "expense"
-                ? "コンビニで500円"
-                : "現在の残高を入力"
-            }
-            disabled={isLoading || !selectedCircleId}
-            className="flex-1 bg-slate-100 border border-slate-200 rounded-full px-4 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 disabled:opacity-50"
-          />
-          <button
-            type="submit"
-            disabled={isLoading || !input.trim() || !selectedCircleId}
-            className="bg-slate-900 text-white rounded-full px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-transform"
-          >
-            {isLoading ? "..." : "送信"}
-          </button>
-        </div>
-        <p className="text-[10px] text-slate-400 mt-1.5 text-center">
-          {inputMode === "expense"
-            ? "「〇〇で△△円」の形式で入力"
-            : "現在の口座残高を数字で入力"}
-        </p>
-      </form>
     </div>
   );
 }
