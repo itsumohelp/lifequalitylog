@@ -87,6 +87,7 @@ model User {
   circleMembers CircleMember[]
   snapshots     Snapshot[]
   circleSnapshots CircleSnapshot[]
+  expenses      Expense[]
   @@map("users")
 }
  
@@ -109,6 +110,7 @@ model Circle {
   members     CircleMember[]
   snapshots   Snapshot[]
   circleSnapshots CircleSnapshot[]
+  expenses    Expense[]
 }
 
 model CircleMember {
@@ -158,5 +160,34 @@ model CircleSnapshot {
   isSignatureVerified Boolean @default(true)
   diffFromPrev Int?
   @@index([circleId, createdAt])
+  @@index([userId])
+}
+
+// 支出カテゴリ
+enum ExpenseCategory {
+  FOOD        // 食費
+  DAILY       // 日用品
+  TRANSPORT   // 交通費
+  ENTERTAINMENT // 娯楽
+  UTILITY     // 光熱費
+  MEDICAL     // 医療
+  OTHER       // その他
+}
+
+// 支出記録
+model Expense {
+  id          String          @id @default(cuid())
+  circleId    String
+  circle      Circle          @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User            @relation(fields: [userId], references: [id])
+  amount      Int             // 金額
+  description String          // 入力された説明（例：「コンビニで500円」）
+  place       String?         // パースした場所
+  category    ExpenseCategory @default(OTHER)
+  tags        String[]        // 自動抽出されたタグ（例：["コンビニ"]）
+  expenseDate DateTime        @default(now()) // 支出日時
+  createdAt   DateTime        @default(now())
+  @@index([circleId, expenseDate])
   @@index([userId])
 }

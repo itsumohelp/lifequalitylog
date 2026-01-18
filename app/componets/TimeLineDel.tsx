@@ -1,6 +1,5 @@
-import { Form } from "lucide-react";
 import { delBalanceSnapshot } from "../actions";
-import { TimelineEvent } from "../dashboard/page";
+import { TimelineEvent } from "./DetailSnapshot";
 
 export default function DeleteBtn({ row }: { row: TimelineEvent }) {
   const snapshotId = row.kind == "snapshot" ? row.snapshotId : null;

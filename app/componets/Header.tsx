@@ -23,12 +23,41 @@ export default function Header({ session }: HeaderProps) {
   }
 
   return (
-    <header className="backdrop-blur">
+    <header className="bg-slate-950">
       <div className="mx-auto max-w-md px-4 py-2 flex items-center justify-between">
-        {/* 左：ロゴ */}
+        {/* 左：ロゴ + アイコン */}
         <Link href="/dashboard" className="flex items-center gap-2">
-          <span className="text-sm font-bold tracking-wide text-sky-1200">
-            Circlerun
+          {/* CircleRunアイコン */}
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 32 32"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="flex-shrink-0"
+          >
+            {/* 外側の円（C） */}
+            <circle
+              cx="16"
+              cy="16"
+              r="12"
+              stroke="#38bdf8"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeDasharray="56 20"
+              transform="rotate(-45 16 16)"
+            />
+            {/* 内側のR */}
+            <path
+              d="M13 10h4a3 3 0 0 1 0 6h-4v6M17 16l4 6"
+              stroke="#f0f9ff"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <span className="text-sm font-bold tracking-wide text-sky-100">
+            CircleRun
           </span>
         </Link>
 
@@ -48,40 +77,37 @@ export default function Header({ session }: HeaderProps) {
                       className="w-7 h-7 object-cover"
                     />
                   ) : (
-                    <span className="text-[11px] text-slate-1000">
+                    <span className="text-[11px] text-slate-300">
                       {(user.name ?? user.email ?? "?").slice(0, 2)}
                     </span>
                   )}
                 </div>
-                <span className="text-[11px] text-slate-1000 max-w-[90px] truncate">
+                <span className="text-[11px] text-slate-300 max-w-[90px] truncate">
                   {user.name ?? user.email}
                 </span>
               </div>
 
-              {/* 🔴 ここ：サインアウトボタン（即ログアウト & リダイレクト） */}
+              {/* サインアウトボタン */}
               <form action={handleSignOut}>
                 <button
                   type="submit"
-                  className="text-[11px] px-2 py-1 rounded-full border border-slate-600 text-slate-1000 hover:bg-slate-800"
+                  className="text-[11px] px-2 py-1 rounded-full border border-slate-600 text-slate-300 hover:bg-slate-800"
                 >
                   ログアウト
                 </button>
               </form>
             </div>
           ) : (
-            // 🔵 未ログイン時：サインインボタン（即 Google 同意画面へ）
+            // 未ログイン時：サインインボタン
             <form action={handleSignIn}>
               <button
                 type="submit"
-                className="text-[11px] px-3 py-1 rounded-full border border-sky-500 text-sky-1000 hover:bg-sky-700/30"
+                className="text-[11px] px-3 py-1 rounded-full border border-sky-500 text-sky-400 hover:bg-sky-700/30"
               >
                 ログイン
               </button>
             </form>
           )}
-
-          {/* ハンバーガー（そのままでOK） */}
-          {/* ...（省略：前に書いた details/summary 部分） */}
         </div>
       </div>
     </header>

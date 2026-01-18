@@ -130,6 +130,25 @@ export default async function CircleDetailPage({ params }: Props) {
             <div className="text-slate-400">残高を時系列で表示します。</div>
             <InviteButton circleId={circle.id} />
           </div>
+
+          {/* 支出入力へのリンク */}
+          <Link
+            href={`/circles/${circleId}/expenses`}
+            className="mt-3 flex items-center justify-between rounded-2xl bg-sky-900/30 border border-sky-800 px-4 py-3 active:scale-[0.98] transition-transform"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-xl">💬</span>
+              <div>
+                <div className="text-sm font-semibold text-sky-100">
+                  支出を入力
+                </div>
+                <div className="text-xs text-slate-400">
+                  チャット形式で記録
+                </div>
+              </div>
+            </div>
+            <span className="text-sky-300">→</span>
+          </Link>
         </header>
 
         {/* タイムライン */}
