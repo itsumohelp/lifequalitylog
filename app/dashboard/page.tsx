@@ -10,15 +10,17 @@ function formatYen(amount: number) {
 
 type FeedItem = {
   id: string;
-  kind: "snapshot" | "expense";
+  kind: "snapshot" | "expense" | "income";
   circleId: string;
   circleName: string;
   userId: string;
   userName: string;
   userImage: string | null;
   amount: number;
+  cumulativeExpense?: number;
   description?: string;
   place?: string | null;
+  source?: string | null;
   category?: string;
   tags?: string[];
   note?: string | null;
@@ -48,7 +50,6 @@ export default async function DashboardPage() {
   });
 
   const circleIds = memberships.map((m) => m.circleId);
-  // 管理者（ADMIN）のサークルIDのみ
   const adminCircleIds = memberships
     .filter((m) => m.role === "ADMIN")
     .map((m) => m.circleId);
@@ -91,18 +92,26 @@ export default async function DashboardPage() {
       },
     });
 
-    // 管理者サークルの残高計算（最新残高 - 残高記入後の支出合計）
+    // 収入を取得（全サークル分）
+    const incomes = await prisma.income.findMany({
+      where: { circleId: { in: circleIds } },
+      orderBy: { createdAt: "desc" },
+      take: 200,
+      include: {
+        circle: { select: { name: true } },
+        user: { select: { id: true, name: true, email: true, image: true } },
+      },
+    });
+
+    // 管理者サークルの残高計算
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     for (const circleId of adminCircleIds) {
-      // このサークルの最新残高スナップショット
       const latestSnapshot = snapshots.find((s) => s.circleId === circleId);
       if (!latestSnapshot) continue;
 
       const snapshotDate = new Date(latestSnapshot.createdAt);
-
-      // 最新残高
       let circleBalance = latestSnapshot.amount;
 
       // スナップショット以降の支出を引く
@@ -112,17 +121,22 @@ export default async function DashboardPage() {
       const expenseSum = expensesAfterSnapshot.reduce((sum, e) => sum + e.amount, 0);
       circleBalance -= expenseSum;
 
+      // スナップショット以降の収入を足す
+      const incomesAfterSnapshot = incomes.filter(
+        (i) => i.circleId === circleId && new Date(i.createdAt) > snapshotDate
+      );
+      const incomeSum = incomesAfterSnapshot.reduce((sum, i) => sum + i.amount, 0);
+      circleBalance += incomeSum;
+
       totalBalance += circleBalance;
 
       // 昨日時点の残高を計算
-      // 昨日終了時点で有効だった最新のスナップショット
       const yesterdayEndSnapshot = snapshots.find(
         (s) => s.circleId === circleId && new Date(s.createdAt) < todayStart
       );
 
       if (yesterdayEndSnapshot) {
         let yesterdayCircleBalance = yesterdayEndSnapshot.amount;
-        // そのスナップショット以降、昨日終了までの支出を引く
         const expensesAfterYesterdaySnapshot = expenses.filter(
           (e) =>
             e.circleId === circleId &&
@@ -152,7 +166,22 @@ export default async function DashboardPage() {
       monthlyExpense = monthlySnapshots.reduce((sum: number, m) => sum + m.totalExpense, 0);
     }
 
-    // 統合してソート
+    // 今月の支出累計をサークルごとに計算
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const expensesSortedAsc = [...expenses]
+      .filter((e) => new Date(e.createdAt) >= startOfMonth)
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+    const expenseCumulativeMap = new Map<string, number>();
+    const circleRunningTotals = new Map<string, number>();
+    for (const e of expensesSortedAsc) {
+      const currentTotal = circleRunningTotals.get(e.circleId) || 0;
+      const newTotal = currentTotal + e.amount;
+      circleRunningTotals.set(e.circleId, newTotal);
+      expenseCumulativeMap.set(e.id, newTotal);
+    }
+
+    // 統合してソート（最新10件のみ）
     feed = [
       ...snapshots.map((s) => ({
         id: `snapshot-${s.id}`,
@@ -174,17 +203,35 @@ export default async function DashboardPage() {
         userId: e.userId,
         userName: e.user?.name || e.user?.email || "不明",
         userImage: e.user?.image || null,
-        amount: -e.amount, // 支出はマイナス表記
+        amount: -e.amount,
+        cumulativeExpense: expenseCumulativeMap.get(e.id),
         description: e.description,
         place: e.place,
         category: e.category,
         tags: e.tags,
         createdAt: e.createdAt.toISOString(),
       })),
-    ].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      ...incomes.map((i) => ({
+        id: `income-${i.id}`,
+        kind: "income" as const,
+        circleId: i.circleId,
+        circleName: i.circle.name,
+        userId: i.userId,
+        userName: i.user?.name || i.user?.email || "不明",
+        userImage: i.user?.image || null,
+        amount: i.amount,
+        description: i.description,
+        source: i.source,
+        category: i.category,
+        tags: i.tags,
+        createdAt: i.createdAt.toISOString(),
+      })),
+    ]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 10)
+      .reverse();
 
-    // サークル×タグ別集計を計算（今月分）、金額順に並べる
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    // サークル×タグ別集計を計算（今月分）
     const tagMap = new Map<string, { circleId: string; circleName: string; total: number; count: number }>();
 
     for (const e of expenses) {
@@ -207,14 +254,13 @@ export default async function DashboardPage() {
       }
     }
 
-    // 金額順に並べる
     tagSummary = Array.from(tagMap.entries())
       .map(([key, data]) => ({
-        tag: key.split(":").slice(1).join(":"), // サークルID以降をタグ名として取得
+        tag: key.split(":").slice(1).join(":"),
         ...data,
       }))
       .sort((a, b) => b.total - a.total)
-      .slice(0, 10); // 上位10件
+      .slice(0, 10);
   }
 
   return (

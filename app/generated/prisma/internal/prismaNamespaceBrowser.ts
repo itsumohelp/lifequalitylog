@@ -63,7 +63,8 @@ export const ModelName = {
   Snapshot: 'Snapshot',
   CircleSnapshot: 'CircleSnapshot',
   MonthlySnapshot: 'MonthlySnapshot',
-  Expense: 'Expense'
+  Expense: 'Expense',
+  Income: 'Income'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -250,6 +251,22 @@ export const ExpenseScalarFieldEnum = {
 } as const
 
 export type ExpenseScalarFieldEnum = (typeof ExpenseScalarFieldEnum)[keyof typeof ExpenseScalarFieldEnum]
+
+
+export const IncomeScalarFieldEnum = {
+  id: 'id',
+  circleId: 'circleId',
+  userId: 'userId',
+  amount: 'amount',
+  description: 'description',
+  source: 'source',
+  category: 'category',
+  tags: 'tags',
+  incomeDate: 'incomeDate',
+  createdAt: 'createdAt'
+} as const
+
+export type IncomeScalarFieldEnum = (typeof IncomeScalarFieldEnum)[keyof typeof IncomeScalarFieldEnum]
 
 
 export const SortOrder = {

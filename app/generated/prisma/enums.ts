@@ -29,3 +29,14 @@ export const ExpenseCategory = {
 } as const
 
 export type ExpenseCategory = (typeof ExpenseCategory)[keyof typeof ExpenseCategory]
+
+
+export const IncomeCategory = {
+  SALARY: 'SALARY',
+  BONUS: 'BONUS',
+  INVESTMENT: 'INVESTMENT',
+  TRANSFER: 'TRANSFER',
+  OTHER: 'OTHER'
+} as const
+
+export type IncomeCategory = (typeof IncomeCategory)[keyof typeof IncomeCategory]
