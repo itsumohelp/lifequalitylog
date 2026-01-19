@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" width="180" height="180">
+  <!-- 背景 -->
+  <rect width="180" height="180" rx="40" fill="#0f172a"/>
+  <!-- 内側の円（サークルを表現） -->
+  <circle cx="90" cy="90" r="55" fill="none" stroke="#38bdf8" stroke-width="8"/>
+  <!-- 円記号 ¥ -->
+  <text x="90" y="110" text-anchor="middle" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="#f8fafc">¥</text>
+</svg>

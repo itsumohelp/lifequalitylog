@@ -467,6 +467,15 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
 
                       {/* メッセージ部分 */}
                       <div className={`max-w-[70%] ${isOwnMessage ? "items-end" : ""}`}>
+                        {/* 投稿者名（バブルの上） */}
+                        <div
+                          className={`text-[10px] text-slate-500 mb-0.5 ${
+                            isOwnMessage ? "text-right" : ""
+                          }`}
+                        >
+                          {item.userName}
+                        </div>
+
                         {/* メッセージバブル */}
                         <div
                           className={`rounded-2xl px-3 py-1.5 ${
