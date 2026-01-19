@@ -88,6 +88,7 @@ model User {
   snapshots     Snapshot[]
   circleSnapshots CircleSnapshot[]
   expenses      Expense[]
+  incomes       Income[]
   @@map("users")
 }
  
@@ -111,6 +112,7 @@ model Circle {
   snapshots   Snapshot[]
   circleSnapshots CircleSnapshot[]
   expenses    Expense[]
+  incomes     Income[]
   monthlySnapshots MonthlySnapshot[]
 }
 
@@ -204,5 +206,32 @@ model Expense {
   expenseDate DateTime        @default(now()) // 支出日時
   createdAt   DateTime        @default(now())
   @@index([circleId, expenseDate])
+  @@index([userId])
+}
+
+// 収入カテゴリ
+enum IncomeCategory {
+  SALARY      // 給与
+  BONUS       // ボーナス
+  INVESTMENT  // 投資
+  TRANSFER    // 振込
+  OTHER       // その他
+}
+
+// 収入記録
+model Income {
+  id          String          @id @default(cuid())
+  circleId    String
+  circle      Circle          @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User            @relation(fields: [userId], references: [id])
+  amount      Int             // 金額
+  description String          // 入力された説明（例：「給与 250000円」）
+  source      String?         // 収入元（例：「会社」）
+  category    IncomeCategory  @default(OTHER)
+  tags        String[]        // タグ
+  incomeDate  DateTime        @default(now()) // 収入日時
+  createdAt   DateTime        @default(now())
+  @@index([circleId, incomeDate])
   @@index([userId])
 }

@@ -104,3 +104,8 @@ export type MonthlySnapshot = Prisma.MonthlySnapshotModel
  * 
  */
 export type Expense = Prisma.ExpenseModel
+/**
+ * Model Income
+ * 
+ */
+export type Income = Prisma.IncomeModel
