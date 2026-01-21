@@ -60,10 +60,11 @@ export default async function HomePage() {
 
         {/* カード */}
         <div className="rounded-2xl bg-slate-50 border border-slate-200 p-6 shadow-sm">
-          <p className="text-sm text-slate-800 leading-relaxed mb-6">
-            月に一度、「このサークルの口座はいくらか」だけを記録して、
-            家族・友人・サークルの「お金の歩み」をタイムラインで眺められます。
-          </p>
+          <ul className="text-sm text-slate-800 leading-relaxed mb-6 space-y-2">
+            <li>・支出や収入をチャット感覚でサクッと記録</li>
+            <li>・家族・友人・サークルでお金の動きを共有</li>
+            <li>・タグ別・期間別のグラフで支出を見える化</li>
+          </ul>
 
           <form action={handleGoogleLogin}>
             <button
