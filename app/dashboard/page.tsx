@@ -75,7 +75,7 @@ export default async function DashboardPage() {
       take: 200,
       include: {
         circle: { select: { name: true } },
-        user: { select: { id: true, name: true, email: true, image: true } },
+        user: { select: { id: true, name: true, displayName: true, email: true, image: true } },
       },
     });
 
@@ -86,7 +86,7 @@ export default async function DashboardPage() {
       take: 200,
       include: {
         circle: { select: { name: true } },
-        user: { select: { id: true, name: true, email: true, image: true } },
+        user: { select: { id: true, name: true, displayName: true, email: true, image: true } },
       },
     });
 
@@ -97,7 +97,7 @@ export default async function DashboardPage() {
       take: 200,
       include: {
         circle: { select: { name: true } },
-        user: { select: { id: true, name: true, email: true, image: true } },
+        user: { select: { id: true, name: true, displayName: true, email: true, image: true } },
       },
     });
 
@@ -201,7 +201,7 @@ export default async function DashboardPage() {
         circleId: s.circleId,
         circleName: s.circle.name,
         userId: s.userId,
-        userName: s.user?.name || s.user?.email || "不明",
+        userName: s.user?.displayName || s.user?.name || s.user?.email || "不明",
         userImage: s.user?.image || null,
         amount: s.amount,
         note: s.note,
@@ -213,7 +213,7 @@ export default async function DashboardPage() {
         circleId: e.circleId,
         circleName: e.circle.name,
         userId: e.userId,
-        userName: e.user?.name || e.user?.email || "不明",
+        userName: e.user?.displayName || e.user?.name || e.user?.email || "不明",
         userImage: e.user?.image || null,
         amount: -e.amount,
         cumulativeExpense: expenseCumulativeMap.get(e.id),
@@ -229,7 +229,7 @@ export default async function DashboardPage() {
         circleId: i.circleId,
         circleName: i.circle.name,
         userId: i.userId,
-        userName: i.user?.name || i.user?.email || "不明",
+        userName: i.user?.displayName || i.user?.name || i.user?.email || "不明",
         userImage: i.user?.image || null,
         amount: i.amount,
         description: i.description,
