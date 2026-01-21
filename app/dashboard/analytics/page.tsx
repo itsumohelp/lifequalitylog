@@ -247,15 +247,6 @@ export default function AnalyticsPage() {
                   tickFormatter={(value) => `¥${formatYen(value)}`}
                   width={70}
                 />
-                <Tooltip
-                  formatter={(value: number) => [`¥${formatYen(value)}`, ""]}
-                  labelFormatter={(label) => formatDateLabel(label, period)}
-                  contentStyle={{
-                    fontSize: 12,
-                    borderRadius: 8,
-                    border: "1px solid #e2e8f0",
-                  }}
-                />
                 {lineKeys.length > 1 && (
                   <Legend
                     wrapperStyle={{ fontSize: 10 }}
