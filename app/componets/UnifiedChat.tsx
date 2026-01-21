@@ -49,12 +49,21 @@ type UserRole = {
   role: string;
 };
 
+type TagSummaryItem = {
+  circleId: string;
+  circleName: string;
+  tag: string;
+  total: number;
+  count: number;
+};
+
 type Props = {
   initialFeed: FeedItem[];
   circles: Circle[];
   circleBalances: CircleBalance[];
   currentUserId: string;
   userRoles: UserRole[];
+  tagSummary: TagSummaryItem[];
 };
 
 type InputMode = "expense" | "income" | "snapshot";
@@ -117,10 +126,11 @@ function addToRecentTags(newTags: string[]) {
   return trimmed;
 }
 
-export default function UnifiedChat({ initialFeed, circles, circleBalances, currentUserId, userRoles }: Props) {
+export default function UnifiedChat({ initialFeed, circles, circleBalances, currentUserId, userRoles, tagSummary }: Props) {
   const [feed, setFeed] = useState<FeedItem[]>(initialFeed);
   const [balances, setBalances] = useState<CircleBalance[]>(circleBalances);
   const [selectedCircleId, setSelectedCircleId] = useState<string>(circles[0]?.id || "");
+  const [filterCircleId, setFilterCircleId] = useState<string>(""); // "" = すべて表示
   const [inputMode, setInputMode] = useState<InputMode>("expense");
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -501,8 +511,18 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
     }
   };
 
+  // フィルタリング（filterCircleIdが空の場合はすべて表示）
+  const filteredFeed = filterCircleId
+    ? feed.filter((item) => item.circleId === filterCircleId)
+    : feed;
+
+  // タグサマリーもフィルタリング
+  const filteredTagSummary = filterCircleId
+    ? tagSummary.filter((item) => item.circleId === filterCircleId)
+    : tagSummary;
+
   // 日付でグループ化
-  const groupedFeed = feed.reduce(
+  const groupedFeed = filteredFeed.reduce(
     (acc, item) => {
       const dateKey = formatDate(item.createdAt);
       if (!acc[dateKey]) {
@@ -516,12 +536,35 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
+      {/* タグ別集計（今月・金額順） */}
+      {filteredTagSummary.length > 0 && (
+        <div className="flex-shrink-0 px-3 pb-1 overflow-x-auto bg-white">
+          <div className="flex gap-1.5 whitespace-nowrap">
+            {filteredTagSummary.map((item, idx) => (
+              <div
+                key={`${item.circleId}-${item.tag}-${idx}`}
+                className="flex-shrink-0 bg-slate-100 rounded px-2 py-1 border border-slate-200"
+              >
+                {!filterCircleId && (
+                  <div className="text-[9px] text-slate-500">
+                    {item.circleName}
+                  </div>
+                )}
+                <div className="text-[9px] text-slate-700">
+                  {item.tag} <span className="text-red-500">-¥{formatYen(item.total)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* フィード表示 */}
       <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto px-3 py-4 space-y-4 bg-slate-50 min-h-0"
       >
-        {feed.length === 0 ? (
+        {filteredFeed.length === 0 ? (
           <div className="text-center text-slate-500 mt-8">
             <p className="mb-2">まだ記録がありません</p>
             <p className="text-sm">支出や残高を入力してください</p>
@@ -807,7 +850,11 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
         <div className="px-3 py-1.5 flex items-center gap-2">
           <select
             value={selectedCircleId}
-            onChange={(e) => setSelectedCircleId(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              setSelectedCircleId(value);
+              setFilterCircleId(value); // 選択したらフィルタリングを有効化
+            }}
             className="flex-1 min-w-0 bg-slate-100 border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-900 focus:outline-none focus:border-slate-400"
           >
             {circles.map((circle) => (
