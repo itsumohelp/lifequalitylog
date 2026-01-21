@@ -5,10 +5,6 @@ import UnifiedChat from "../componets/UnifiedChat";
 import BalanceHeader from "../componets/BalanceHeader";
 import Link from "next/link";
 
-function formatYen(amount: number) {
-  return new Intl.NumberFormat("ja-JP").format(amount);
-}
-
 type FeedItem = {
   id: string;
   kind: "snapshot" | "expense" | "income";
@@ -283,16 +279,7 @@ export default async function DashboardPage() {
     <div className="h-dvh bg-white overflow-hidden">
       <div className="mx-auto max-w-md flex flex-col h-full">
         {/* 合計残高（上部固定） */}
-        <div className="flex-shrink-0 bg-white px-3 pt-2 pb-1.5 border-b border-slate-100">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] text-slate-600">合計残高</span>
-            <Link
-              href="/circles"
-              className="text-[10px] text-slate-500 hover:text-slate-700"
-            >
-              サークル管理 →
-            </Link>
-          </div>
+        <div className="flex-shrink-0 bg-white px-3 pt-1 pb-1">
           <BalanceHeader
             totalBalance={totalBalance}
             balanceDiff={balanceDiff}
@@ -300,27 +287,6 @@ export default async function DashboardPage() {
             monthlyExpense={monthlyExpense}
             circleBalances={circleBalances}
           />
-
-          {/* タグ別集計（今月・金額順） */}
-          {tagSummary.length > 0 && (
-            <div className="mt-1.5 overflow-x-auto pb-0.5">
-              <div className="flex gap-1.5 whitespace-nowrap">
-                {tagSummary.map((item, idx) => (
-                  <div
-                    key={`${item.circleId}-${item.tag}-${idx}`}
-                    className="flex-shrink-0 bg-slate-100 rounded px-2 py-1 border border-slate-200"
-                  >
-                    <div className="text-[9px] text-slate-500">
-                      {item.circleName}
-                    </div>
-                    <div className="text-[9px] text-slate-700">
-                      🏷️{item.tag} <span className="text-red-500">-¥{formatYen(item.total)}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* メインコンテンツ */}
@@ -348,6 +314,7 @@ export default async function DashboardPage() {
             circleBalances={circleBalances}
             currentUserId={userId}
             userRoles={memberships.map((m) => ({ circleId: m.circleId, role: m.role }))}
+            tagSummary={tagSummary}
           />
         )}
       </div>
