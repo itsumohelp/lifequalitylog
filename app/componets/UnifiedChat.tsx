@@ -38,10 +38,23 @@ type Circle = {
   name: string;
 };
 
+type CircleBalance = {
+  circleId: string;
+  circleName: string;
+  balance: number;
+};
+
+type UserRole = {
+  circleId: string;
+  role: string;
+};
+
 type Props = {
   initialFeed: FeedItem[];
   circles: Circle[];
+  circleBalances: CircleBalance[];
   currentUserId: string;
+  userRoles: UserRole[];
 };
 
 type InputMode = "expense" | "income" | "snapshot";
@@ -104,8 +117,9 @@ function addToRecentTags(newTags: string[]) {
   return trimmed;
 }
 
-export default function UnifiedChat({ initialFeed, circles, currentUserId }: Props) {
+export default function UnifiedChat({ initialFeed, circles, circleBalances, currentUserId, userRoles }: Props) {
   const [feed, setFeed] = useState<FeedItem[]>(initialFeed);
+  const [balances, setBalances] = useState<CircleBalance[]>(circleBalances);
   const [selectedCircleId, setSelectedCircleId] = useState<string>(circles[0]?.id || "");
   const [inputMode, setInputMode] = useState<InputMode>("expense");
   const [input, setInput] = useState("");
@@ -115,11 +129,70 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isCircleModalOpen, setIsCircleModalOpen] = useState(false);
   const [newCircleName, setNewCircleName] = useState("");
+  const [selectedItem, setSelectedItem] = useState<FeedItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isCreatingCircle, setIsCreatingCircle] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const selectedCircle = circles.find((c) => c.id === selectedCircleId);
+
+  // ユーザーがサークルの編集権限を持っているかチェック
+  const canEditCircle = (circleId: string) => {
+    const role = userRoles.find((r) => r.circleId === circleId)?.role;
+    return role === "ADMIN" || role === "EDITOR";
+  };
+
+  // アイテム削除処理
+  const handleDeleteItem = async (item: FeedItem) => {
+    if (!canEditCircle(item.circleId)) return;
+
+    setIsDeleting(true);
+    try {
+      const kind = item.kind;
+      const id = item.id.replace(`${kind}-`, "");
+
+      const res = await fetch(`/api/${kind}/${id}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        // フィードから削除
+        setFeed((prev) => prev.filter((f) => f.id !== item.id));
+
+        // 残高を更新
+        if (kind === "expense") {
+          // 支出を削除 → 残高を戻す（プラス）
+          setBalances((prev) =>
+            prev.map((cb) =>
+              cb.circleId === item.circleId
+                ? { ...cb, balance: cb.balance + Math.abs(item.amount) }
+                : cb
+            )
+          );
+        } else if (kind === "income") {
+          // 収入を削除 → 残高を戻す（マイナス）
+          setBalances((prev) =>
+            prev.map((cb) =>
+              cb.circleId === item.circleId
+                ? { ...cb, balance: cb.balance - item.amount }
+                : cb
+            )
+          );
+        }
+        // snapshotの場合は複雑なので残高の再計算はページリロードで対応
+
+        setSelectedItem(null);
+      } else {
+        const data = await res.json();
+        setError(data.error || "削除に失敗しました");
+      }
+    } catch {
+      setError("通信エラーが発生しました");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // 初期読み込み時に直近タグを取得
   useEffect(() => {
@@ -204,7 +277,7 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
 
     setIsCreatingCircle(true);
     try {
-      const res = await fetch("/api/circle", {
+      const res = await fetch("/api/circles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newCircleName.trim() }),
@@ -336,6 +409,15 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
         }
 
         setFeed((prev) => [...prev, newItem]);
+
+        // サークル残高を更新（支出なので引く）
+        setBalances((prev) =>
+          prev.map((cb) =>
+            cb.circleId === selectedCircleId
+              ? { ...cb, balance: cb.balance - data.expense.amount }
+              : cb
+          )
+        );
       } else if (inputMode === "income") {
         // 収入入力
         const res = await fetch("/api/income", {
@@ -368,6 +450,15 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
         };
 
         setFeed((prev) => [...prev, newItem]);
+
+        // サークル残高を更新（収入なので足す）
+        setBalances((prev) =>
+          prev.map((cb) =>
+            cb.circleId === selectedCircleId
+              ? { ...cb, balance: cb.balance + data.income.amount }
+              : cb
+          )
+        );
       } else {
         // 残高更新
         const amount = parseInt(input.replace(/[^0-9]/g, ""), 10);
@@ -390,6 +481,15 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
         }
 
         setFeed((prev) => [...prev, data.snapshot]);
+
+        // サークル残高を新しい残高に更新
+        setBalances((prev) =>
+          prev.map((cb) =>
+            cb.circleId === selectedCircleId
+              ? { ...cb, balance: amount }
+              : cb
+          )
+        );
       }
 
       setInput("");
@@ -438,8 +538,10 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
 
               {/* その日のアイテム */}
               <div className="space-y-2">
-                {items.map((item) => {
+                {items.map((item, idx) => {
                   const isOwnMessage = item.userId === currentUserId;
+                  const prevItem = idx > 0 ? items[idx - 1] : null;
+                  const isSameUserAsPrev = prevItem && prevItem.userId === item.userId;
 
                   return (
                     <div
@@ -448,41 +550,49 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
                         isOwnMessage ? "flex-row-reverse" : ""
                       }`}
                     >
-                      {/* ユーザーアイコン */}
-                      <div className="w-8 h-8 rounded-full bg-slate-300 overflow-hidden flex-shrink-0">
-                        {item.userImage ? (
-                          <Image
-                            src={item.userImage}
-                            alt={item.userName}
-                            width={32}
-                            height={32}
-                            className="w-8 h-8 object-cover"
-                          />
-                        ) : (
-                          <div className="w-8 h-8 flex items-center justify-center text-xs text-slate-600">
-                            {item.userName?.slice(0, 1) || "?"}
-                          </div>
-                        )}
-                      </div>
+                      {/* ユーザーアイコン（連続投稿時は非表示） */}
+                      {isSameUserAsPrev ? (
+                        <div className="w-8 flex-shrink-0" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-slate-300 overflow-hidden flex-shrink-0">
+                          {item.userImage ? (
+                            <Image
+                              src={item.userImage}
+                              alt={item.userName}
+                              width={32}
+                              height={32}
+                              className="w-8 h-8 object-cover"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 flex items-center justify-center text-xs text-slate-600">
+                              {item.userName?.slice(0, 1) || "?"}
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                       {/* メッセージ部分 */}
                       <div className={`max-w-[70%] ${isOwnMessage ? "items-end" : ""}`}>
-                        {/* 投稿者名（バブルの上） */}
-                        <div
-                          className={`text-[10px] text-slate-500 mb-0.5 ${
-                            isOwnMessage ? "text-right" : ""
-                          }`}
-                        >
-                          {item.userName}
-                        </div>
+                        {/* 投稿者名（バブルの上、連続投稿時は非表示） */}
+                        {!isSameUserAsPrev && (
+                          <div
+                            className={`text-[10px] text-slate-500 mb-0.5 ${
+                              isOwnMessage ? "text-right" : ""
+                            }`}
+                          >
+                            {item.userName}
+                          </div>
+                        )}
 
                         {/* メッセージバブル */}
-                        <div
-                          className={`rounded-2xl px-3 py-1.5 ${
+                        <button
+                          type="button"
+                          onClick={() => setSelectedItem(item)}
+                          className={`rounded-2xl px-3 py-1.5 text-left w-full ${
                             isOwnMessage
                               ? "bg-slate-900 text-white rounded-tr-sm"
                               : "bg-white border border-slate-200 rounded-tl-sm"
-                          }`}
+                          } active:opacity-80 transition-opacity`}
                         >
                           {/* サークル名 + 時刻（バブル内上部） */}
                           <div className="flex items-center gap-2 mb-1">
@@ -652,7 +762,7 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
                               )}
                             </>
                           )}
-                        </div>
+                        </button>
                       </div>
                     </div>
                   );
@@ -821,40 +931,6 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
               className="flex-1 min-w-0 bg-slate-100 border border-slate-200 rounded-full px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 disabled:opacity-50"
             />
 
-            {/* ペーストボタン */}
-            <button
-              type="button"
-              onClick={async () => {
-                try {
-                  const text = await navigator.clipboard.readText();
-                  if (text) {
-                    setInput((prev) => prev + text);
-                    inputRef.current?.focus();
-                  }
-                } catch {
-                  // クリップボードへのアクセスが拒否された場合は何もしない
-                }
-              }}
-              disabled={isLoading || !selectedCircleId}
-              className="flex-shrink-0 bg-slate-200 text-slate-600 rounded-full p-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 active:bg-slate-300 transition-transform"
-              title="クリップボードから貼り付け"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-              </svg>
-            </button>
-
             {/* 送信ボタン */}
             <button
               type="submit"
@@ -904,6 +980,144 @@ export default function UnifiedChat({ initialFeed, circles, currentUserId }: Pro
               >
                 {isCreatingCircle ? "作成中..." : "作成"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 詳細モーダル */}
+      {selectedItem && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-sm p-4">
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">
+              {selectedItem.kind === "expense"
+                ? "支出詳細"
+                : selectedItem.kind === "income"
+                  ? "収入詳細"
+                  : "残高詳細"}
+            </h3>
+
+            <div className="space-y-3">
+              {/* 金額 */}
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-slate-500">金額</span>
+                <span
+                  className={`text-lg font-semibold ${
+                    selectedItem.kind === "expense"
+                      ? "text-red-600"
+                      : selectedItem.kind === "income"
+                        ? "text-emerald-600"
+                        : "text-slate-900"
+                  }`}
+                >
+                  {selectedItem.kind === "expense" ? "-" : selectedItem.kind === "income" ? "+" : ""}
+                  ¥{formatYen(Math.abs(selectedItem.amount))}
+                </span>
+              </div>
+
+              {/* サークル残高 */}
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-slate-500">サークル残高</span>
+                <span className="text-sm font-medium text-slate-900">
+                  ¥{formatYen(balances.find((b) => b.circleId === selectedItem.circleId)?.balance || 0)}
+                </span>
+              </div>
+
+              {/* サークル名 */}
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-slate-500">サークル</span>
+                <span className="text-sm text-slate-700">
+                  {selectedItem.circleName || "（名前なし）"}
+                </span>
+              </div>
+
+              {/* 説明（支出・収入の場合） */}
+              {selectedItem.description && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-slate-500">内容</span>
+                  <span className="text-sm text-slate-700">{selectedItem.description}</span>
+                </div>
+              )}
+
+              {/* 場所（支出の場合） */}
+              {selectedItem.place && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-slate-500">場所</span>
+                  <span className="text-sm text-slate-700">{selectedItem.place}</span>
+                </div>
+              )}
+
+              {/* 収入源（収入の場合） */}
+              {selectedItem.source && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-slate-500">収入源</span>
+                  <span className="text-sm text-slate-700">{selectedItem.source}</span>
+                </div>
+              )}
+
+              {/* タグ */}
+              {selectedItem.tags && selectedItem.tags.length > 0 && (
+                <div className="flex justify-between items-start">
+                  <span className="text-sm text-slate-500">タグ</span>
+                  <div className="flex flex-wrap gap-1 justify-end">
+                    {selectedItem.tags.map((tag, idx) => (
+                      <span
+                        key={idx}
+                        className="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* メモ（残高の場合） */}
+              {selectedItem.note && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-slate-500">メモ</span>
+                  <span className="text-sm text-slate-700">{selectedItem.note}</span>
+                </div>
+              )}
+
+              {/* 投稿者 */}
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-slate-500">投稿者</span>
+                <span className="text-sm text-slate-700">{selectedItem.userName}</span>
+              </div>
+
+              {/* 日時 */}
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-slate-500">日時</span>
+                <span className="text-sm text-slate-700">
+                  {new Date(selectedItem.createdAt).toLocaleString("ja-JP")}
+                </span>
+              </div>
+            </div>
+
+            {/* ボタン */}
+            <div className="flex gap-2 mt-6">
+              <button
+                type="button"
+                onClick={() => setSelectedItem(null)}
+                className="flex-1 bg-slate-100 text-slate-700 rounded-lg px-4 py-2 text-sm font-medium"
+              >
+                戻る
+              </button>
+              {(selectedItem.kind === "expense" ||
+                selectedItem.kind === "income" ||
+                selectedItem.kind === "snapshot") &&
+                canEditCircle(selectedItem.circleId) && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteItem(selectedItem)}
+                    disabled={isDeleting}
+                    className="flex-1 rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50"
+                    style={{ backgroundColor: "#dc2626", color: "#ffffff" }}
+                  >
+                    {isDeleting ? "削除中..." : "削除"}
+                  </button>
+                )}
             </div>
           </div>
         </div>
