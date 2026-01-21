@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import UnifiedChat from "../componets/UnifiedChat";
+import BalanceHeader from "../componets/BalanceHeader";
 import Link from "next/link";
 
 function formatYen(amount: number) {
@@ -57,6 +58,7 @@ export default async function DashboardPage() {
 
   let feed: FeedItem[] = [];
   let circles: { id: string; name: string }[] = [];
+  let circleBalances: { circleId: string; circleName: string; balance: number }[] = [];
   let totalBalance = 0;
   let yesterdayBalance = 0;
   let balanceDiff = 0;
@@ -103,52 +105,66 @@ export default async function DashboardPage() {
       },
     });
 
-    // 管理者サークルの残高計算
+    // 各サークルの残高計算（全サークル分）
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    for (const circleId of adminCircleIds) {
+    for (const circleId of circleIds) {
+      const circle = circles.find((c) => c.id === circleId);
       const latestSnapshot = snapshots.find((s) => s.circleId === circleId);
-      if (!latestSnapshot) continue;
 
-      const snapshotDate = new Date(latestSnapshot.createdAt);
-      let circleBalance = latestSnapshot.amount;
+      let circleBalance = 0;
+      const snapshotDate = latestSnapshot ? new Date(latestSnapshot.createdAt) : null;
 
-      // スナップショット以降の支出を引く
+      if (latestSnapshot) {
+        circleBalance = latestSnapshot.amount;
+      }
+
+      // スナップショット以降の支出を引く（スナップショットがない場合は全支出）
       const expensesAfterSnapshot = expenses.filter(
-        (e) => e.circleId === circleId && new Date(e.createdAt) > snapshotDate
+        (e) => e.circleId === circleId && (!snapshotDate || new Date(e.createdAt) > snapshotDate)
       );
       const expenseSum = expensesAfterSnapshot.reduce((sum, e) => sum + e.amount, 0);
       circleBalance -= expenseSum;
 
-      // スナップショット以降の収入を足す
+      // スナップショット以降の収入を足す（スナップショットがない場合は全収入）
       const incomesAfterSnapshot = incomes.filter(
-        (i) => i.circleId === circleId && new Date(i.createdAt) > snapshotDate
+        (i) => i.circleId === circleId && (!snapshotDate || new Date(i.createdAt) > snapshotDate)
       );
       const incomeSum = incomesAfterSnapshot.reduce((sum, i) => sum + i.amount, 0);
       circleBalance += incomeSum;
 
-      totalBalance += circleBalance;
+      // サークル別残高リストに追加
+      circleBalances.push({
+        circleId,
+        circleName: circle?.name || "（名前なし）",
+        balance: circleBalance,
+      });
 
-      // 昨日時点の残高を計算
-      const yesterdayEndSnapshot = snapshots.find(
-        (s) => s.circleId === circleId && new Date(s.createdAt) < todayStart
-      );
+      // 管理者サークルのみ合計に加算
+      if (adminCircleIds.includes(circleId)) {
+        totalBalance += circleBalance;
 
-      if (yesterdayEndSnapshot) {
-        let yesterdayCircleBalance = yesterdayEndSnapshot.amount;
-        const expensesAfterYesterdaySnapshot = expenses.filter(
-          (e) =>
-            e.circleId === circleId &&
-            new Date(e.createdAt) > new Date(yesterdayEndSnapshot.createdAt) &&
-            new Date(e.createdAt) < todayStart
+        // 昨日時点の残高を計算
+        const yesterdayEndSnapshot = snapshots.find(
+          (s) => s.circleId === circleId && new Date(s.createdAt) < todayStart
         );
-        const yesterdayExpenseSum = expensesAfterYesterdaySnapshot.reduce(
-          (sum, e) => sum + e.amount,
-          0
-        );
-        yesterdayCircleBalance -= yesterdayExpenseSum;
-        yesterdayBalance += yesterdayCircleBalance;
+
+        if (yesterdayEndSnapshot) {
+          let yesterdayCircleBalance = yesterdayEndSnapshot.amount;
+          const expensesAfterYesterdaySnapshot = expenses.filter(
+            (e) =>
+              e.circleId === circleId &&
+              new Date(e.createdAt) > new Date(yesterdayEndSnapshot.createdAt) &&
+              new Date(e.createdAt) < todayStart
+          );
+          const yesterdayExpenseSum = expensesAfterYesterdaySnapshot.reduce(
+            (sum, e) => sum + e.amount,
+            0
+          );
+          yesterdayCircleBalance -= yesterdayExpenseSum;
+          yesterdayBalance += yesterdayCircleBalance;
+        }
       }
     }
 
@@ -277,29 +293,13 @@ export default async function DashboardPage() {
               サークル管理 →
             </Link>
           </div>
-          <div className="rounded-xl bg-slate-900 px-3 py-1.5">
-            <div className="flex items-center justify-center gap-2">
-              <span className="font-semibold text-white text-xl">
-                ¥{formatYen(totalBalance)}
-              </span>
-              {yesterdayBalance !== 0 && (
-                <span
-                  className={`text-xs ${
-                    balanceDiff >= 0 ? "text-emerald-400" : "text-red-400"
-                  }`}
-                >
-                  ({balanceDiff >= 0 ? "+" : ""}¥{formatYen(balanceDiff)})
-                </span>
-              )}
-            </div>
-            {/* 当月支出 */}
-            <div className="flex items-center justify-center gap-1 mt-0.5">
-              <span className="text-[10px] text-slate-400">当月支出</span>
-              <span className="text-[10px] text-red-400">
-                -¥{formatYen(monthlyExpense)}
-              </span>
-            </div>
-          </div>
+          <BalanceHeader
+            totalBalance={totalBalance}
+            balanceDiff={balanceDiff}
+            yesterdayBalance={yesterdayBalance}
+            monthlyExpense={monthlyExpense}
+            circleBalances={circleBalances}
+          />
 
           {/* タグ別集計（今月・金額順） */}
           {tagSummary.length > 0 && (
@@ -345,7 +345,9 @@ export default async function DashboardPage() {
           <UnifiedChat
             initialFeed={feed}
             circles={circles}
+            circleBalances={circleBalances}
             currentUserId={userId}
+            userRoles={memberships.map((m) => ({ circleId: m.circleId, role: m.role }))}
           />
         )}
       </div>
