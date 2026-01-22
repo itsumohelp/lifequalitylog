@@ -37,6 +37,7 @@ type FeedItem = {
 type Circle = {
   id: string;
   name: string;
+  adminName: string;
 };
 
 type CircleBalance = {
@@ -860,7 +861,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
           >
             {circles.map((circle) => (
               <option key={circle.id} value={circle.id}>
-                {circle.name || "（名前なし）"}
+                {circle.name || "（名前なし）"}　{circle.adminName}
               </option>
             ))}
           </select>

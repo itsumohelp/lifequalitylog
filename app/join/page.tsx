@@ -1,7 +1,8 @@
 // app/join/page.tsx
-import { auth, signIn } from "@/auth";
-import prisma from "@/lib/prisma"; // いつもの import に合わせて
+import { auth } from "@/auth";
+import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import Image from "next/image";
 
 type JoinPageProps = {
   searchParams: Promise<{ circleId?: string }>;
@@ -25,24 +26,40 @@ export async function joinCircle(formData: FormData) {
 
   const userId = session.user.id as string;
 
-  // すでにメンバーなら何もしない（EDITOR として upsert）
-  await prisma.circleMember.upsert({
+  // すでにメンバーかチェック
+  const existingMember = await prisma.circleMember.findUnique({
     where: {
       circleId_userId: {
         circleId,
         userId,
       },
     },
-    update: {},
-    create: {
+  });
+
+  // 既にメンバーならそのままダッシュボードへ
+  if (existingMember) {
+    redirect("/dashboard");
+  }
+
+  // 所属サークル数をチェック（上限5個）
+  const memberCircleCount = await prisma.circleMember.count({
+    where: { userId },
+  });
+
+  if (memberCircleCount >= 5) {
+    // 上限に達している場合は参加させずにリダイレクト
+    redirect(`/join?circleId=${circleId}`);
+  }
+
+  // 新規メンバーとして追加
+  await prisma.circleMember.create({
+    data: {
       circleId,
       userId,
       role: "EDITOR", // 招待参加は EDITOR として参加
     },
   });
 
-  // ここでは DB に「参加ログ専用テーブル」は作らず、
-  // joinedAt（CircleMember.joinedAt）をタイムラインとして使う方針。
   redirect("/dashboard");
 }
 
@@ -77,8 +94,25 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
       description: true,
       walletName: true,
       currency: true,
+      members: {
+        where: { role: "ADMIN" },
+        select: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              displayName: true,
+              image: true,
+            },
+          },
+        },
+        take: 1,
+      },
     },
   });
+
+  // ADMINユーザー（招待者）を取得
+  const adminUser = circle?.members[0]?.user;
 
   if (!circle) {
     // サークルが存在しない場合はダッシュボードへ
@@ -96,6 +130,12 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
 
   const alreadyMember = !!membership;
 
+  // ユーザーが所属しているサークル数をチェック（上限5個）
+  const memberCircleCount = await prisma.circleMember.count({
+    where: { userId },
+  });
+  const reachedLimit = memberCircleCount >= 5;
+
   return (
     <main className="min-h-screen bg-slate-950 text-slate-50">
       <div className="mx-auto max-w-md px-4 pt-8 pb-10">
@@ -103,24 +143,63 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
           サークルへの参加
         </h1>
 
+        {/* 招待者情報 */}
+        {adminUser && (
+          <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-slate-700 overflow-hidden flex-shrink-0">
+                {adminUser.image ? (
+                  <Image
+                    src={adminUser.image}
+                    alt={adminUser.displayName || adminUser.name || "User"}
+                    width={48}
+                    height={48}
+                    className="w-12 h-12 object-cover"
+                  />
+                ) : (
+                  <div className="w-12 h-12 flex items-center justify-center text-lg text-slate-400">
+                    {(adminUser.displayName || adminUser.name || "?").slice(0, 1)}
+                  </div>
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-100">
+                  {adminUser.displayName || adminUser.name || "ユーザー"}
+                </p>
+                <p className="text-xs text-slate-400">からの招待</p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* サークル情報 */}
         <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 mb-4">
           <h2 className="text-sm font-semibold text-slate-100 mb-1">
-            {circle.name}
+            {circle.name || "（名前なし）"}
           </h2>
           {circle.description && (
             <p className="text-xs text-slate-300 mb-1">{circle.description}</p>
           )}
-          <p className="text-[11px] text-slate-500">
-            ウォレット名: {circle.walletName ?? "（未設定）"}
-            <br />
-            通貨: {circle.currency}
-          </p>
         </section>
 
         {alreadyMember ? (
           <div className="space-y-3">
             <p className="text-xs text-slate-300 mb-1">
               すでにこのサークルに参加しています。
+            </p>
+            <form action={skipJoin}>
+              <button
+                type="submit"
+                className="w-full text-xs py-2 rounded-full bg-sky-600 text-white font-semibold hover:bg-sky-500"
+              >
+                ダッシュボードへ戻る
+              </button>
+            </form>
+          </div>
+        ) : reachedLimit ? (
+          <div className="space-y-3">
+            <p className="text-xs text-red-400 mb-1">
+              所属できるサークルは5個までです
             </p>
             <form action={skipJoin}>
               <button

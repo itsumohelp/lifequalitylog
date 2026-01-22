@@ -53,7 +53,7 @@ export default async function DashboardPage() {
   const hasCircles = circleIds.length > 0;
 
   let feed: FeedItem[] = [];
-  let circles: { id: string; name: string }[] = [];
+  let circles: { id: string; name: string; adminName: string }[] = [];
   let circleBalances: { circleId: string; circleName: string; balance: number }[] = [];
   let totalBalance = 0;
   let yesterdayBalance = 0;
@@ -62,11 +62,32 @@ export default async function DashboardPage() {
   let tagSummary: TagSummaryItem[] = [];
 
   if (hasCircles) {
-    // サークル情報を取得
-    circles = await prisma.circle.findMany({
+    // サークル情報を取得（ADMIN名も含む）
+    const circlesWithAdmin = await prisma.circle.findMany({
       where: { id: { in: circleIds } },
-      select: { id: true, name: true },
+      select: {
+        id: true,
+        name: true,
+        members: {
+          where: { role: "ADMIN" },
+          select: {
+            user: {
+              select: {
+                displayName: true,
+                name: true,
+              },
+            },
+          },
+          take: 1,
+        },
+      },
     });
+
+    circles = circlesWithAdmin.map((c) => ({
+      id: c.id,
+      name: c.name,
+      adminName: c.members[0]?.user?.displayName || c.members[0]?.user?.name || "不明",
+    }));
 
     // 残高スナップショットを取得（全サークル分）
     const snapshots = await prisma.circleSnapshot.findMany({
