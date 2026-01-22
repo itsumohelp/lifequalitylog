@@ -26,12 +26,49 @@ export async function GET() {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
+  // 所属サークル一覧を取得
+  const memberships = await prisma.circleMember.findMany({
+    where: { userId },
+    select: {
+      role: true,
+      circle: {
+        select: {
+          id: true,
+          name: true,
+          members: {
+            where: { role: "ADMIN" },
+            select: {
+              user: {
+                select: {
+                  displayName: true,
+                  name: true,
+                },
+              },
+            },
+            take: 1,
+          },
+        },
+      },
+    },
+  });
+
+  const circles = memberships.map((m) => ({
+    id: m.circle.id,
+    name: m.circle.name,
+    role: m.role,
+    adminName:
+      m.circle.members[0]?.user?.displayName ||
+      m.circle.members[0]?.user?.name ||
+      "不明",
+  }));
+
   return NextResponse.json({
     user: {
       ...user,
       // displayNameがなければnameを返す
       displayName: user.displayName || user.name,
     },
+    circles,
   });
 }
 

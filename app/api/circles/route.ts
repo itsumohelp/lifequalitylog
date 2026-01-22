@@ -21,10 +21,47 @@ export async function POST(request: Request) {
       );
     }
 
+    const trimmedName = name.trim();
+
+    // ユーザーがADMINとして保持しているサークル数をチェック（上限5個）
+    const adminCircleCount = await prisma.circleMember.count({
+      where: {
+        userId,
+        role: "ADMIN",
+      },
+    });
+
+    if (adminCircleCount >= 5) {
+      return NextResponse.json(
+        { error: "サークルは5個まで作成できます" },
+        { status: 400 }
+      );
+    }
+
+    // 同じユーザーが同じ名前のサークルを既に持っているかチェック
+    const existingCircle = await prisma.circle.findFirst({
+      where: {
+        name: trimmedName,
+        members: {
+          some: {
+            userId,
+            role: "ADMIN",
+          },
+        },
+      },
+    });
+
+    if (existingCircle) {
+      return NextResponse.json(
+        { error: "同じ名前のサークルが既に存在します" },
+        { status: 400 }
+      );
+    }
+
     // Circle を作成しつつ、作成者を ADMIN として参加させる
     const circle = await prisma.circle.create({
       data: {
-        name: name.trim(),
+        name: trimmedName,
         currency: "JPY",
         members: {
           create: {
