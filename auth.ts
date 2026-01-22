@@ -18,7 +18,7 @@ export const {
       if (user.id) {
         await prisma.circle.create({
           data: {
-            name: "",
+            name: "おはじめ",
             currency: "JPY",
             members: {
               create: {
