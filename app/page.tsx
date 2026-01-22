@@ -1,18 +1,29 @@
 import { auth, signIn } from "@/auth";
 import { redirect } from "next/navigation";
 
-export default async function HomePage() {
-  const session = await auth();
+type HomePageProps = {
+  searchParams: Promise<{ callbackUrl?: string }>;
+};
 
-  // すでにログインしている場合はダッシュボードへ
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const session = await auth();
+  const { callbackUrl } = await searchParams;
+
+  // すでにログインしている場合
   if (session) {
+    // callbackUrlがあればそちらへ、なければダッシュボードへ
+    if (callbackUrl) {
+      redirect(decodeURIComponent(callbackUrl));
+    }
     redirect("/dashboard");
   }
 
   // ログインボタン用のサーバーアクション
   async function handleGoogleLogin() {
     "use server";
-    await signIn("google");
+    // callbackUrlを取得するためにクロージャで参照
+    const redirectTo = callbackUrl ? decodeURIComponent(callbackUrl) : "/dashboard";
+    await signIn("google", { redirectTo });
   }
 
   return (

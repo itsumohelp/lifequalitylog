@@ -20,7 +20,7 @@ export async function joinCircle(formData: FormData) {
   if (!session || !session.user?.id) {
     // 念のため未ログイン時の再チェック
     const callbackUrl = encodeURIComponent(`/join?circleId=${circleId}`);
-    redirect(`/api/auth/signin/google?callbackUrl=${callbackUrl}`);
+    redirect(`/?callbackUrl=${callbackUrl}`);
   }
 
   const userId = session.user.id as string;
@@ -61,10 +61,10 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
 
   const session = await auth();
 
-  // 未ログインなら Google サインインへ → 戻り先はこの /join
+  // 未ログインならトップページへリダイレクト（callbackUrl付きでログイン後に戻る）
   if (!session || !session.user?.id) {
     const callbackUrl = encodeURIComponent(`/join?circleId=${circleId}`);
-    redirect(`/api/auth/signin/google?callbackUrl=${callbackUrl}`);
+    redirect(`/?callbackUrl=${callbackUrl}`);
   }
 
   const userId = session.user.id as string;
