@@ -2,7 +2,6 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import UnifiedChat from "../componets/UnifiedChat";
-import BalanceHeader from "../componets/BalanceHeader";
 import Link from "next/link";
 
 type FeedItem = {
@@ -299,17 +298,6 @@ export default async function DashboardPage() {
   return (
     <div className="h-dvh bg-white overflow-hidden">
       <div className="mx-auto max-w-md flex flex-col h-full">
-        {/* 合計残高（上部固定） */}
-        <div className="flex-shrink-0 bg-white px-3 pt-1 pb-1">
-          <BalanceHeader
-            totalBalance={totalBalance}
-            balanceDiff={balanceDiff}
-            yesterdayBalance={yesterdayBalance}
-            monthlyExpense={monthlyExpense}
-            circleBalances={circleBalances}
-          />
-        </div>
-
         {/* メインコンテンツ */}
         {!hasCircles ? (
           <div className="flex-1 flex items-center justify-center text-center px-6">
@@ -336,6 +324,9 @@ export default async function DashboardPage() {
             currentUserId={userId}
             userRoles={memberships.map((m) => ({ circleId: m.circleId, role: m.role }))}
             tagSummary={tagSummary}
+            initialTotalBalance={totalBalance}
+            initialMonthlyExpense={monthlyExpense}
+            adminCircleIds={adminCircleIds}
           />
         )}
       </div>
