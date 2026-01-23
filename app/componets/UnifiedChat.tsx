@@ -66,6 +66,9 @@ type Props = {
   currentUserId: string;
   userRoles: UserRole[];
   tagSummary: TagSummaryItem[];
+  initialTotalBalance: number;
+  initialMonthlyExpense: number;
+  adminCircleIds: string[];
 };
 
 type InputMode = "expense" | "income" | "snapshot";
@@ -128,10 +131,13 @@ function addToRecentTags(newTags: string[]) {
   return trimmed;
 }
 
-export default function UnifiedChat({ initialFeed, circles, circleBalances, currentUserId, userRoles, tagSummary }: Props) {
+export default function UnifiedChat({ initialFeed, circles, circleBalances, currentUserId, userRoles, tagSummary, initialTotalBalance, initialMonthlyExpense, adminCircleIds }: Props) {
   const [feed, setFeed] = useState<FeedItem[]>(initialFeed);
   const [balances, setBalances] = useState<CircleBalance[]>(circleBalances);
+  const [totalBalance, setTotalBalance] = useState<number>(initialTotalBalance);
+  const [monthlyExpense, setMonthlyExpense] = useState<number>(initialMonthlyExpense);
   const [selectedCircleId, setSelectedCircleId] = useState<string>(circles[0]?.id || "");
+  const [isBreakdownOpen, setIsBreakdownOpen] = useState(false);
   const [filterCircleId, setFilterCircleId] = useState<string>(""); // "" = すべて表示
   const [inputMode, setInputMode] = useState<InputMode>("expense");
   const [input, setInput] = useState("");
@@ -175,13 +181,19 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
         // 残高を更新
         if (kind === "expense") {
           // 支出を削除 → 残高を戻す（プラス）
+          const expenseAmount = Math.abs(item.amount);
           setBalances((prev) =>
             prev.map((cb) =>
               cb.circleId === item.circleId
-                ? { ...cb, balance: cb.balance + Math.abs(item.amount) }
+                ? { ...cb, balance: cb.balance + expenseAmount }
                 : cb
             )
           );
+          // ADMINサークルの場合、合計残高と当月支出も更新
+          if (adminCircleIds.includes(item.circleId)) {
+            setTotalBalance((prev) => prev + expenseAmount);
+            setMonthlyExpense((prev) => prev - expenseAmount);
+          }
         } else if (kind === "income") {
           // 収入を削除 → 残高を戻す（マイナス）
           setBalances((prev) =>
@@ -191,6 +203,10 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                 : cb
             )
           );
+          // ADMINサークルの場合、合計残高も更新
+          if (adminCircleIds.includes(item.circleId)) {
+            setTotalBalance((prev) => prev - item.amount);
+          }
         }
         // snapshotの場合は複雑なので残高の再計算はページリロードで対応
 
@@ -398,6 +414,19 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
           return;
         }
 
+        // 当月の累計支出を計算（既存の支出 + 今回の支出）
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const existingMonthlyExpense = feed
+          .filter(
+            (f) =>
+              f.kind === "expense" &&
+              f.circleId === selectedCircleId &&
+              new Date(f.createdAt) >= startOfMonth
+          )
+          .reduce((sum, f) => sum + Math.abs(f.amount), 0);
+        const newCumulativeExpense = existingMonthlyExpense + data.expense.amount;
+
         const newItem: FeedItem = {
           id: `expense-${data.expense.id}`,
           kind: "expense",
@@ -407,6 +436,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
           userName: data.expense.user.name || "自分",
           userImage: data.expense.user.image,
           amount: -data.expense.amount,
+          cumulativeExpense: newCumulativeExpense,
           description: data.expense.description,
           place: data.expense.place,
           category: data.expense.category,
@@ -430,6 +460,12 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
               : cb
           )
         );
+
+        // ADMINサークルの場合、合計残高と当月支出も更新
+        if (adminCircleIds.includes(selectedCircleId)) {
+          setTotalBalance((prev) => prev - data.expense.amount);
+          setMonthlyExpense((prev) => prev + data.expense.amount);
+        }
       } else if (inputMode === "income") {
         // 収入入力
         const res = await fetch("/api/income", {
@@ -471,6 +507,11 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
               : cb
           )
         );
+
+        // ADMINサークルの場合、合計残高も更新
+        if (adminCircleIds.includes(selectedCircleId)) {
+          setTotalBalance((prev) => prev + data.income.amount);
+        }
       } else {
         // 残高更新
         const amount = parseInt(input.replace(/[^0-9]/g, ""), 10);
@@ -494,6 +535,10 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
 
         setFeed((prev) => [...prev, data.snapshot]);
 
+        // 旧残高を取得
+        const oldBalance = balances.find((cb) => cb.circleId === selectedCircleId)?.balance || 0;
+        const balanceDiff = amount - oldBalance;
+
         // サークル残高を新しい残高に更新
         setBalances((prev) =>
           prev.map((cb) =>
@@ -502,6 +547,11 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
               : cb
           )
         );
+
+        // ADMINサークルの場合、合計残高も更新
+        if (adminCircleIds.includes(selectedCircleId)) {
+          setTotalBalance((prev) => prev + balanceDiff);
+        }
       }
 
       setInput("");
@@ -538,6 +588,82 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
+      {/* 合計残高ヘッダー */}
+      <div className="flex-shrink-0 bg-white px-3 pt-1 pb-1">
+        <div className="rounded-xl bg-slate-900 px-3 py-1.5">
+          <div className="flex items-center justify-center gap-2">
+            <span className="font-semibold text-white text-xl">
+              ¥{formatYen(totalBalance)}
+            </span>
+            {/* 内訳ボタン */}
+            {balances.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setIsBreakdownOpen(!isBreakdownOpen)}
+                className="ml-auto text-[10px] text-slate-400 hover:text-slate-200 px-2 py-0.5 rounded border border-slate-600 hover:border-slate-500 transition"
+              >
+                内訳
+              </button>
+            )}
+          </div>
+          {/* 当月支出 */}
+          <div className="flex items-center justify-center gap-1 mt-0.5">
+            <span className="text-[10px] text-slate-400">当月支出</span>
+            <span className="text-[10px] text-red-400">
+              -¥{formatYen(monthlyExpense)}
+            </span>
+          </div>
+
+          {/* サークル別残高（内訳） */}
+          {isBreakdownOpen && balances.length > 0 && (
+            <div className="mt-2 bg-slate-800 rounded-lg p-2 relative">
+              {/* 閉じるボタン */}
+              <button
+                type="button"
+                onClick={() => setIsBreakdownOpen(false)}
+                className="absolute top-1 right-1 text-slate-500 hover:text-slate-300 p-1"
+                title="閉じる"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+
+              <div className="space-y-1 pr-5">
+                {balances.map((cb) => (
+                  <div
+                    key={cb.circleId}
+                    className="flex items-center justify-between text-xs"
+                  >
+                    <span className="text-slate-400 truncate mr-2">
+                      {cb.circleName}
+                    </span>
+                    <span
+                      className={`font-medium whitespace-nowrap ${
+                        cb.balance < 0 ? "text-red-400" : "text-white"
+                      }`}
+                    >
+                      ¥{formatYen(cb.balance)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* タグ別集計（今月・金額順） */}
       {filteredTagSummary.length > 0 && (
         <div className="flex-shrink-0 px-3 pb-1 overflow-x-auto bg-white">

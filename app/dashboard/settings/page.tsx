@@ -20,6 +20,13 @@ type Circle = {
   adminName: string;
 };
 
+type Member = {
+  userId: string;
+  role: string;
+  name: string;
+  image: string | null;
+};
+
 export default function SettingsPage() {
   const [user, setUser] = useState<User | null>(null);
   const [circles, setCircles] = useState<Circle[]>([]);
@@ -32,6 +39,11 @@ export default function SettingsPage() {
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [selectedCircle, setSelectedCircle] = useState<Circle | null>(null);
   const [isLeaving, setIsLeaving] = useState(false);
+  const [selectedAdminCircle, setSelectedAdminCircle] = useState<Circle | null>(null);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [isLoadingMembers, setIsLoadingMembers] = useState(false);
+  const [isRemovingMember, setIsRemovingMember] = useState<string | null>(null);
+  const [isDeletingCircle, setIsDeletingCircle] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -81,6 +93,80 @@ export default function SettingsPage() {
       setMessage({ type: "error", text: "通信エラーが発生しました" });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  // ADMINサークルを選択したときにメンバー一覧を取得
+  const handleSelectAdminCircle = async (circle: Circle) => {
+    setSelectedAdminCircle(circle);
+    setIsLoadingMembers(true);
+    setMembers([]);
+
+    try {
+      const res = await fetch(`/api/circles/${circle.id}/members`);
+      if (res.ok) {
+        const data = await res.json();
+        setMembers(data.members || []);
+      } else {
+        setMessage({ type: "error", text: "メンバー情報の取得に失敗しました" });
+      }
+    } catch {
+      setMessage({ type: "error", text: "通信エラーが発生しました" });
+    } finally {
+      setIsLoadingMembers(false);
+    }
+  };
+
+  // メンバーをサークルから削除
+  const handleRemoveMember = async (memberId: string) => {
+    if (!selectedAdminCircle) return;
+
+    setIsRemovingMember(memberId);
+    setMessage(null);
+
+    try {
+      const res = await fetch(`/api/circles/${selectedAdminCircle.id}/members/${memberId}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        setMembers((prev) => prev.filter((m) => m.userId !== memberId));
+        setMessage({ type: "success", text: "メンバーを削除しました" });
+      } else {
+        const data = await res.json();
+        setMessage({ type: "error", text: data.error || "削除に失敗しました" });
+      }
+    } catch {
+      setMessage({ type: "error", text: "通信エラーが発生しました" });
+    } finally {
+      setIsRemovingMember(null);
+    }
+  };
+
+  // サークルを削除
+  const handleDeleteCircle = async () => {
+    if (!selectedAdminCircle) return;
+
+    setIsDeletingCircle(true);
+    setMessage(null);
+
+    try {
+      const res = await fetch(`/api/circles/${selectedAdminCircle.id}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        setCircles((prev) => prev.filter((c) => c.id !== selectedAdminCircle.id));
+        setSelectedAdminCircle(null);
+        setMessage({ type: "success", text: "サークルを削除しました" });
+      } else {
+        const data = await res.json();
+        setMessage({ type: "error", text: data.error || "削除に失敗しました" });
+      }
+    } catch {
+      setMessage({ type: "error", text: "通信エラーが発生しました" });
+    } finally {
+      setIsDeletingCircle(false);
     }
   };
 
@@ -250,16 +336,13 @@ export default function SettingsPage() {
                       key={circle.id}
                       type="button"
                       onClick={() => {
-                        if (circle.role !== "ADMIN") {
+                        if (circle.role === "ADMIN") {
+                          handleSelectAdminCircle(circle);
+                        } else {
                           setSelectedCircle(circle);
                         }
                       }}
-                      disabled={circle.role === "ADMIN"}
-                      className={`w-full bg-white rounded-lg px-3 py-2 border border-slate-200 text-left ${
-                        circle.role !== "ADMIN"
-                          ? "hover:bg-slate-50 active:bg-slate-100 cursor-pointer"
-                          : "cursor-default"
-                      }`}
+                      className="w-full bg-white rounded-lg px-3 py-2 border border-slate-200 text-left hover:bg-slate-50 active:bg-slate-100 cursor-pointer"
                     >
                       <div className="flex items-center justify-between">
                         <div>
@@ -355,7 +438,7 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* サークル離脱モーダル */}
+        {/* サークル離脱モーダル（EDITOR/VIEWER用） */}
         {selectedCircle && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl w-full max-w-sm p-4">
@@ -394,6 +477,119 @@ export default function SettingsPage() {
                   {isLeaving ? "離脱中..." : "離脱する"}
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* サークル管理モーダル（ADMIN用） */}
+        {selectedAdminCircle && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl w-full max-w-sm p-4 max-h-[80vh] overflow-y-auto">
+              <h3 className="text-lg font-semibold text-slate-900 mb-4">
+                サークル管理
+              </h3>
+              <div className="mb-4">
+                <div className="text-sm font-medium text-slate-700 mb-1">
+                  {selectedAdminCircle.name || "（名前なし）"}
+                </div>
+              </div>
+
+              {/* メンバー一覧 */}
+              <div className="mb-4">
+                <h4 className="text-sm font-medium text-slate-700 mb-2">
+                  メンバー（{members.length}人）
+                </h4>
+                {isLoadingMembers ? (
+                  <div className="text-sm text-slate-500 py-2">読み込み中...</div>
+                ) : (
+                  <div className="space-y-2">
+                    {members.map((member) => (
+                      <div
+                        key={member.userId}
+                        className="flex items-center gap-3 bg-slate-50 rounded-lg px-3 py-2"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-slate-200 overflow-hidden flex-shrink-0">
+                          {member.image ? (
+                            <Image
+                              src={member.image}
+                              alt={member.name}
+                              width={32}
+                              height={32}
+                              className="w-8 h-8 object-cover"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 flex items-center justify-center text-sm text-slate-500">
+                              {member.name.slice(0, 1)}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-slate-900 truncate">
+                            {member.name}
+                          </div>
+                          <div className="text-xs text-slate-500">
+                            {member.role === "ADMIN"
+                              ? "管理者"
+                              : member.role === "EDITOR"
+                                ? "編集者"
+                                : "閲覧者"}
+                          </div>
+                        </div>
+                        {member.role !== "ADMIN" && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveMember(member.userId)}
+                            disabled={isRemovingMember === member.userId}
+                            className="text-xs text-red-600 hover:text-red-700 disabled:opacity-50"
+                          >
+                            {isRemovingMember === member.userId ? "削除中..." : "削除"}
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* サークル削除 */}
+              <div className="border-t border-slate-200 pt-4 mb-4">
+                <h4 className="text-sm font-medium text-red-700 mb-2">
+                  サークルを削除
+                </h4>
+                {members.length > 1 ? (
+                  <p className="text-xs text-slate-500 bg-slate-50 rounded-lg p-3">
+                    他のメンバーがいるサークルは削除できません。
+                    <br />
+                    メンバーを削除してから、サークルを削除してください。
+                  </p>
+                ) : (
+                  <>
+                    <p className="text-xs text-red-600 mb-3">
+                      サークルを削除すると、すべてのデータが完全に削除され、復元できません。
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleDeleteCircle}
+                      disabled={isDeletingCircle}
+                      className="w-full bg-red-600 text-white rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50"
+                    >
+                      {isDeletingCircle ? "削除中..." : "サークルを削除"}
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* 閉じるボタン */}
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedAdminCircle(null);
+                  setMembers([]);
+                }}
+                className="w-full bg-slate-100 text-slate-700 rounded-lg px-4 py-2 text-sm font-medium"
+              >
+                閉じる
+              </button>
             </div>
           </div>
         )}
