@@ -1,10 +1,15 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { getCategoryEmoji } from "@/lib/expenseParser";
-import type { ExpenseCategory } from "@/app/generated/prisma/enums";
+import type { ExpenseCategory, ReactionType } from "@/app/generated/prisma/enums";
+
+type ReactionData = {
+  counts: Record<ReactionType, number>;
+  userReactions: ReactionType[];
+};
 
 type TagSummaryData = {
   circleName: string;
@@ -152,6 +157,9 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
   const [selectedItem, setSelectedItem] = useState<FeedItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isCreatingCircle, setIsCreatingCircle] = useState(false);
+  const [reactions, setReactions] = useState<Record<string, ReactionData>>({});
+  const [reactionsLoading, setReactionsLoading] = useState(false);
+  const [togglingReaction, setTogglingReaction] = useState<string | null>(null); // "itemId:type"
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -161,6 +169,108 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
   const canEditCircle = (circleId: string) => {
     const role = userRoles.find((r) => r.circleId === circleId)?.role;
     return role === "ADMIN" || role === "EDITOR";
+  };
+
+  // リアクションを取得（遅延読み込み）
+  const fetchReactions = useCallback(async (items: FeedItem[]) => {
+    // expense, income, snapshot のみ対象
+    const targetItems = items.filter(
+      (item) => item.kind === "expense" || item.kind === "income" || item.kind === "snapshot"
+    );
+    if (targetItems.length === 0) return;
+
+    const targets = targetItems
+      .map((item) => `${item.kind}:${item.id.replace(`${item.kind}-`, "")}`)
+      .join(",");
+
+    setReactionsLoading(true);
+    try {
+      const res = await fetch(`/api/reactions?targets=${encodeURIComponent(targets)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setReactions(data.reactions || {});
+      }
+    } catch (err) {
+      console.error("Failed to fetch reactions:", err);
+    } finally {
+      setReactionsLoading(false);
+    }
+  }, []);
+
+  // リアクションをトグル
+  const toggleReaction = async (item: FeedItem, reactionType: ReactionType) => {
+    const itemKey = `${item.kind}:${item.id.replace(`${item.kind}-`, "")}`;
+    const toggleKey = `${item.id}:${reactionType}`;
+    if (togglingReaction) return; // 処理中は無視
+
+    setTogglingReaction(toggleKey);
+
+    const currentReaction = reactions[itemKey];
+    const hasReaction = currentReaction?.userReactions.includes(reactionType);
+
+    try {
+      if (hasReaction) {
+        // 削除
+        const res = await fetch("/api/reactions", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            targetType: item.kind,
+            targetId: item.id.replace(`${item.kind}-`, ""),
+            type: reactionType,
+          }),
+        });
+        if (res.ok) {
+          setReactions((prev) => {
+            const updated = { ...prev };
+            if (updated[itemKey]) {
+              updated[itemKey] = {
+                counts: {
+                  ...updated[itemKey].counts,
+                  [reactionType]: Math.max(0, updated[itemKey].counts[reactionType] - 1),
+                },
+                userReactions: updated[itemKey].userReactions.filter((r) => r !== reactionType),
+              };
+            }
+            return updated;
+          });
+        }
+      } else {
+        // 追加
+        const res = await fetch("/api/reactions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            targetType: item.kind,
+            targetId: item.id.replace(`${item.kind}-`, ""),
+            type: reactionType,
+          }),
+        });
+        if (res.ok) {
+          setReactions((prev) => {
+            const updated = { ...prev };
+            if (!updated[itemKey]) {
+              updated[itemKey] = {
+                counts: { CHECK: 0, GOOD: 0, BAD: 0, DOGEZA: 0 },
+                userReactions: [],
+              };
+            }
+            updated[itemKey] = {
+              counts: {
+                ...updated[itemKey].counts,
+                [reactionType]: updated[itemKey].counts[reactionType] + 1,
+              },
+              userReactions: [...updated[itemKey].userReactions, reactionType],
+            };
+            return updated;
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Failed to toggle reaction:", err);
+    } finally {
+      setTogglingReaction(null);
+    }
   };
 
   // アイテム削除処理
@@ -234,6 +344,11 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [feed]);
+
+  // リアクションを遅延読み込み
+  useEffect(() => {
+    fetchReactions(feed);
+  }, [feed, fetchReactions]);
 
   // 招待コマンドかどうかをチェック
   const isInviteCommand = (text: string) => {
@@ -956,6 +1071,46 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                             </>
                           )}
                         </button>
+
+                        {/* リアクションボタン（expense, income, snapshot のみ） */}
+                        {(item.kind === "expense" || item.kind === "income" || item.kind === "snapshot") && (
+                          <div
+                            className={`flex items-center gap-1 mt-1 ${
+                              isOwnMessage ? "justify-end" : "justify-start"
+                            }`}
+                          >
+                            {(["CHECK", "GOOD", "BAD", "DOGEZA"] as ReactionType[]).map((type) => {
+                              const itemKey = `${item.kind}:${item.id.replace(`${item.kind}-`, "")}`;
+                              const reactionData = reactions[itemKey];
+                              const count = reactionData?.counts[type] || 0;
+                              const hasReacted = reactionData?.userReactions.includes(type);
+                              const isToggling = togglingReaction === `${item.id}:${type}`;
+                              const emoji = type === "CHECK" ? "✅" : type === "GOOD" ? "👍" : type === "BAD" ? "👎" : "🙇";
+
+                              return (
+                                <button
+                                  key={type}
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleReaction(item, type);
+                                  }}
+                                  disabled={reactionsLoading || !!togglingReaction}
+                                  className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs transition ${
+                                    hasReacted
+                                      ? "bg-slate-700 text-white"
+                                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                  } ${(reactionsLoading || isToggling) ? "opacity-50" : ""}`}
+                                >
+                                  <span className="text-[11px]">{emoji}</span>
+                                  {count > 0 && (
+                                    <span className="text-[10px] min-w-[12px] text-center">{count}</span>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     </div>
                   );

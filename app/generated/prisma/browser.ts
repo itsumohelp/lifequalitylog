@@ -87,3 +87,8 @@ export type Expense = Prisma.ExpenseModel
  * 
  */
 export type Income = Prisma.IncomeModel
+/**
+ * Model Reaction
+ * 
+ */
+export type Reaction = Prisma.ReactionModel

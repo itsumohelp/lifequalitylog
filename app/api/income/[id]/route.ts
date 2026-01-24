@@ -37,6 +37,14 @@ export async function DELETE(
     return NextResponse.json({ error: "Permission denied" }, { status: 403 });
   }
 
+  // 関連するリアクションを削除
+  await prisma.reaction.deleteMany({
+    where: {
+      targetType: "income",
+      targetId: id,
+    },
+  });
+
   // 収入を削除
   await prisma.income.delete({
     where: { id },

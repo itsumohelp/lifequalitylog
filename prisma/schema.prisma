@@ -90,6 +90,7 @@ model User {
   circleSnapshots CircleSnapshot[]
   expenses      Expense[]
   incomes       Income[]
+  reactions     Reaction[]
   @@map("users")
 }
  
@@ -123,7 +124,7 @@ model CircleMember {
   userId    String
   role      CircleRole
   joinedAt  DateTime   @default(now())
-  circle    Circle     @relation(fields: [circleId], references: [id])
+  circle    Circle     @relation(fields: [circleId], references: [id], onDelete: Cascade)
   user      User       @relation(fields: [userId], references: [id])
   @@unique([circleId, userId])
 }
@@ -131,7 +132,7 @@ model CircleMember {
 model Snapshot {
   id               String   @id @default(cuid())
   circleId         String
-  circle           Circle   @relation(fields: [circleId], references: [id])
+  circle           Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
   userId           String
   user             User     @relation(fields: [userId], references: [id])
   amount           Int
@@ -235,4 +236,26 @@ model Income {
   createdAt   DateTime        @default(now())
   @@index([circleId, incomeDate])
   @@index([userId])
+}
+
+// リアクションタイプ
+enum ReactionType {
+  CHECK   // 緑色のチェックマーク
+  GOOD    // 👍
+  BAD     // 👎
+  DOGEZA  // 🙇
+}
+
+// リアクション記録
+model Reaction {
+  id          String       @id @default(cuid())
+  userId      String       @map("user_id")
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetType  String       @map("target_type") // "expense", "income", "snapshot"
+  targetId    String       @map("target_id")
+  type        ReactionType
+  createdAt   DateTime     @default(now()) @map("created_at")
+  @@unique([userId, targetType, targetId, type]) // 同じユーザーが同じ投稿に同じリアクションは1回まで
+  @@index([targetType, targetId]) // 投稿ごとのリアクション取得用（高速化）
+  @@map("reactions")
 }

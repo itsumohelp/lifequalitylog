@@ -54,6 +54,35 @@ function formatDateLabel(date: string, period: Period) {
   }
 }
 
+// カスタムツールチップ
+function CustomTooltip({
+  active,
+  payload,
+  label,
+  period,
+}: {
+  active?: boolean;
+  payload?: Array<{ name: string; value: number; color: string }>;
+  label?: string;
+  period: Period;
+}) {
+  if (!active || !payload || payload.length === 0) return null;
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-lg shadow-lg p-2 text-xs">
+      <p className="font-medium text-slate-700 mb-1">
+        {label ? formatDateLabel(label, period) : ""}
+      </p>
+      {payload.map((entry, index) => (
+        <p key={index} style={{ color: entry.color }} className="flex justify-between gap-4">
+          <span>{entry.name === "balance" ? "残高" : entry.name}:</span>
+          <span className="font-medium">¥{formatYen(entry.value)}</span>
+        </p>
+      ))}
+    </div>
+  );
+}
+
 export default function AnalyticsPage() {
   const [period, setPeriod] = useState<Period>("daily");
   const [viewType, setViewType] = useState<ViewType>("total");
@@ -247,6 +276,7 @@ export default function AnalyticsPage() {
                   tickFormatter={(value) => `¥${formatYen(value)}`}
                   width={70}
                 />
+                <Tooltip content={<CustomTooltip period={period} />} />
                 {lineKeys.length > 1 && (
                   <Legend
                     wrapperStyle={{ fontSize: 10 }}

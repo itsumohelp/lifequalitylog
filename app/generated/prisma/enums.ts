@@ -40,3 +40,13 @@ export const IncomeCategory = {
 } as const
 
 export type IncomeCategory = (typeof IncomeCategory)[keyof typeof IncomeCategory]
+
+
+export const ReactionType = {
+  CHECK: 'CHECK',
+  GOOD: 'GOOD',
+  BAD: 'BAD',
+  DOGEZA: 'DOGEZA'
+} as const
+
+export type ReactionType = (typeof ReactionType)[keyof typeof ReactionType]
