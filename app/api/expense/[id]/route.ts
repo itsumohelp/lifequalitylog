@@ -52,6 +52,14 @@ export async function DELETE(
     },
   });
 
+  // 関連するリアクションを削除
+  await prisma.reaction.deleteMany({
+    where: {
+      targetType: "expense",
+      targetId: id,
+    },
+  });
+
   // 支出を削除
   await prisma.expense.delete({
     where: { id },
