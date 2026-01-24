@@ -213,55 +213,61 @@ export default async function DashboardPage() {
       expenseCumulativeMap.set(e.id, newTotal);
     }
 
-    // 統合してソート（最新10件のみ）
+    // 統合してソート（最新7日分）
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
     feed = [
-      ...snapshots.map((s) => ({
-        id: `snapshot-${s.id}`,
-        kind: "snapshot" as const,
-        circleId: s.circleId,
-        circleName: s.circle.name,
-        userId: s.userId,
-        userName: s.user?.displayName || s.user?.name || s.user?.email || "不明",
-        userImage: s.user?.image || null,
-        amount: s.amount,
-        note: s.note,
-        createdAt: s.createdAt.toISOString(),
-      })),
-      ...expenses.map((e) => ({
-        id: `expense-${e.id}`,
-        kind: "expense" as const,
-        circleId: e.circleId,
-        circleName: e.circle.name,
-        userId: e.userId,
-        userName: e.user?.displayName || e.user?.name || e.user?.email || "不明",
-        userImage: e.user?.image || null,
-        amount: -e.amount,
-        cumulativeExpense: expenseCumulativeMap.get(e.id),
-        description: e.description,
-        place: e.place,
-        category: e.category,
-        tags: e.tags,
-        createdAt: e.createdAt.toISOString(),
-      })),
-      ...incomes.map((i) => ({
-        id: `income-${i.id}`,
-        kind: "income" as const,
-        circleId: i.circleId,
-        circleName: i.circle.name,
-        userId: i.userId,
-        userName: i.user?.displayName || i.user?.name || i.user?.email || "不明",
-        userImage: i.user?.image || null,
-        amount: i.amount,
-        description: i.description,
-        source: i.source,
-        category: i.category,
-        tags: i.tags,
-        createdAt: i.createdAt.toISOString(),
-      })),
+      ...snapshots
+        .filter((s) => new Date(s.createdAt) >= sevenDaysAgo)
+        .map((s) => ({
+          id: `snapshot-${s.id}`,
+          kind: "snapshot" as const,
+          circleId: s.circleId,
+          circleName: s.circle.name,
+          userId: s.userId,
+          userName: s.user?.displayName || s.user?.name || s.user?.email || "不明",
+          userImage: s.user?.image || null,
+          amount: s.amount,
+          note: s.note,
+          createdAt: s.createdAt.toISOString(),
+        })),
+      ...expenses
+        .filter((e) => new Date(e.createdAt) >= sevenDaysAgo)
+        .map((e) => ({
+          id: `expense-${e.id}`,
+          kind: "expense" as const,
+          circleId: e.circleId,
+          circleName: e.circle.name,
+          userId: e.userId,
+          userName: e.user?.displayName || e.user?.name || e.user?.email || "不明",
+          userImage: e.user?.image || null,
+          amount: -e.amount,
+          cumulativeExpense: expenseCumulativeMap.get(e.id),
+          description: e.description,
+          place: e.place,
+          category: e.category,
+          tags: e.tags,
+          createdAt: e.createdAt.toISOString(),
+        })),
+      ...incomes
+        .filter((i) => new Date(i.createdAt) >= sevenDaysAgo)
+        .map((i) => ({
+          id: `income-${i.id}`,
+          kind: "income" as const,
+          circleId: i.circleId,
+          circleName: i.circle.name,
+          userId: i.userId,
+          userName: i.user?.displayName || i.user?.name || i.user?.email || "不明",
+          userImage: i.user?.image || null,
+          amount: i.amount,
+          description: i.description,
+          source: i.source,
+          category: i.category,
+          tags: i.tags,
+          createdAt: i.createdAt.toISOString(),
+        })),
     ]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 10)
-      .reverse();
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
     // サークル×タグ別集計を計算（今月分）
     const tagMap = new Map<string, { circleId: string; circleName: string; total: number; count: number }>();
