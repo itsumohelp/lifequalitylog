@@ -568,11 +568,6 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
     ? feed.filter((item) => item.circleId === filterCircleId)
     : feed;
 
-  // タグサマリーもフィルタリング
-  const filteredTagSummary = filterCircleId
-    ? tagSummary.filter((item) => item.circleId === filterCircleId)
-    : tagSummary;
-
   // 日付でグループ化
   const groupedFeed = filteredFeed.reduce(
     (acc, item) => {
@@ -664,28 +659,6 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
         </div>
       </div>
 
-      {/* タグ別集計（今月・金額順） */}
-      {filteredTagSummary.length > 0 && (
-        <div className="flex-shrink-0 px-3 pb-1 overflow-x-auto bg-white">
-          <div className="flex gap-1.5 whitespace-nowrap">
-            {filteredTagSummary.map((item, idx) => (
-              <div
-                key={`${item.circleId}-${item.tag}-${idx}`}
-                className="flex-shrink-0 bg-slate-100 rounded px-2 py-1 border border-slate-200"
-              >
-                {!filterCircleId && (
-                  <div className="text-[9px] text-slate-500">
-                    {item.circleName}
-                  </div>
-                )}
-                <div className="text-[9px] text-slate-700">
-                  {item.tag} <span className="text-red-500">-¥{formatYen(item.total)}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* フィード表示 */}
       <div
