@@ -44,6 +44,9 @@ export default function SettingsPage() {
   const [isLoadingMembers, setIsLoadingMembers] = useState(false);
   const [isRemovingMember, setIsRemovingMember] = useState<string | null>(null);
   const [isDeletingCircle, setIsDeletingCircle] = useState(false);
+  const [isEditingCircleName, setIsEditingCircleName] = useState(false);
+  const [editingCircleName, setEditingCircleName] = useState("");
+  const [isSavingCircleName, setIsSavingCircleName] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -140,6 +143,50 @@ export default function SettingsPage() {
       setMessage({ type: "error", text: "通信エラーが発生しました" });
     } finally {
       setIsRemovingMember(null);
+    }
+  };
+
+  // サークル名を更新
+  const handleSaveCircleName = async () => {
+    if (!selectedAdminCircle || !editingCircleName.trim()) {
+      setMessage({ type: "error", text: "サークル名を入力してください" });
+      return;
+    }
+
+    setIsSavingCircleName(true);
+    setMessage(null);
+
+    try {
+      const res = await fetch(`/api/circles/${selectedAdminCircle.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editingCircleName.trim() }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        // サークル一覧を更新
+        setCircles((prev) =>
+          prev.map((c) =>
+            c.id === selectedAdminCircle.id
+              ? { ...c, name: data.circle.name }
+              : c
+          )
+        );
+        // モーダル内のサークル情報も更新
+        setSelectedAdminCircle((prev) =>
+          prev ? { ...prev, name: data.circle.name } : null
+        );
+        setIsEditingCircleName(false);
+        setMessage({ type: "success", text: "サークル名を更新しました" });
+      } else {
+        const data = await res.json();
+        setMessage({ type: "error", text: data.error || "更新に失敗しました" });
+      }
+    } catch {
+      setMessage({ type: "error", text: "通信エラーが発生しました" });
+    } finally {
+      setIsSavingCircleName(false);
     }
   };
 
@@ -489,9 +536,69 @@ export default function SettingsPage() {
                 サークル管理
               </h3>
               <div className="mb-4">
-                <div className="text-sm font-medium text-slate-700 mb-1">
-                  {selectedAdminCircle.name || "（名前なし）"}
-                </div>
+                {isEditingCircleName ? (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={editingCircleName}
+                      onChange={(e) => setEditingCircleName(e.target.value)}
+                      maxLength={50}
+                      className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-500"
+                      placeholder="サークル名を入力"
+                      autoFocus
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsEditingCircleName(false);
+                          setEditingCircleName("");
+                        }}
+                        className="flex-1 bg-slate-100 text-slate-700 rounded-lg px-3 py-1.5 text-xs font-medium"
+                      >
+                        キャンセル
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSaveCircleName}
+                        disabled={isSavingCircleName || !editingCircleName.trim()}
+                        className="flex-1 bg-slate-900 text-white rounded-lg px-3 py-1.5 text-xs font-medium disabled:opacity-50"
+                      >
+                        {isSavingCircleName ? "保存中..." : "保存"}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm font-medium text-slate-700">
+                      {selectedAdminCircle.name || "（名前なし）"}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingCircleName(selectedAdminCircle.name || "");
+                        setIsEditingCircleName(true);
+                      }}
+                      className="p-1 text-slate-400 hover:text-slate-600 transition"
+                      title="サークル名を編集"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                        <path d="m15 5 4 4" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* メンバー一覧 */}
@@ -585,6 +692,8 @@ export default function SettingsPage() {
                 onClick={() => {
                   setSelectedAdminCircle(null);
                   setMembers([]);
+                  setIsEditingCircleName(false);
+                  setEditingCircleName("");
                 }}
                 className="w-full bg-slate-100 text-slate-700 rounded-lg px-4 py-2 text-sm font-medium"
               >

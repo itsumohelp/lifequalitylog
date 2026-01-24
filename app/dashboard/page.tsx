@@ -14,6 +14,7 @@ type FeedItem = {
   userImage: string | null;
   amount: number;
   cumulativeExpense?: number;
+  snapshotDiff?: number | null; // 前回残高との差分（null = 初回）
   description?: string;
   place?: string | null;
   source?: string | null;
@@ -55,8 +56,8 @@ export default async function DashboardPage() {
   let circles: { id: string; name: string; adminName: string }[] = [];
   let circleBalances: { circleId: string; circleName: string; balance: number }[] = [];
   let totalBalance = 0;
-  let yesterdayBalance = 0;
-  let balanceDiff = 0;
+  let previousTotalBalance = 0;
+  let totalBalanceDiff: number | null = null;
   let monthlyExpense = 0;
   let tagSummary: TagSummaryItem[] = [];
 
@@ -161,30 +162,27 @@ export default async function DashboardPage() {
       if (adminCircleIds.includes(circleId)) {
         totalBalance += circleBalance;
 
-        // 昨日時点の残高を計算
-        const yesterdayEndSnapshot = snapshots.find(
-          (s) => s.circleId === circleId && new Date(s.createdAt) < todayStart
-        );
-
-        if (yesterdayEndSnapshot) {
-          let yesterdayCircleBalance = yesterdayEndSnapshot.amount;
-          const expensesAfterYesterdaySnapshot = expenses.filter(
-            (e) =>
-              e.circleId === circleId &&
-              new Date(e.createdAt) > new Date(yesterdayEndSnapshot.createdAt) &&
-              new Date(e.createdAt) < todayStart
-          );
-          const yesterdayExpenseSum = expensesAfterYesterdaySnapshot.reduce(
-            (sum, e) => sum + e.amount,
-            0
-          );
-          yesterdayCircleBalance -= yesterdayExpenseSum;
-          yesterdayBalance += yesterdayCircleBalance;
+        // 一つ前のスナップショットを探す（前回残高との差分計算用）
+        const circleSnapshots = snapshots.filter((s) => s.circleId === circleId);
+        if (circleSnapshots.length >= 2) {
+          // 2番目のスナップショット（一つ前）の金額を加算
+          previousTotalBalance += circleSnapshots[1].amount;
+        } else if (circleSnapshots.length === 1) {
+          // スナップショットが1つしかない場合は、前回残高は0とする
+          // (差分計算には含めない = nullのまま)
         }
       }
     }
 
-    balanceDiff = totalBalance - yesterdayBalance;
+    // 前回残高が存在する場合のみ差分を計算
+    // (少なくとも1つのサークルに2つ以上のスナップショットがある場合)
+    const hasAnyPreviousSnapshot = adminCircleIds.some((circleId) => {
+      const circleSnapshots = snapshots.filter((s) => s.circleId === circleId);
+      return circleSnapshots.length >= 2;
+    });
+    if (hasAnyPreviousSnapshot) {
+      totalBalanceDiff = totalBalance - previousTotalBalance;
+    }
 
     // 当月の月次集計を取得
     const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -216,6 +214,21 @@ export default async function DashboardPage() {
     // 統合してソート（最新7日分）
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
+    // スナップショットの差分を計算するためのマップを作成
+    // snapshots は createdAt desc でソートされているので、同じサークル内で次のスナップショットが前回
+    const snapshotDiffMap = new Map<string, number | null>();
+    for (let i = 0; i < snapshots.length; i++) {
+      const current = snapshots[i];
+      // 同じサークルの前回のスナップショット（配列上は次の要素以降）を探す
+      const previous = snapshots.slice(i + 1).find((s) => s.circleId === current.circleId);
+      if (previous) {
+        snapshotDiffMap.set(current.id, current.amount - previous.amount);
+      } else {
+        // 前回がない場合は null
+        snapshotDiffMap.set(current.id, null);
+      }
+    }
+
     feed = [
       ...snapshots
         .filter((s) => new Date(s.createdAt) >= sevenDaysAgo)
@@ -228,6 +241,7 @@ export default async function DashboardPage() {
           userName: s.user?.displayName || s.user?.name || s.user?.email || "不明",
           userImage: s.user?.image || null,
           amount: s.amount,
+          snapshotDiff: snapshotDiffMap.get(s.id),
           note: s.note,
           createdAt: s.createdAt.toISOString(),
         })),
@@ -331,6 +345,7 @@ export default async function DashboardPage() {
             userRoles={memberships.map((m) => ({ circleId: m.circleId, role: m.role }))}
             tagSummary={tagSummary}
             initialTotalBalance={totalBalance}
+            initialTotalBalanceDiff={totalBalanceDiff}
             initialMonthlyExpense={monthlyExpense}
             adminCircleIds={adminCircleIds}
           />

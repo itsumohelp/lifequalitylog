@@ -23,6 +23,7 @@ type FeedItem = {
   userImage: string | null;
   amount: number;
   cumulativeExpense?: number;
+  snapshotDiff?: number | null; // 前回残高との差分（null = 初回）
   description?: string;
   place?: string | null;
   source?: string | null;
@@ -67,6 +68,7 @@ type Props = {
   userRoles: UserRole[];
   tagSummary: TagSummaryItem[];
   initialTotalBalance: number;
+  initialTotalBalanceDiff: number | null;
   initialMonthlyExpense: number;
   adminCircleIds: string[];
 };
@@ -131,7 +133,7 @@ function addToRecentTags(newTags: string[]) {
   return trimmed;
 }
 
-export default function UnifiedChat({ initialFeed, circles, circleBalances, currentUserId, userRoles, tagSummary, initialTotalBalance, initialMonthlyExpense, adminCircleIds }: Props) {
+export default function UnifiedChat({ initialFeed, circles, circleBalances, currentUserId, userRoles, tagSummary, initialTotalBalance, initialTotalBalanceDiff, initialMonthlyExpense, adminCircleIds }: Props) {
   const [feed, setFeed] = useState<FeedItem[]>(initialFeed);
   const [balances, setBalances] = useState<CircleBalance[]>(circleBalances);
   const [totalBalance, setTotalBalance] = useState<number>(initialTotalBalance);
@@ -533,7 +535,27 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
           return;
         }
 
-        setFeed((prev) => [...prev, data.snapshot]);
+        // 前回のスナップショットを探して差分を計算
+        const previousSnapshot = [...feed]
+          .reverse()
+          .find((f) => f.kind === "snapshot" && f.circleId === selectedCircleId);
+        const snapshotDiff = previousSnapshot ? amount - previousSnapshot.amount : null;
+
+        const newSnapshotItem: FeedItem = {
+          id: `snapshot-${data.snapshot.id}`,
+          kind: "snapshot",
+          circleId: selectedCircleId,
+          circleName: selectedCircle?.name,
+          userId: currentUserId,
+          userName: "自分",
+          userImage: null,
+          amount: amount,
+          snapshotDiff: snapshotDiff,
+          note: data.snapshot.note,
+          createdAt: new Date().toISOString(),
+        };
+
+        setFeed((prev) => [...prev, newSnapshotItem]);
 
         // 旧残高を取得
         const oldBalance = balances.find((cb) => cb.circleId === selectedCircleId)?.balance || 0;
@@ -590,6 +612,18 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
             <span className="font-semibold text-white text-xl">
               ¥{formatYen(totalBalance)}
             </span>
+            {/* 前回残高との差分 */}
+            {initialTotalBalanceDiff !== null && (
+              <span
+                className={`text-sm ${
+                  initialTotalBalanceDiff >= 0 ? "text-emerald-400" : "text-red-400"
+                }`}
+              >
+                {initialTotalBalanceDiff >= 0
+                  ? `(+¥${formatYen(initialTotalBalanceDiff)})`
+                  : `(-¥${formatYen(Math.abs(initialTotalBalanceDiff))})`}
+              </span>
+            )}
             {/* 内訳ボタン */}
             {balances.length > 0 && (
               <button
@@ -888,12 +922,27 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                           ) : (
                             <>
                               {/* 残高スナップショット */}
-                              <div
-                                className={`font-semibold text-sm ${
-                                  isOwnMessage ? "text-white" : "text-slate-900"
-                                }`}
-                              >
-                                ¥{formatYen(item.amount)}
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span
+                                  className={`font-semibold text-sm ${
+                                    isOwnMessage ? "text-white" : "text-slate-900"
+                                  }`}
+                                >
+                                  ¥{formatYen(item.amount)}
+                                </span>
+                                {item.snapshotDiff !== undefined && (
+                                  <span
+                                    className={`text-xs ${
+                                      isOwnMessage ? "text-slate-400" : "text-slate-500"
+                                    }`}
+                                  >
+                                    {item.snapshotDiff === null
+                                      ? "(-)"
+                                      : item.snapshotDiff >= 0
+                                        ? `(+¥${formatYen(item.snapshotDiff)})`
+                                        : `(-¥${formatYen(Math.abs(item.snapshotDiff))})`}
+                                  </span>
+                                )}
                               </div>
                               {item.note && (
                                 <p
@@ -978,6 +1027,21 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
               <path d="M8 17v-3" />
             </svg>
           </Link>
+
+          {/* 更新ボタン */}
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="flex-shrink-0 p-2.5 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 active:bg-slate-300 active:scale-95 transition"
+            title="更新"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+              <path d="M3 3v5h5" />
+              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+              <path d="M16 16h5v5" />
+            </svg>
+          </button>
 
           {/* 設定ボタン */}
           <Link
