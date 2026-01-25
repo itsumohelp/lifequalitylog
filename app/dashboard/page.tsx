@@ -13,7 +13,7 @@ type FeedItem = {
   userName: string;
   userImage: string | null;
   amount: number;
-  cumulativeExpense?: number;
+  circleBalanceAfter?: number; // この操作後のサークル残高
   snapshotDiff?: number | null; // 前回残高との差分（null = 初回）
   description?: string;
   place?: string | null;
@@ -54,7 +54,7 @@ export default async function DashboardPage() {
 
   let feed: FeedItem[] = [];
   let circles: { id: string; name: string; adminName: string }[] = [];
-  let circleBalances: { circleId: string; circleName: string; balance: number }[] = [];
+  let circleBalances: { circleId: string; circleName: string; balance: number; monthlyExpense: number }[] = [];
   let totalBalance = 0;
   let previousTotalBalance = 0;
   let totalBalanceDiff: number | null = null;
@@ -125,6 +125,7 @@ export default async function DashboardPage() {
     // 各サークルの残高計算（全サークル分）
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     for (const circleId of circleIds) {
       const circle = circles.find((c) => c.id === circleId);
@@ -151,11 +152,17 @@ export default async function DashboardPage() {
       const incomeSum = incomesAfterSnapshot.reduce((sum, i) => sum + i.amount, 0);
       circleBalance += incomeSum;
 
+      // 当月の支出を計算
+      const circleMonthlyExpense = expenses
+        .filter((e) => e.circleId === circleId && new Date(e.createdAt) >= startOfMonth)
+        .reduce((sum, e) => sum + e.amount, 0);
+
       // サークル別残高リストに追加
       circleBalances.push({
         circleId,
         circleName: circle?.name || "（名前なし）",
         balance: circleBalance,
+        monthlyExpense: circleMonthlyExpense,
       });
 
       // 管理者サークルのみ合計に加算
@@ -196,19 +203,65 @@ export default async function DashboardPage() {
       monthlyExpense = monthlySnapshots.reduce((sum: number, m) => sum + m.totalExpense, 0);
     }
 
-    // 今月の支出累計をサークルごとに計算
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const expensesSortedAsc = [...expenses]
-      .filter((e) => new Date(e.createdAt) >= startOfMonth)
-      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    // 各トランザクション時点のサークル残高を計算
+    // サークルごとに全トランザクションを時系列順で処理して残高を計算
+    const circleBalanceAfterMap = new Map<string, number>();
 
-    const expenseCumulativeMap = new Map<string, number>();
-    const circleRunningTotals = new Map<string, number>();
-    for (const e of expensesSortedAsc) {
-      const currentTotal = circleRunningTotals.get(e.circleId) || 0;
-      const newTotal = currentTotal + e.amount;
-      circleRunningTotals.set(e.circleId, newTotal);
-      expenseCumulativeMap.set(e.id, newTotal);
+    for (const circleId of circleIds) {
+      // このサークルの最新スナップショットを取得
+      const latestSnapshot = snapshots.find((s) => s.circleId === circleId);
+      const snapshotDate = latestSnapshot ? new Date(latestSnapshot.createdAt) : null;
+      const snapshotAmount = latestSnapshot?.amount || 0;
+
+      // スナップショット以降のトランザクションを時系列順に取得
+      type Transaction = { id: string; type: "expense" | "income" | "snapshot"; amount: number; createdAt: Date };
+      const transactions: Transaction[] = [];
+
+      // スナップショット自体も追加
+      for (const s of snapshots.filter((s) => s.circleId === circleId)) {
+        transactions.push({
+          id: s.id,
+          type: "snapshot",
+          amount: s.amount,
+          createdAt: new Date(s.createdAt),
+        });
+      }
+
+      // 支出を追加
+      for (const e of expenses.filter((e) => e.circleId === circleId)) {
+        transactions.push({
+          id: e.id,
+          type: "expense",
+          amount: e.amount,
+          createdAt: new Date(e.createdAt),
+        });
+      }
+
+      // 収入を追加
+      for (const i of incomes.filter((i) => i.circleId === circleId)) {
+        transactions.push({
+          id: i.id,
+          type: "income",
+          amount: i.amount,
+          createdAt: new Date(i.createdAt),
+        });
+      }
+
+      // 時系列順にソート
+      transactions.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+
+      // 残高を計算しながら処理
+      let runningBalance = 0;
+      for (const tx of transactions) {
+        if (tx.type === "snapshot") {
+          runningBalance = tx.amount;
+        } else if (tx.type === "expense") {
+          runningBalance -= tx.amount;
+        } else if (tx.type === "income") {
+          runningBalance += tx.amount;
+        }
+        circleBalanceAfterMap.set(tx.id, runningBalance);
+      }
     }
 
     // 統合してソート（最新7日分）
@@ -256,7 +309,7 @@ export default async function DashboardPage() {
           userName: e.user?.displayName || e.user?.name || e.user?.email || "不明",
           userImage: e.user?.image || null,
           amount: -e.amount,
-          cumulativeExpense: expenseCumulativeMap.get(e.id),
+          circleBalanceAfter: circleBalanceAfterMap.get(e.id),
           description: e.description,
           place: e.place,
           category: e.category,

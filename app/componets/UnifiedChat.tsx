@@ -27,7 +27,7 @@ type FeedItem = {
   userName: string;
   userImage: string | null;
   amount: number;
-  cumulativeExpense?: number;
+  circleBalanceAfter?: number; // この操作後のサークル残高
   snapshotDiff?: number | null; // 前回残高との差分（null = 初回）
   description?: string;
   place?: string | null;
@@ -50,6 +50,7 @@ type CircleBalance = {
   circleId: string;
   circleName: string;
   balance: number;
+  monthlyExpense: number;
 };
 
 type UserRole = {
@@ -531,18 +532,9 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
           return;
         }
 
-        // 当月の累計支出を計算（既存の支出 + 今回の支出）
-        const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const existingMonthlyExpense = feed
-          .filter(
-            (f) =>
-              f.kind === "expense" &&
-              f.circleId === selectedCircleId &&
-              new Date(f.createdAt) >= startOfMonth
-          )
-          .reduce((sum, f) => sum + Math.abs(f.amount), 0);
-        const newCumulativeExpense = existingMonthlyExpense + data.expense.amount;
+        // 支出後のサークル残高を計算
+        const currentCircleBalance = balances.find((cb) => cb.circleId === selectedCircleId)?.balance || 0;
+        const newCircleBalance = currentCircleBalance - data.expense.amount;
 
         const newItem: FeedItem = {
           id: `expense-${data.expense.id}`,
@@ -553,7 +545,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
           userName: data.expense.user.name || "自分",
           userImage: data.expense.user.image,
           amount: -data.expense.amount,
-          cumulativeExpense: newCumulativeExpense,
+          circleBalanceAfter: newCircleBalance,
           description: data.expense.description,
           place: data.expense.place,
           category: data.expense.category,
@@ -759,52 +751,94 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
           </div>
 
           {/* サークル別残高（内訳） */}
-          {isBreakdownOpen && balances.length > 0 && (
-            <div className="mt-2 bg-slate-800 rounded-lg p-2 relative">
-              {/* 閉じるボタン */}
-              <button
-                type="button"
-                onClick={() => setIsBreakdownOpen(false)}
-                className="absolute top-1 right-1 text-slate-500 hover:text-slate-300 p-1"
-                title="閉じる"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
+          {isBreakdownOpen && balances.length > 0 && (() => {
+            const adminBalances = balances.filter((cb) => adminCircleIds.includes(cb.circleId));
+            const invitedBalances = balances.filter((cb) => !adminCircleIds.includes(cb.circleId));
 
-              <div className="space-y-1 pr-5">
-                {balances.map((cb) => (
-                  <div
-                    key={cb.circleId}
-                    className="flex items-center justify-between text-xs"
+            return (
+              <div className="mt-2 bg-slate-800 rounded-lg p-2 relative">
+                {/* 閉じるボタン */}
+                <button
+                  type="button"
+                  onClick={() => setIsBreakdownOpen(false)}
+                  className="absolute top-1 right-1 text-slate-500 hover:text-slate-300 p-1"
+                  title="閉じる"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   >
-                    <span className="text-slate-400 truncate mr-2">
-                      {cb.circleName}
-                    </span>
-                    <span
-                      className={`font-medium whitespace-nowrap ${
-                        cb.balance < 0 ? "text-red-400" : "text-white"
-                      }`}
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+
+                <div className="space-y-1 pr-5">
+                  {/* ADMINサークル（合計に含まれる） */}
+                  {adminBalances.map((cb) => (
+                    <div
+                      key={cb.circleId}
+                      className="flex items-center text-xs gap-2"
                     >
-                      ¥{formatYen(cb.balance)}
-                    </span>
-                  </div>
-                ))}
+                      <span className="text-slate-400 truncate flex-1">
+                        {cb.circleName}
+                      </span>
+                      <span
+                        className={`font-medium whitespace-nowrap ${
+                          cb.balance < 0 ? "text-red-400" : "text-white"
+                        }`}
+                      >
+                        ¥{formatYen(cb.balance)}
+                      </span>
+                      <span className="text-red-400 whitespace-nowrap w-20 text-right">
+                        -¥{formatYen(cb.monthlyExpense)}
+                      </span>
+                    </div>
+                  ))}
+
+                  {/* 招待されたサークル（合計に含まれない） */}
+                  {invitedBalances.length > 0 && (
+                    <>
+                      <div className="flex items-center gap-2 pt-1">
+                        <div className="flex-1 border-t border-slate-600" />
+                        <span className="text-[10px] text-slate-500 whitespace-nowrap">
+                          招待されたサークル
+                        </span>
+                        <div className="flex-1 border-t border-slate-600" />
+                      </div>
+                      {invitedBalances.map((cb) => (
+                        <div
+                          key={cb.circleId}
+                          className="flex items-center text-xs gap-2"
+                        >
+                          <span className="text-slate-500 truncate flex-1">
+                            {cb.circleName}
+                          </span>
+                          <span
+                            className={`font-medium whitespace-nowrap ${
+                              cb.balance < 0 ? "text-red-400" : "text-slate-400"
+                            }`}
+                          >
+                            ¥{formatYen(cb.balance)}
+                          </span>
+                          <span className="text-red-400/70 whitespace-nowrap w-20 text-right">
+                            -¥{formatYen(cb.monthlyExpense)}
+                          </span>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
         </div>
       </div>
 
@@ -919,13 +953,13 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                                 >
                                   ¥{formatYen(item.amount)}
                                 </span>
-                                {item.cumulativeExpense !== undefined && (
+                                {item.circleBalanceAfter !== undefined && (
                                   <span
                                     className={`text-xs ${
                                       isOwnMessage ? "text-slate-400" : "text-slate-500"
                                     }`}
                                   >
-                                    (-¥{formatYen(item.cumulativeExpense)})
+                                    (¥{formatYen(item.circleBalanceAfter)})
                                   </span>
                                 )}
                                 {item.tags && item.tags.length > 0 && (
