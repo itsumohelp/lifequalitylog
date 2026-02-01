@@ -72,6 +72,12 @@ export async function POST(request: Request) {
       },
     });
 
+    // サークルのcurrentBalanceを更新（収入なので増やす）
+    await prisma.circle.update({
+      where: { id: circleId },
+      data: { currentBalance: { increment: parsed.amount } },
+    });
+
     return NextResponse.json({ income }, { status: 201 });
   } catch (error) {
     console.error("Income creation error:", error);

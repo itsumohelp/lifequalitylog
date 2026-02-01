@@ -50,5 +50,41 @@ export async function DELETE(
     where: { id },
   });
 
+  // currentBalanceを再計算
+  // 削除後の最新スナップショットを取得
+  const latestSnapshot = await prisma.circleSnapshot.findFirst({
+    where: { circleId: snapshot.circleId },
+    orderBy: { createdAt: "desc" },
+  });
+
+  let newBalance = latestSnapshot?.amount || 0;
+  const snapshotDate = latestSnapshot?.createdAt || new Date(0);
+
+  // スナップショット以降の支出を引く
+  const expensesAfter = await prisma.expense.aggregate({
+    where: {
+      circleId: snapshot.circleId,
+      createdAt: { gt: snapshotDate },
+    },
+    _sum: { amount: true },
+  });
+  newBalance -= expensesAfter._sum.amount || 0;
+
+  // スナップショット以降の収入を足す
+  const incomesAfter = await prisma.income.aggregate({
+    where: {
+      circleId: snapshot.circleId,
+      createdAt: { gt: snapshotDate },
+    },
+    _sum: { amount: true },
+  });
+  newBalance += incomesAfter._sum.amount || 0;
+
+  // currentBalanceを更新
+  await prisma.circle.update({
+    where: { id: snapshot.circleId },
+    data: { currentBalance: newBalance },
+  });
+
   return NextResponse.json({ success: true });
 }

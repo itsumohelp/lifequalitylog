@@ -3,14 +3,11 @@ import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
 import { ReactionType } from "@/app/generated/prisma/enums";
 
-// 複数の投稿に対するリアクションを一括取得
+// 複数の投稿に対するリアクションを一括取得（未ログインでも閲覧可能）
 export async function GET(request: Request) {
   const session = await auth();
-  if (!session || !session.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const userId = session?.user?.id || null;
 
-  const userId = session.user.id as string;
   const { searchParams } = new URL(request.url);
   const targetsParam = searchParams.get("targets");
 
@@ -62,7 +59,8 @@ export async function GET(request: Request) {
       };
     }
     reactionMap[key].counts[r.type]++;
-    if (r.userId === userId) {
+    // ログイン中のユーザーのみ自分のリアクションを追跡
+    if (userId && r.userId === userId) {
       reactionMap[key].userReactions.push(r.type);
     }
   }

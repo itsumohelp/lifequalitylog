@@ -6,7 +6,7 @@ type Params = {
   params: Promise<{ circleId: string }>;
 };
 
-// サークル名を更新
+// サークル設定を更新（名前、公開設定）
 export async function PATCH(request: Request, { params }: Params) {
   const session = await auth();
   if (!session || !session.user?.id) {
@@ -18,17 +18,7 @@ export async function PATCH(request: Request, { params }: Params) {
 
   try {
     const body = await request.json();
-    const { name } = body;
-
-    // バリデーション: 名前が空でないことを確認
-    if (!name || typeof name !== "string" || !name.trim()) {
-      return NextResponse.json(
-        { error: "サークル名を入力してください" },
-        { status: 400 }
-      );
-    }
-
-    const trimmedName = name.trim();
+    const { name, isPublic } = body;
 
     // 自分がこのサークルのADMINかチェック
     const membership = await prisma.circleMember.findUnique({
@@ -47,38 +37,68 @@ export async function PATCH(request: Request, { params }: Params) {
       );
     }
 
-    // 同じユーザーが同じ名前のサークルを既に持っているかチェック（自身を除く）
-    const existingCircle = await prisma.circle.findFirst({
-      where: {
-        name: trimmedName,
-        id: { not: circleId },
-        members: {
-          some: {
-            userId,
-            role: "ADMIN",
+    // 更新データを構築
+    const updateData: { name?: string; isPublic?: boolean } = {};
+
+    // 名前の更新
+    if (name !== undefined) {
+      if (!name || typeof name !== "string" || !name.trim()) {
+        return NextResponse.json(
+          { error: "サークル名を入力してください" },
+          { status: 400 }
+        );
+      }
+
+      const trimmedName = name.trim();
+
+      // 同じユーザーが同じ名前のサークルを既に持っているかチェック（自身を除く）
+      const existingCircle = await prisma.circle.findFirst({
+        where: {
+          name: trimmedName,
+          id: { not: circleId },
+          members: {
+            some: {
+              userId,
+              role: "ADMIN",
+            },
           },
         },
-      },
-    });
+      });
 
-    if (existingCircle) {
+      if (existingCircle) {
+        return NextResponse.json(
+          { error: "同じ名前のサークルが既に存在します" },
+          { status: 400 }
+        );
+      }
+
+      updateData.name = trimmedName;
+    }
+
+    // 公開設定の更新
+    if (typeof isPublic === "boolean") {
+      updateData.isPublic = isPublic;
+    }
+
+    // 更新するものがない場合
+    if (Object.keys(updateData).length === 0) {
       return NextResponse.json(
-        { error: "同じ名前のサークルが既に存在します" },
+        { error: "更新するデータがありません" },
         { status: 400 }
       );
     }
 
-    // サークル名を更新
+    // サークルを更新
     const updatedCircle = await prisma.circle.update({
       where: { id: circleId },
-      data: { name: trimmedName },
+      data: updateData,
     });
 
     return NextResponse.json({ circle: updatedCircle });
   } catch (error) {
     console.error("Circle update error:", error);
     return NextResponse.json(
-      { error: "サークル名の更新に失敗しました" },
+      { error: "サークルの更新に失敗しました" },
       { status: 500 }
     );
   }

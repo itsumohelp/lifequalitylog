@@ -1659,6 +1659,8 @@ export const CircleScalarFieldEnum = {
   description: 'description',
   walletName: 'walletName',
   currency: 'currency',
+  currentBalance: 'currentBalance',
+  isPublic: 'isPublic',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1870,6 +1872,13 @@ export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
  * Reference to a field of type 'CircleRole'
  */
 export type EnumCircleRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CircleRole'>
@@ -1880,13 +1889,6 @@ export type EnumCircleRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$Prism
  * Reference to a field of type 'CircleRole[]'
  */
 export type ListEnumCircleRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CircleRole[]'>
-    
-
-
-/**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 

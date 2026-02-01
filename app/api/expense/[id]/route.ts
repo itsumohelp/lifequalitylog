@@ -37,6 +37,12 @@ export async function DELETE(
     return NextResponse.json({ error: "Permission denied" }, { status: 403 });
   }
 
+  // サークルのcurrentBalanceを更新（支出削除なので戻す）
+  await prisma.circle.update({
+    where: { id: expense.circleId },
+    data: { currentBalance: { increment: expense.amount } },
+  });
+
   // 月次集計を更新
   const expenseDate = new Date(expense.createdAt);
   const yearMonth = `${expenseDate.getFullYear()}${String(expenseDate.getMonth() + 1).padStart(2, "0")}`;

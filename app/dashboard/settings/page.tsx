@@ -18,6 +18,7 @@ type Circle = {
   name: string;
   role: string;
   adminName: string;
+  isPublic?: boolean;
 };
 
 type Member = {
@@ -47,6 +48,9 @@ export default function SettingsPage() {
   const [isEditingCircleName, setIsEditingCircleName] = useState(false);
   const [editingCircleName, setEditingCircleName] = useState("");
   const [isSavingCircleName, setIsSavingCircleName] = useState(false);
+  const [isPublic, setIsPublic] = useState(false);
+  const [isSavingPublic, setIsSavingPublic] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -99,11 +103,12 @@ export default function SettingsPage() {
     }
   };
 
-  // ADMINサークルを選択したときにメンバー一覧を取得
+  // ADMINサークルを選択したときにメンバー一覧と公開設定を取得
   const handleSelectAdminCircle = async (circle: Circle) => {
     setSelectedAdminCircle(circle);
     setIsLoadingMembers(true);
     setMembers([]);
+    setIsPublic(circle.isPublic || false);
 
     try {
       const res = await fetch(`/api/circles/${circle.id}/members`);
@@ -118,6 +123,55 @@ export default function SettingsPage() {
     } finally {
       setIsLoadingMembers(false);
     }
+  };
+
+  // 公開設定を切り替え
+  const handleTogglePublic = async () => {
+    if (!selectedAdminCircle) return;
+
+    setIsSavingPublic(true);
+    setMessage(null);
+
+    try {
+      const res = await fetch(`/api/circles/${selectedAdminCircle.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isPublic: !isPublic }),
+      });
+
+      if (res.ok) {
+        const newIsPublic = !isPublic;
+        setIsPublic(newIsPublic);
+        // サークル一覧も更新
+        setCircles((prev) =>
+          prev.map((c) =>
+            c.id === selectedAdminCircle.id
+              ? { ...c, isPublic: newIsPublic }
+              : c
+          )
+        );
+        setMessage({
+          type: "success",
+          text: newIsPublic ? "フィードを公開しました" : "フィードを非公開にしました",
+        });
+      } else {
+        const data = await res.json();
+        setMessage({ type: "error", text: data.error || "設定の更新に失敗しました" });
+      }
+    } catch {
+      setMessage({ type: "error", text: "通信エラーが発生しました" });
+    } finally {
+      setIsSavingPublic(false);
+    }
+  };
+
+  // URLをクリップボードにコピー
+  const handleCopyUrl = () => {
+    if (!selectedAdminCircle) return;
+    const url = `${window.location.origin}/c/${selectedAdminCircle.id}`;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   // メンバーをサークルから削除
@@ -658,6 +712,56 @@ export default function SettingsPage() {
                 )}
               </div>
 
+              {/* フィード公開設定 */}
+              <div className="border-t border-slate-200 pt-4 mb-4">
+                <h4 className="text-sm font-medium text-slate-700 mb-2">
+                  フィードの公開設定
+                </h4>
+                <div className="flex items-center justify-between bg-white border border-slate-200 rounded-lg px-3 py-3">
+                  <div>
+                    <div className="text-sm text-slate-700">フィードを公開する</div>
+                    <div className="text-xs text-slate-500">
+                      URLを知っている人は誰でも閲覧可能
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleTogglePublic}
+                    disabled={isSavingPublic}
+                    className={`relative w-12 h-7 rounded-full transition border flex-shrink-0 ${
+                      isPublic
+                        ? "bg-emerald-500 border-emerald-600"
+                        : "bg-slate-200 border-slate-300"
+                    } ${isSavingPublic ? "opacity-50" : ""}`}
+                  >
+                    <span
+                      className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-all ${
+                        isPublic ? "left-6" : "left-0.5"
+                      }`}
+                    />
+                  </button>
+                </div>
+                {isPublic && (
+                  <div className="mt-2 bg-slate-100 rounded-lg px-3 py-2">
+                    <div className="text-xs text-slate-500 mb-1">公開URL</div>
+                    <div className="flex items-center gap-2">
+                      <code className="text-xs text-slate-700 truncate flex-1 bg-white px-2 py-1 rounded">
+                        {typeof window !== "undefined"
+                          ? `${window.location.origin}/c/${selectedAdminCircle.id}`
+                          : `/c/${selectedAdminCircle.id}`}
+                      </code>
+                      <button
+                        type="button"
+                        onClick={handleCopyUrl}
+                        className="text-xs text-slate-500 hover:text-slate-700 whitespace-nowrap"
+                      >
+                        {copied ? "コピー済み" : "コピー"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* サークル削除 */}
               <div className="border-t border-slate-200 pt-4 mb-4">
                 <h4 className="text-sm font-medium text-red-700 mb-2">
@@ -694,6 +798,8 @@ export default function SettingsPage() {
                   setMembers([]);
                   setIsEditingCircleName(false);
                   setEditingCircleName("");
+                  setIsPublic(false);
+                  setCopied(false);
                 }}
                 className="w-full bg-slate-100 text-slate-700 rounded-lg px-4 py-2 text-sm font-medium"
               >

@@ -607,10 +607,6 @@ export type CircleSnapshotUncheckedUpdateManyWithoutCircleNestedInput = {
   deleteMany?: Prisma.CircleSnapshotScalarWhereInput | Prisma.CircleSnapshotScalarWhereInput[]
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type CircleSnapshotCreateWithoutUserInput = {
   id?: string
   amount: number

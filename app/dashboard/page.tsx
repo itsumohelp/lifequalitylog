@@ -62,12 +62,13 @@ export default async function DashboardPage() {
   let tagSummary: TagSummaryItem[] = [];
 
   if (hasCircles) {
-    // サークル情報を取得（ADMIN名も含む）
+    // サークル情報を取得（ADMIN名、currentBalanceも含む）
     const circlesWithAdmin = await prisma.circle.findMany({
       where: { id: { in: circleIds } },
       select: {
         id: true,
         name: true,
+        currentBalance: true,
         members: {
           where: { role: "ADMIN" },
           select: {
@@ -122,61 +123,47 @@ export default async function DashboardPage() {
       },
     });
 
-    // 各サークルの残高計算（全サークル分）
+    // 各サークルの残高を取得（キャッシュから）
     const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
+    // 当月の月次集計を取得（全サークル分）
+    const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const monthlySnapshotsAll = await prisma.monthlySnapshot.findMany({
+      where: {
+        circleId: { in: circleIds },
+        yearMonth,
+      },
+    });
+
+    // サークルごとのMonthlySnapshotをマップに変換
+    const monthlySnapshotMap = new Map<string, number>();
+    for (const ms of monthlySnapshotsAll) {
+      monthlySnapshotMap.set(ms.circleId, ms.totalExpense);
+    }
+
     for (const circleId of circleIds) {
-      const circle = circles.find((c) => c.id === circleId);
-      const latestSnapshot = snapshots.find((s) => s.circleId === circleId);
+      const circleData = circlesWithAdmin.find((c) => c.id === circleId);
+      const circleMonthlyExpense = monthlySnapshotMap.get(circleId) || 0;
 
-      let circleBalance = 0;
-      const snapshotDate = latestSnapshot ? new Date(latestSnapshot.createdAt) : null;
-
-      if (latestSnapshot) {
-        circleBalance = latestSnapshot.amount;
-      }
-
-      // スナップショット以降の支出を引く（スナップショットがない場合は全支出）
-      const expensesAfterSnapshot = expenses.filter(
-        (e) => e.circleId === circleId && (!snapshotDate || new Date(e.createdAt) > snapshotDate)
-      );
-      const expenseSum = expensesAfterSnapshot.reduce((sum, e) => sum + e.amount, 0);
-      circleBalance -= expenseSum;
-
-      // スナップショット以降の収入を足す（スナップショットがない場合は全収入）
-      const incomesAfterSnapshot = incomes.filter(
-        (i) => i.circleId === circleId && (!snapshotDate || new Date(i.createdAt) > snapshotDate)
-      );
-      const incomeSum = incomesAfterSnapshot.reduce((sum, i) => sum + i.amount, 0);
-      circleBalance += incomeSum;
-
-      // 当月の支出を計算
-      const circleMonthlyExpense = expenses
-        .filter((e) => e.circleId === circleId && new Date(e.createdAt) >= startOfMonth)
-        .reduce((sum, e) => sum + e.amount, 0);
-
-      // サークル別残高リストに追加
+      // サークル別残高リストに追加（currentBalanceキャッシュを使用）
       circleBalances.push({
         circleId,
-        circleName: circle?.name || "（名前なし）",
-        balance: circleBalance,
+        circleName: circleData?.name || "（名前なし）",
+        balance: circleData?.currentBalance || 0,
         monthlyExpense: circleMonthlyExpense,
       });
 
       // 管理者サークルのみ合計に加算
       if (adminCircleIds.includes(circleId)) {
-        totalBalance += circleBalance;
+        totalBalance += circleData?.currentBalance || 0;
+        monthlyExpense += circleMonthlyExpense;
 
         // 一つ前のスナップショットを探す（前回残高との差分計算用）
         const circleSnapshots = snapshots.filter((s) => s.circleId === circleId);
         if (circleSnapshots.length >= 2) {
           // 2番目のスナップショット（一つ前）の金額を加算
           previousTotalBalance += circleSnapshots[1].amount;
-        } else if (circleSnapshots.length === 1) {
-          // スナップショットが1つしかない場合は、前回残高は0とする
-          // (差分計算には含めない = nullのまま)
         }
       }
     }
@@ -189,18 +176,6 @@ export default async function DashboardPage() {
     });
     if (hasAnyPreviousSnapshot) {
       totalBalanceDiff = totalBalance - previousTotalBalance;
-    }
-
-    // 当月の月次集計を取得
-    const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
-    if (adminCircleIds.length > 0) {
-      const monthlySnapshots = await prisma.monthlySnapshot.findMany({
-        where: {
-          circleId: { in: adminCircleIds },
-          yearMonth,
-        },
-      });
-      monthlyExpense = monthlySnapshots.reduce((sum: number, m) => sum + m.totalExpense, 0);
     }
 
     // 各トランザクション時点のサークル残高を計算

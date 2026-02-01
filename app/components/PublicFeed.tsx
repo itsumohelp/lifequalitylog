@@ -1,0 +1,448 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { getCategoryEmoji } from "@/lib/expenseParser";
+import type { ExpenseCategory, ReactionType } from "@/app/generated/prisma/enums";
+
+type ReactionData = {
+  counts: Record<ReactionType, number>;
+  userReactions: ReactionType[];
+};
+
+type FeedItem = {
+  id: string;
+  kind: "snapshot" | "expense" | "income";
+  circleId: string;
+  circleName: string;
+  userId: string;
+  userName: string;
+  userImage: string | null;
+  amount: number;
+  circleBalanceAfter?: number;
+  snapshotDiff?: number | null;
+  description?: string;
+  place?: string | null;
+  source?: string | null;
+  category?: string;
+  tags?: string[];
+  note?: string | null;
+  createdAt: string;
+};
+
+type Props = {
+  circle: {
+    id: string;
+    name: string;
+    currentBalance: number;
+  };
+  feed: FeedItem[];
+  isLoggedIn: boolean;
+  currentUserId: string | null;
+};
+
+function formatYen(amount: number) {
+  return new Intl.NumberFormat("ja-JP").format(Math.abs(amount));
+}
+
+function formatTime(dateStr: string) {
+  const date = new Date(dateStr);
+  return date.toLocaleTimeString("ja-JP", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function formatDate(dateStr: string) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("ja-JP", {
+    month: "short",
+    day: "numeric",
+  });
+}
+
+export default function PublicFeed({ circle, feed, isLoggedIn, currentUserId }: Props) {
+  const [reactions, setReactions] = useState<Record<string, ReactionData>>({});
+  const [reactionsLoading, setReactionsLoading] = useState(false);
+  const [togglingReaction, setTogglingReaction] = useState<string | null>(null);
+
+  // リアクションを取得
+  const fetchReactions = useCallback(async () => {
+    const targetItems = feed.filter(
+      (item) => item.kind === "expense" || item.kind === "income" || item.kind === "snapshot"
+    );
+    if (targetItems.length === 0) return;
+
+    const targets = targetItems
+      .map((item) => `${item.kind}:${item.id.replace(`${item.kind}-`, "")}`)
+      .join(",");
+
+    setReactionsLoading(true);
+    try {
+      const res = await fetch(`/api/reactions?targets=${encodeURIComponent(targets)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setReactions(data.reactions || {});
+      }
+    } catch (err) {
+      console.error("Failed to fetch reactions:", err);
+    } finally {
+      setReactionsLoading(false);
+    }
+  }, [feed]);
+
+  useEffect(() => {
+    fetchReactions();
+  }, [fetchReactions]);
+
+  // リアクションをトグル（ログイン時のみ）
+  const toggleReaction = async (item: FeedItem, reactionType: ReactionType) => {
+    if (!isLoggedIn) return;
+
+    const itemKey = `${item.kind}:${item.id.replace(`${item.kind}-`, "")}`;
+    const toggleKey = `${item.id}:${reactionType}`;
+    if (togglingReaction) return;
+
+    setTogglingReaction(toggleKey);
+
+    const currentReaction = reactions[itemKey];
+    const hasReaction = currentReaction?.userReactions.includes(reactionType);
+
+    try {
+      if (hasReaction) {
+        const res = await fetch("/api/reactions", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            targetType: item.kind,
+            targetId: item.id.replace(`${item.kind}-`, ""),
+            type: reactionType,
+          }),
+        });
+        if (res.ok) {
+          setReactions((prev) => {
+            const updated = { ...prev };
+            if (updated[itemKey]) {
+              updated[itemKey] = {
+                counts: {
+                  ...updated[itemKey].counts,
+                  [reactionType]: Math.max(0, updated[itemKey].counts[reactionType] - 1),
+                },
+                userReactions: updated[itemKey].userReactions.filter((r) => r !== reactionType),
+              };
+            }
+            return updated;
+          });
+        }
+      } else {
+        const res = await fetch("/api/reactions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            targetType: item.kind,
+            targetId: item.id.replace(`${item.kind}-`, ""),
+            type: reactionType,
+          }),
+        });
+        if (res.ok) {
+          setReactions((prev) => {
+            const updated = { ...prev };
+            if (!updated[itemKey]) {
+              updated[itemKey] = {
+                counts: { CHECK: 0, GOOD: 0, BAD: 0, DOGEZA: 0 },
+                userReactions: [],
+              };
+            }
+            updated[itemKey] = {
+              counts: {
+                ...updated[itemKey].counts,
+                [reactionType]: updated[itemKey].counts[reactionType] + 1,
+              },
+              userReactions: [...updated[itemKey].userReactions, reactionType],
+            };
+            return updated;
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Failed to toggle reaction:", err);
+    } finally {
+      setTogglingReaction(null);
+    }
+  };
+
+  // 日付ごとにグループ化
+  const groupedByDate = feed.reduce<Record<string, FeedItem[]>>((acc, item) => {
+    const dateKey = formatDate(item.createdAt);
+    if (!acc[dateKey]) acc[dateKey] = [];
+    acc[dateKey].push(item);
+    return acc;
+  }, {});
+
+  return (
+    <div className="flex flex-col flex-1 min-h-0">
+      {/* 残高ヘッダー */}
+      <div className="flex-shrink-0 bg-white px-3 pt-2 pb-2">
+        <div className="rounded-xl bg-slate-900 px-4 py-3">
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <span className="text-sm text-slate-400">{circle.name}</span>
+          </div>
+          <div className="flex items-center justify-center">
+            <span className="font-semibold text-white text-2xl">
+              ¥{formatYen(circle.currentBalance)}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* フィード表示 */}
+      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-4 bg-slate-50 min-h-0">
+        {Object.entries(groupedByDate).map(([date, items]) => (
+          <div key={date}>
+            {/* 日付ヘッダー */}
+            <div className="flex justify-center mb-3">
+              <span className="text-xs text-slate-500 bg-white px-3 py-1 rounded-full border border-slate-200">
+                {date}
+              </span>
+            </div>
+
+            {/* アイテム */}
+            <div className="space-y-2">
+              {items.map((item, idx) => {
+                const prevItem = idx > 0 ? items[idx - 1] : null;
+                const isSameUserAsPrev = prevItem && prevItem.userId === item.userId;
+                const isOwnMessage = item.userId === currentUserId;
+                const itemKey = `${item.kind}:${item.id.replace(`${item.kind}-`, "")}`;
+                const reactionData = reactions[itemKey];
+
+                return (
+                  <div
+                    key={item.id}
+                    className={`flex items-start gap-2 ${isOwnMessage ? "flex-row-reverse" : ""}`}
+                  >
+                    {/* ユーザーアイコン（連続投稿時は非表示） */}
+                    {isSameUserAsPrev ? (
+                      <div className="w-8 flex-shrink-0" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-slate-300 overflow-hidden flex-shrink-0">
+                        {item.userImage ? (
+                          <Image
+                            src={item.userImage}
+                            alt={item.userName}
+                            width={32}
+                            height={32}
+                            className="w-8 h-8 object-cover"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 flex items-center justify-center text-xs text-slate-600">
+                            {item.userName?.slice(0, 1) || "?"}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* メッセージ部分 */}
+                    <div className={`max-w-[70%] ${isOwnMessage ? "items-end" : ""}`}>
+                      {/* 投稿者名（バブルの上、連続投稿時は非表示） */}
+                      {!isSameUserAsPrev && (
+                        <div
+                          className={`text-[10px] text-slate-500 mb-0.5 ${
+                            isOwnMessage ? "text-right" : ""
+                          }`}
+                        >
+                          {item.userName}
+                        </div>
+                      )}
+
+                      {/* メッセージバブル */}
+                      <div
+                        className={`rounded-2xl px-3 py-1.5 text-left ${
+                          isOwnMessage
+                            ? "bg-slate-900 text-white rounded-tr-sm"
+                            : "bg-white border border-slate-200 rounded-tl-sm"
+                        }`}
+                      >
+                        {/* 時刻（バブル内上部） */}
+                        <div className="flex items-center gap-2 mb-1">
+                          <span
+                            className={`text-[10px] ${
+                              isOwnMessage ? "text-slate-500" : "text-slate-400"
+                            }`}
+                          >
+                            {formatTime(item.createdAt)}
+                          </span>
+                        </div>
+
+                        {item.kind === "expense" ? (
+                          <>
+                            {/* カテゴリ絵文字 + 金額 + 残高 + タグバッジ */}
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-sm">
+                                {getCategoryEmoji((item.category || "OTHER") as ExpenseCategory)}
+                              </span>
+                              <span
+                                className={`font-semibold text-sm ${
+                                  isOwnMessage ? "text-red-300" : "text-red-600"
+                                }`}
+                              >
+                                ¥{formatYen(item.amount)}
+                              </span>
+                              {item.circleBalanceAfter !== undefined && (
+                                <span
+                                  className={`text-xs ${
+                                    isOwnMessage ? "text-slate-400" : "text-slate-500"
+                                  }`}
+                                >
+                                  (¥{formatYen(item.circleBalanceAfter)})
+                                </span>
+                              )}
+                              {item.tags && item.tags.length > 0 && (
+                                <>
+                                  {item.tags.map((tag, tagIdx) => (
+                                    <span
+                                      key={tagIdx}
+                                      className={`text-[10px] px-2 py-0.5 rounded-full ${
+                                        isOwnMessage
+                                          ? "bg-sky-600 text-sky-100"
+                                          : "bg-sky-100 text-sky-700"
+                                      }`}
+                                    >
+                                      {tag}
+                                    </span>
+                                  ))}
+                                </>
+                              )}
+                            </div>
+                          </>
+                        ) : item.kind === "income" ? (
+                          <>
+                            {/* 収入 */}
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-sm">💰</span>
+                              <span
+                                className={`font-semibold text-sm ${
+                                  isOwnMessage ? "text-emerald-300" : "text-emerald-600"
+                                }`}
+                              >
+                                +¥{formatYen(item.amount)}
+                              </span>
+                              {item.tags && item.tags.length > 0 && (
+                                <>
+                                  {item.tags.map((tag, tagIdx) => (
+                                    <span
+                                      key={tagIdx}
+                                      className={`text-[10px] px-2 py-0.5 rounded-full ${
+                                        isOwnMessage
+                                          ? "bg-emerald-600 text-emerald-100"
+                                          : "bg-emerald-100 text-emerald-700"
+                                      }`}
+                                    >
+                                      {tag}
+                                    </span>
+                                  ))}
+                                </>
+                              )}
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            {/* 残高スナップショット */}
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span
+                                className={`font-semibold text-sm ${
+                                  isOwnMessage ? "text-white" : "text-slate-900"
+                                }`}
+                              >
+                                ¥{formatYen(item.amount)}
+                              </span>
+                              {item.snapshotDiff !== undefined && (
+                                <span
+                                  className={`text-xs ${
+                                    isOwnMessage ? "text-slate-400" : "text-slate-500"
+                                  }`}
+                                >
+                                  {item.snapshotDiff === null
+                                    ? "(-)"
+                                    : item.snapshotDiff >= 0
+                                      ? `(+¥${formatYen(item.snapshotDiff)})`
+                                      : `(-¥${formatYen(Math.abs(item.snapshotDiff))})`}
+                                </span>
+                              )}
+                            </div>
+                            {item.note && (
+                              <p
+                                className={`text-[10px] mt-0.5 ${
+                                  isOwnMessage ? "text-slate-300" : "text-slate-600"
+                                }`}
+                              >
+                                {item.note}
+                              </p>
+                            )}
+                          </>
+                        )}
+                      </div>
+
+                      {/* リアクションボタン */}
+                      <div
+                        className={`flex items-center gap-1 mt-1 ${
+                          isOwnMessage ? "justify-end" : "justify-start"
+                        }`}
+                      >
+                        {(["CHECK", "GOOD", "BAD", "DOGEZA"] as ReactionType[]).map((type) => {
+                          const count = reactionData?.counts[type] || 0;
+                          const hasReacted = reactionData?.userReactions.includes(type);
+                          const isToggling = togglingReaction === `${item.id}:${type}`;
+                          const emoji = type === "CHECK" ? "✅" : type === "GOOD" ? "👍" : type === "BAD" ? "👎" : "🙇";
+
+                          return (
+                            <button
+                              key={type}
+                              type="button"
+                              onClick={() => toggleReaction(item, type)}
+                              disabled={!isLoggedIn || reactionsLoading || !!togglingReaction}
+                              className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs transition ${
+                                hasReacted
+                                  ? "bg-slate-700 text-white"
+                                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                              } ${(reactionsLoading || isToggling) ? "opacity-50" : ""} ${
+                                !isLoggedIn ? "cursor-default" : ""
+                              }`}
+                            >
+                              <span className="text-[11px]">{emoji}</span>
+                              {count > 0 && (
+                                <span className="text-[10px] min-w-[12px] text-center">{count}</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+
+        {feed.length === 0 && (
+          <div className="text-center text-slate-500 mt-8">
+            <p className="mb-2">まだ記録がありません</p>
+          </div>
+        )}
+      </div>
+
+      {/* 未ログイン時のログイン促進バナー */}
+      {!isLoggedIn && (
+        <div className="flex-shrink-0 bg-white border-t border-slate-200 p-3">
+          <Link
+            href="/"
+            className="block w-full text-center bg-slate-900 text-white rounded-lg py-2.5 text-sm font-medium"
+          >
+            ログインしてリアクションする
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+}
