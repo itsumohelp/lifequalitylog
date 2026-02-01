@@ -176,6 +176,8 @@ export const CircleScalarFieldEnum = {
   description: 'description',
   walletName: 'walletName',
   currency: 'currency',
+  currentBalance: 'currentBalance',
+  isPublic: 'isPublic',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

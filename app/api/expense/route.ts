@@ -103,6 +103,12 @@ export async function POST(request: NextRequest) {
     },
   });
 
+  // サークルのcurrentBalanceを更新（支出なので減らす）
+  await prisma.circle.update({
+    where: { id: circleId },
+    data: { currentBalance: { decrement: parsed.amount } },
+  });
+
   // 月次集計を更新（YYYYMM形式）
   const now = new Date();
   const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;

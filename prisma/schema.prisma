@@ -103,18 +103,20 @@ model VerificationToken {
 }
 
 model Circle {
-  id          String          @id @default(cuid())
-  name        String
-  description String?
-  walletName  String?
-  currency    String          @default("JPY")
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  members     CircleMember[]
-  snapshots   Snapshot[]
+  id             String          @id @default(cuid())
+  name           String
+  description    String?
+  walletName     String?
+  currency       String          @default("JPY")
+  currentBalance Int             @default(0) // キャッシュされた現在残高
+  isPublic       Boolean         @default(false) // フィード公開設定
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  members        CircleMember[]
+  snapshots      Snapshot[]
   circleSnapshots CircleSnapshot[]
-  expenses    Expense[]
-  incomes     Income[]
+  expenses       Expense[]
+  incomes        Income[]
   monthlySnapshots MonthlySnapshot[]
 }
 

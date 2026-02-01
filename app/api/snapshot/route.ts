@@ -53,6 +53,12 @@ export async function POST(request: NextRequest) {
     },
   });
 
+  // サークルのcurrentBalanceをスナップショットの金額で上書き
+  await prisma.circle.update({
+    where: { id: circleId },
+    data: { currentBalance: amount },
+  });
+
   return NextResponse.json({
     snapshot: {
       id: `snapshot-${snapshot.id}`,
