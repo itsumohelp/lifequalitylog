@@ -1,5 +1,6 @@
 import { auth, signIn } from "@/auth";
 import { redirect } from "next/navigation";
+import WebViewAlert from "@/app/components/WebViewAlert";
 
 type HomePageProps = {
   searchParams: Promise<{ callbackUrl?: string }>;
@@ -28,6 +29,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-white">
+      {/* WebViewの場合にブラウザで開くよう促すポップアップ */}
+      <WebViewAlert />
+
       <div className="w-full max-w-md mx-auto px-6 py-12">
         {/* ロゴ */}
         <div className="mb-8 text-center">

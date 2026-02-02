@@ -104,24 +104,44 @@ function formatDate(dateStr: string) {
 const RECENT_TAGS_KEY = "recentTags";
 const MAX_RECENT_TAGS = 10;
 
+// localStorageが利用可能かテスト（Safariプライベートモード対策）
+function isLocalStorageAvailable(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const testKey = "__storage_test__";
+    localStorage.setItem(testKey, testKey);
+    localStorage.removeItem(testKey);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // ローカルストレージから直近タグを取得
 function getRecentTags(): string[] {
-  if (typeof window === "undefined") return [];
+  if (!isLocalStorageAvailable()) return [];
   try {
     const stored = localStorage.getItem(RECENT_TAGS_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch {
+    if (!stored) return [];
+    const parsed = JSON.parse(stored);
+    // 配列でない場合は空配列を返す
+    if (!Array.isArray(parsed)) return [];
+    return parsed;
+  } catch (e) {
+    console.warn("Failed to get recent tags:", e);
     return [];
   }
 }
 
 // ローカルストレージに直近タグを保存
-function saveRecentTags(tags: string[]) {
-  if (typeof window === "undefined") return;
+function saveRecentTags(tags: string[]): boolean {
+  if (!isLocalStorageAvailable()) return false;
   try {
     localStorage.setItem(RECENT_TAGS_KEY, JSON.stringify(tags));
-  } catch {
-    // ストレージ容量オーバー等は無視
+    return true;
+  } catch (e) {
+    console.warn("Failed to save recent tags:", e);
+    return false;
   }
 }
 
