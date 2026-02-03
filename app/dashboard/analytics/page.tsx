@@ -15,6 +15,7 @@ import {
 
 type Period = "daily" | "weekly" | "monthly";
 type ViewType = "total" | "circle" | "tag";
+type DisplayMode = "graph" | "numbers";
 
 type Circle = {
   id: string;
@@ -86,6 +87,7 @@ function CustomTooltip({
 export default function AnalyticsPage() {
   const [period, setPeriod] = useState<Period>("daily");
   const [viewType, setViewType] = useState<ViewType>("total");
+  const [displayMode, setDisplayMode] = useState<DisplayMode>("graph");
   const [selectedCircleId, setSelectedCircleId] = useState<string>("");
   const [data, setData] = useState<DataPoint[]>([]);
   const [circles, setCircles] = useState<Circle[]>([]);
@@ -240,7 +242,32 @@ export default function AnalyticsPage() {
           )}
         </div>
 
+        {/* グラフ/数値切り替えタブ */}
+        <div className="flex gap-1 mb-4">
+          <button
+            onClick={() => setDisplayMode("graph")}
+            className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg transition border ${
+              displayMode === "graph"
+                ? "bg-slate-900 text-white border-slate-900"
+                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+            }`}
+          >
+            グラフ
+          </button>
+          <button
+            onClick={() => setDisplayMode("numbers")}
+            className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg transition border ${
+              displayMode === "numbers"
+                ? "bg-slate-900 text-white border-slate-900"
+                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+            }`}
+          >
+            数値
+          </button>
+        </div>
+
         {/* グラフ */}
+        {displayMode === "graph" && (
         <div className="bg-white border border-slate-200 rounded-xl p-4">
           <h2 className="text-sm font-medium text-slate-700 mb-4">
             {viewType === "total"
@@ -299,6 +326,70 @@ export default function AnalyticsPage() {
             </ResponsiveContainer>
           )}
         </div>
+        )}
+
+        {/* 数値表示 */}
+        {displayMode === "numbers" && (
+          <div className="bg-white border border-slate-200 rounded-xl p-4">
+            <h2 className="text-sm font-medium text-slate-700 mb-4">
+              {viewType === "total"
+                ? "全体の残高推移"
+                : viewType === "circle"
+                  ? "サークル別残高推移"
+                  : "タグ別支出推移"}
+            </h2>
+
+            {isLoading ? (
+              <div className="h-64 flex items-center justify-center text-slate-500">
+                読み込み中...
+              </div>
+            ) : data.length === 0 ? (
+              <div className="h-64 flex items-center justify-center text-slate-500">
+                データがありません
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-200">
+                      <th className="text-left py-2 px-2 font-medium text-slate-600">期間</th>
+                      {lineKeys.map((key, index) => (
+                        <th
+                          key={key}
+                          className="text-right py-2 px-2 font-medium"
+                          style={{ color: COLORS[index % COLORS.length] }}
+                        >
+                          {key === "balance" ? "残高" : key}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...data].reverse().map((row, rowIndex) => (
+                      <tr
+                        key={row.date}
+                        className={rowIndex % 2 === 0 ? "bg-slate-50" : "bg-white"}
+                      >
+                        <td className="py-2 px-2 text-slate-700">
+                          {formatDateLabel(row.date, period)}
+                        </td>
+                        {lineKeys.map((key) => {
+                          const value = row[key];
+                          const numValue = typeof value === "number" ? value : 0;
+                          return (
+                            <td key={key} className="text-right py-2 px-2 font-medium text-slate-900">
+                              ¥{formatYen(numValue)}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* 凡例（タグ別の場合） */}
         {viewType === "tag" && tags.length > 0 && (
