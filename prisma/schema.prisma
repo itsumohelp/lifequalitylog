@@ -110,6 +110,7 @@ model Circle {
   currency       String          @default("JPY")
   currentBalance Int             @default(0) // キャッシュされた現在残高
   isPublic       Boolean         @default(false) // フィード公開設定
+  allowNewMembers Boolean        @default(true) // 招待リンクでの新規参加を許可
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   members        CircleMember[]

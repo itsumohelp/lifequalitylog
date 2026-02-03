@@ -42,6 +42,7 @@ export type CircleMinAggregateOutputType = {
   currency: string | null
   currentBalance: number | null
   isPublic: boolean | null
+  allowNewMembers: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -54,6 +55,7 @@ export type CircleMaxAggregateOutputType = {
   currency: string | null
   currentBalance: number | null
   isPublic: boolean | null
+  allowNewMembers: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -66,6 +68,7 @@ export type CircleCountAggregateOutputType = {
   currency: number
   currentBalance: number
   isPublic: number
+  allowNewMembers: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -88,6 +91,7 @@ export type CircleMinAggregateInputType = {
   currency?: true
   currentBalance?: true
   isPublic?: true
+  allowNewMembers?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -100,6 +104,7 @@ export type CircleMaxAggregateInputType = {
   currency?: true
   currentBalance?: true
   isPublic?: true
+  allowNewMembers?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -112,6 +117,7 @@ export type CircleCountAggregateInputType = {
   currency?: true
   currentBalance?: true
   isPublic?: true
+  allowNewMembers?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -211,6 +217,7 @@ export type CircleGroupByOutputType = {
   currency: string
   currentBalance: number
   isPublic: boolean
+  allowNewMembers: boolean
   createdAt: Date
   updatedAt: Date
   _count: CircleCountAggregateOutputType | null
@@ -246,6 +253,7 @@ export type CircleWhereInput = {
   currency?: Prisma.StringFilter<"Circle"> | string
   currentBalance?: Prisma.IntFilter<"Circle"> | number
   isPublic?: Prisma.BoolFilter<"Circle"> | boolean
+  allowNewMembers?: Prisma.BoolFilter<"Circle"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Circle"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Circle"> | Date | string
   members?: Prisma.CircleMemberListRelationFilter
@@ -264,6 +272,7 @@ export type CircleOrderByWithRelationInput = {
   currency?: Prisma.SortOrder
   currentBalance?: Prisma.SortOrder
   isPublic?: Prisma.SortOrder
+  allowNewMembers?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   members?: Prisma.CircleMemberOrderByRelationAggregateInput
@@ -285,6 +294,7 @@ export type CircleWhereUniqueInput = Prisma.AtLeast<{
   currency?: Prisma.StringFilter<"Circle"> | string
   currentBalance?: Prisma.IntFilter<"Circle"> | number
   isPublic?: Prisma.BoolFilter<"Circle"> | boolean
+  allowNewMembers?: Prisma.BoolFilter<"Circle"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Circle"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Circle"> | Date | string
   members?: Prisma.CircleMemberListRelationFilter
@@ -303,6 +313,7 @@ export type CircleOrderByWithAggregationInput = {
   currency?: Prisma.SortOrder
   currentBalance?: Prisma.SortOrder
   isPublic?: Prisma.SortOrder
+  allowNewMembers?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.CircleCountOrderByAggregateInput
@@ -323,6 +334,7 @@ export type CircleScalarWhereWithAggregatesInput = {
   currency?: Prisma.StringWithAggregatesFilter<"Circle"> | string
   currentBalance?: Prisma.IntWithAggregatesFilter<"Circle"> | number
   isPublic?: Prisma.BoolWithAggregatesFilter<"Circle"> | boolean
+  allowNewMembers?: Prisma.BoolWithAggregatesFilter<"Circle"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Circle"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Circle"> | Date | string
 }
@@ -335,6 +347,7 @@ export type CircleCreateInput = {
   currency?: string
   currentBalance?: number
   isPublic?: boolean
+  allowNewMembers?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   members?: Prisma.CircleMemberCreateNestedManyWithoutCircleInput
@@ -353,6 +366,7 @@ export type CircleUncheckedCreateInput = {
   currency?: string
   currentBalance?: number
   isPublic?: boolean
+  allowNewMembers?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   members?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutCircleInput
@@ -371,6 +385,7 @@ export type CircleUpdateInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   currentBalance?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNewMembers?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.CircleMemberUpdateManyWithoutCircleNestedInput
@@ -389,6 +404,7 @@ export type CircleUncheckedUpdateInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   currentBalance?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNewMembers?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.CircleMemberUncheckedUpdateManyWithoutCircleNestedInput
@@ -407,6 +423,7 @@ export type CircleCreateManyInput = {
   currency?: string
   currentBalance?: number
   isPublic?: boolean
+  allowNewMembers?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -419,6 +436,7 @@ export type CircleUpdateManyMutationInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   currentBalance?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNewMembers?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -431,6 +449,7 @@ export type CircleUncheckedUpdateManyInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   currentBalance?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNewMembers?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -443,6 +462,7 @@ export type CircleCountOrderByAggregateInput = {
   currency?: Prisma.SortOrder
   currentBalance?: Prisma.SortOrder
   isPublic?: Prisma.SortOrder
+  allowNewMembers?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -459,6 +479,7 @@ export type CircleMaxOrderByAggregateInput = {
   currency?: Prisma.SortOrder
   currentBalance?: Prisma.SortOrder
   isPublic?: Prisma.SortOrder
+  allowNewMembers?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -471,6 +492,7 @@ export type CircleMinOrderByAggregateInput = {
   currency?: Prisma.SortOrder
   currentBalance?: Prisma.SortOrder
   isPublic?: Prisma.SortOrder
+  allowNewMembers?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -580,6 +602,7 @@ export type CircleCreateWithoutMembersInput = {
   currency?: string
   currentBalance?: number
   isPublic?: boolean
+  allowNewMembers?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   snapshots?: Prisma.SnapshotCreateNestedManyWithoutCircleInput
@@ -597,6 +620,7 @@ export type CircleUncheckedCreateWithoutMembersInput = {
   currency?: string
   currentBalance?: number
   isPublic?: boolean
+  allowNewMembers?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   snapshots?: Prisma.SnapshotUncheckedCreateNestedManyWithoutCircleInput
@@ -630,6 +654,7 @@ export type CircleUpdateWithoutMembersInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   currentBalance?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNewMembers?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   snapshots?: Prisma.SnapshotUpdateManyWithoutCircleNestedInput
@@ -647,6 +672,7 @@ export type CircleUncheckedUpdateWithoutMembersInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   currentBalance?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNewMembers?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   snapshots?: Prisma.SnapshotUncheckedUpdateManyWithoutCircleNestedInput
@@ -664,6 +690,7 @@ export type CircleCreateWithoutSnapshotsInput = {
   currency?: string
   currentBalance?: number
   isPublic?: boolean
+  allowNewMembers?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   members?: Prisma.CircleMemberCreateNestedManyWithoutCircleInput
@@ -681,6 +708,7 @@ export type CircleUncheckedCreateWithoutSnapshotsInput = {
   currency?: string
   currentBalance?: number
   isPublic?: boolean
+  allowNewMembers?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   members?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutCircleInput
@@ -714,6 +742,7 @@ export type CircleUpdateWithoutSnapshotsInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   currentBalance?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNewMembers?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.CircleMemberUpdateManyWithoutCircleNestedInput
@@ -731,6 +760,7 @@ export type CircleUncheckedUpdateWithoutSnapshotsInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   currentBalance?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNewMembers?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.CircleMemberUncheckedUpdateManyWithoutCircleNestedInput
@@ -748,6 +778,7 @@ export type CircleCreateWithoutCircleSnapshotsInput = {
   currency?: string
   currentBalance?: number
   isPublic?: boolean
+  allowNewMembers?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   members?: Prisma.CircleMemberCreateNestedManyWithoutCircleInput
@@ -765,6 +796,7 @@ export type CircleUncheckedCreateWithoutCircleSnapshotsInput = {
   currency?: string
   currentBalance?: number
   isPublic?: boolean
+  allowNewMembers?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   members?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutCircleInput
@@ -798,6 +830,7 @@ export type CircleUpdateWithoutCircleSnapshotsInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   currentBalance?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNewMembers?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.CircleMemberUpdateManyWithoutCircleNestedInput
@@ -815,6 +848,7 @@ export type CircleUncheckedUpdateWithoutCircleSnapshotsInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   currentBalance?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNewMembers?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.CircleMemberUncheckedUpdateManyWithoutCircleNestedInput
@@ -832,6 +866,7 @@ export type CircleCreateWithoutMonthlySnapshotsInput = {
   currency?: string
   currentBalance?: number
   isPublic?: boolean
+  allowNewMembers?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   members?: Prisma.CircleMemberCreateNestedManyWithoutCircleInput
@@ -849,6 +884,7 @@ export type CircleUncheckedCreateWithoutMonthlySnapshotsInput = {
   currency?: string
   currentBalance?: number
   isPublic?: boolean
+  allowNewMembers?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   members?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutCircleInput
@@ -882,6 +918,7 @@ export type CircleUpdateWithoutMonthlySnapshotsInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   currentBalance?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNewMembers?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.CircleMemberUpdateManyWithoutCircleNestedInput
@@ -899,6 +936,7 @@ export type CircleUncheckedUpdateWithoutMonthlySnapshotsInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   currentBalance?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNewMembers?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.CircleMemberUncheckedUpdateManyWithoutCircleNestedInput
@@ -916,6 +954,7 @@ export type CircleCreateWithoutExpensesInput = {
   currency?: string
   currentBalance?: number
   isPublic?: boolean
+  allowNewMembers?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   members?: Prisma.CircleMemberCreateNestedManyWithoutCircleInput
@@ -933,6 +972,7 @@ export type CircleUncheckedCreateWithoutExpensesInput = {
   currency?: string
   currentBalance?: number
   isPublic?: boolean
+  allowNewMembers?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   members?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutCircleInput
@@ -966,6 +1006,7 @@ export type CircleUpdateWithoutExpensesInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   currentBalance?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNewMembers?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.CircleMemberUpdateManyWithoutCircleNestedInput
@@ -983,6 +1024,7 @@ export type CircleUncheckedUpdateWithoutExpensesInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   currentBalance?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNewMembers?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.CircleMemberUncheckedUpdateManyWithoutCircleNestedInput
@@ -1000,6 +1042,7 @@ export type CircleCreateWithoutIncomesInput = {
   currency?: string
   currentBalance?: number
   isPublic?: boolean
+  allowNewMembers?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   members?: Prisma.CircleMemberCreateNestedManyWithoutCircleInput
@@ -1017,6 +1060,7 @@ export type CircleUncheckedCreateWithoutIncomesInput = {
   currency?: string
   currentBalance?: number
   isPublic?: boolean
+  allowNewMembers?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   members?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutCircleInput
@@ -1050,6 +1094,7 @@ export type CircleUpdateWithoutIncomesInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   currentBalance?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNewMembers?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.CircleMemberUpdateManyWithoutCircleNestedInput
@@ -1067,6 +1112,7 @@ export type CircleUncheckedUpdateWithoutIncomesInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   currentBalance?: Prisma.IntFieldUpdateOperationsInput | number
   isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNewMembers?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.CircleMemberUncheckedUpdateManyWithoutCircleNestedInput
@@ -1160,6 +1206,7 @@ export type CircleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   currency?: boolean
   currentBalance?: boolean
   isPublic?: boolean
+  allowNewMembers?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   members?: boolean | Prisma.Circle$membersArgs<ExtArgs>
@@ -1179,6 +1226,7 @@ export type CircleSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   currency?: boolean
   currentBalance?: boolean
   isPublic?: boolean
+  allowNewMembers?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["circle"]>
@@ -1191,6 +1239,7 @@ export type CircleSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   currency?: boolean
   currentBalance?: boolean
   isPublic?: boolean
+  allowNewMembers?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["circle"]>
@@ -1203,11 +1252,12 @@ export type CircleSelectScalar = {
   currency?: boolean
   currentBalance?: boolean
   isPublic?: boolean
+  allowNewMembers?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type CircleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "walletName" | "currency" | "currentBalance" | "isPublic" | "createdAt" | "updatedAt", ExtArgs["result"]["circle"]>
+export type CircleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "walletName" | "currency" | "currentBalance" | "isPublic" | "allowNewMembers" | "createdAt" | "updatedAt", ExtArgs["result"]["circle"]>
 export type CircleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   members?: boolean | Prisma.Circle$membersArgs<ExtArgs>
   snapshots?: boolean | Prisma.Circle$snapshotsArgs<ExtArgs>
@@ -1238,6 +1288,7 @@ export type $CirclePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     currency: string
     currentBalance: number
     isPublic: boolean
+    allowNewMembers: boolean
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["circle"]>
@@ -1676,6 +1727,7 @@ export interface CircleFieldRefs {
   readonly currency: Prisma.FieldRef<"Circle", 'String'>
   readonly currentBalance: Prisma.FieldRef<"Circle", 'Int'>
   readonly isPublic: Prisma.FieldRef<"Circle", 'Boolean'>
+  readonly allowNewMembers: Prisma.FieldRef<"Circle", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Circle", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Circle", 'DateTime'>
 }

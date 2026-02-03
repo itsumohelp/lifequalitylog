@@ -1661,6 +1661,7 @@ export const CircleScalarFieldEnum = {
   currency: 'currency',
   currentBalance: 'currentBalance',
   isPublic: 'isPublic',
+  allowNewMembers: 'allowNewMembers',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

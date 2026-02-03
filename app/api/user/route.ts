@@ -36,6 +36,7 @@ export async function GET() {
           id: true,
           name: true,
           isPublic: true,
+          allowNewMembers: true,
           members: {
             where: { role: "ADMIN" },
             select: {
@@ -58,6 +59,7 @@ export async function GET() {
     name: m.circle.name,
     role: m.role,
     isPublic: m.circle.isPublic,
+    allowNewMembers: m.circle.allowNewMembers,
     adminName:
       m.circle.members[0]?.user?.displayName ||
       m.circle.members[0]?.user?.name ||
