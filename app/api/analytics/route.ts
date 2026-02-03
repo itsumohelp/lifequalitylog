@@ -119,19 +119,18 @@ export async function GET(request: Request) {
 
   if (viewType === "total") {
     // 全体の残高推移（ADMINサークルのみ）
-    const dataMap = new Map<string, number>();
+    // 各期間の最終日の残高を記録
+    const periodBalances = new Map<string, Map<string, number>>(); // dateKey -> circleId -> balance
 
     // 期間内の日付キーを生成
+    const periodKeys = new Set<string>();
     const current = new Date(start);
     while (current <= end) {
-      const key = getDateKey(current, period);
-      if (!dataMap.has(key)) {
-        dataMap.set(key, 0);
-      }
+      periodKeys.add(getDateKey(current, period));
       current.setDate(current.getDate() + 1);
     }
 
-    // 各サークルの残高を計算して合計
+    // 各サークルの残高を計算
     for (const cid of adminCircleIds) {
       const circleSnapshots = snapshots.filter((s) => s.circleId === cid);
       const circleExpenses = expenses.filter((e) => e.circleId === cid);
@@ -159,6 +158,7 @@ export async function GET(request: Request) {
 
       // 期間内の各日の残高を計算
       const currentDate = new Date(start);
+      let lastDateKey = "";
       while (currentDate <= end) {
         const dateKey = getDateKey(currentDate, period);
         const dayStart = new Date(currentDate);
@@ -189,17 +189,30 @@ export async function GET(request: Request) {
         });
         runningBalance += dayIncomes.reduce((sum, i) => sum + i.amount, 0);
 
-        // 合計に加算
-        const currentValue = dataMap.get(dateKey) || 0;
-        dataMap.set(dateKey, currentValue + runningBalance);
+        // 期間の最終残高を記録（同じ期間キーなら上書き）
+        if (!periodBalances.has(dateKey)) {
+          periodBalances.set(dateKey, new Map());
+        }
+        periodBalances.get(dateKey)!.set(cid, runningBalance);
+        lastDateKey = dateKey;
 
         currentDate.setDate(currentDate.getDate() + 1);
       }
     }
 
-    const data = Array.from(dataMap.entries())
-      .map(([date, balance]) => ({ date, balance }))
-      .sort((a, b) => a.date.localeCompare(b.date));
+    // 各期間のサークル残高を合計
+    const data = Array.from(periodKeys)
+      .sort()
+      .map((dateKey) => {
+        const circleBalances = periodBalances.get(dateKey);
+        let totalBalance = 0;
+        if (circleBalances) {
+          circleBalances.forEach((balance) => {
+            totalBalance += balance;
+          });
+        }
+        return { date: dateKey, balance: totalBalance };
+      });
 
     return NextResponse.json({ data, circles, tags: Array.from(allTags) });
   } else if (viewType === "circle") {

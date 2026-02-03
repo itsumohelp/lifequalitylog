@@ -181,6 +181,8 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
   const [reactions, setReactions] = useState<Record<string, ReactionData>>({});
   const [reactionsLoading, setReactionsLoading] = useState(false);
   const [togglingReaction, setTogglingReaction] = useState<string | null>(null); // "itemId:type"
+  const [hasMoreHistory, setHasMoreHistory] = useState<Record<string, boolean>>({}); // circleId -> hasMore
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -217,6 +219,53 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
       setReactionsLoading(false);
     }
   }, []);
+
+  // 過去の実績を取得
+  const loadHistory = useCallback(async (circleId: string) => {
+    if (isLoadingHistory) return;
+
+    // そのサークルの現在の最古のアイテムを取得
+    const circleItems = feed.filter((item) => item.circleId === circleId);
+    const oldestItem = circleItems.length > 0
+      ? circleItems.reduce((oldest, item) =>
+          new Date(item.createdAt) < new Date(oldest.createdAt) ? item : oldest
+        )
+      : null;
+
+    setIsLoadingHistory(true);
+    try {
+      const params = new URLSearchParams({ circleId });
+      if (oldestItem) {
+        params.set("before", oldestItem.createdAt);
+      }
+
+      const res = await fetch(`/api/feed/history?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        // 重複を避けて古いアイテムを先頭に追加
+        const existingIds = new Set(feed.map((item) => item.id));
+        const newItems = data.feed.filter((item: FeedItem) => !existingIds.has(item.id));
+
+        if (newItems.length > 0) {
+          setFeed((prev) => [...newItems, ...prev].sort(
+            (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          ));
+          // 新しいアイテムのリアクションを取得
+          fetchReactions(newItems);
+        }
+
+        // hasMoreを更新
+        setHasMoreHistory((prev) => ({
+          ...prev,
+          [circleId]: data.hasMore,
+        }));
+      }
+    } catch (err) {
+      console.error("Failed to load history:", err);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  }, [feed, isLoadingHistory, fetchReactions]);
 
   // リアクションをトグル
   const toggleReaction = async (item: FeedItem, reactionType: ReactionType) => {
@@ -313,12 +362,16 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
 
         // 残高を更新
         if (kind === "expense") {
-          // 支出を削除 → 残高を戻す（プラス）
+          // 支出を削除 → 残高を戻す（プラス）、当月支出を減らす
           const expenseAmount = Math.abs(item.amount);
           setBalances((prev) =>
             prev.map((cb) =>
               cb.circleId === item.circleId
-                ? { ...cb, balance: cb.balance + expenseAmount }
+                ? {
+                    ...cb,
+                    balance: cb.balance + expenseAmount,
+                    monthlyExpense: cb.monthlyExpense - expenseAmount,
+                  }
                 : cb
             )
           );
@@ -581,11 +634,15 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
 
         setFeed((prev) => [...prev, newItem]);
 
-        // サークル残高を更新（支出なので引く）
+        // サークル残高と当月支出を更新（支出なので引く）
         setBalances((prev) =>
           prev.map((cb) =>
             cb.circleId === selectedCircleId
-              ? { ...cb, balance: cb.balance - data.expense.amount }
+              ? {
+                  ...cb,
+                  balance: cb.balance - data.expense.amount,
+                  monthlyExpense: cb.monthlyExpense + data.expense.amount,
+                }
               : cb
           )
         );
@@ -868,6 +925,20 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
         ref={scrollRef}
         className="flex-1 overflow-y-auto px-3 py-4 space-y-4 bg-slate-50 min-h-0"
       >
+        {/* 以前の実績を取得ボタン（特定ウォレット表示時のみ） */}
+        {filterCircleId && hasMoreHistory[filterCircleId] !== false && (
+          <div className="flex justify-center mb-4">
+            <button
+              type="button"
+              onClick={() => loadHistory(filterCircleId)}
+              disabled={isLoadingHistory}
+              className="text-xs text-slate-600 bg-white px-4 py-2 rounded-full border border-slate-300 hover:bg-slate-100 transition disabled:opacity-50"
+            >
+              {isLoadingHistory ? "読み込み中..." : "以前の実績を取得"}
+            </button>
+          </div>
+        )}
+
         {filteredFeed.length === 0 ? (
           <div className="text-center text-slate-500 mt-8">
             <p className="mb-2">まだ記録がありません</p>
