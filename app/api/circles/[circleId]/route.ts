@@ -18,7 +18,7 @@ export async function PATCH(request: Request, { params }: Params) {
 
   try {
     const body = await request.json();
-    const { name, isPublic } = body;
+    const { name, isPublic, allowNewMembers } = body;
 
     // 自分がこのサークルのADMINかチェック
     const membership = await prisma.circleMember.findUnique({
@@ -38,7 +38,7 @@ export async function PATCH(request: Request, { params }: Params) {
     }
 
     // 更新データを構築
-    const updateData: { name?: string; isPublic?: boolean } = {};
+    const updateData: { name?: string; isPublic?: boolean; allowNewMembers?: boolean } = {};
 
     // 名前の更新
     if (name !== undefined) {
@@ -78,6 +78,11 @@ export async function PATCH(request: Request, { params }: Params) {
     // 公開設定の更新
     if (typeof isPublic === "boolean") {
       updateData.isPublic = isPublic;
+    }
+
+    // 招待リンク設定の更新
+    if (typeof allowNewMembers === "boolean") {
+      updateData.allowNewMembers = allowNewMembers;
     }
 
     // 更新するものがない場合

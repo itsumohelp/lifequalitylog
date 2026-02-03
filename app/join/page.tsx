@@ -26,6 +26,21 @@ export async function joinCircle(formData: FormData) {
 
   const userId = session.user.id as string;
 
+  // サークルの存在確認と参加許可設定をチェック
+  const circle = await prisma.circle.findUnique({
+    where: { id: circleId },
+    select: { allowNewMembers: true },
+  });
+
+  if (!circle) {
+    redirect("/dashboard");
+  }
+
+  // 新規参加が許可されていない場合は参加させない
+  if (circle.allowNewMembers === false) {
+    redirect(`/join?circleId=${circleId}`);
+  }
+
   // すでにメンバーかチェック
   const existingMember = await prisma.circleMember.findUnique({
     where: {
@@ -94,6 +109,7 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
       description: true,
       walletName: true,
       currency: true,
+      allowNewMembers: true,
       members: {
         where: { role: "ADMIN" },
         select: {
@@ -129,6 +145,9 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
   });
 
   const alreadyMember = !!membership;
+
+  // 招待リンクでの新規参加が許可されているかチェック
+  const joiningDisabled = circle.allowNewMembers === false;
 
   // ユーザーが所属しているサークル数をチェック（上限5個）
   const memberCircleCount = await prisma.circleMember.count({
@@ -186,6 +205,20 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
           <div className="space-y-3">
             <p className="text-xs text-slate-300 mb-1">
               すでにこのサークルに参加しています。
+            </p>
+            <form action={skipJoin}>
+              <button
+                type="submit"
+                className="w-full text-xs py-2 rounded-full bg-sky-600 text-white font-semibold hover:bg-sky-500"
+              >
+                ダッシュボードへ戻る
+              </button>
+            </form>
+          </div>
+        ) : joiningDisabled ? (
+          <div className="space-y-3">
+            <p className="text-xs text-slate-400 mb-1">
+              このサークルは現在新規メンバーの参加を受け付けていません
             </p>
             <form action={skipJoin}>
               <button
