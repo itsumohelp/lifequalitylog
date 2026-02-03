@@ -2,13 +2,15 @@ import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await auth();
   if (!session || !session.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const userId = session.user.id as string;
+  const { searchParams } = new URL(request.url);
+  const targetCircleId = searchParams.get("circleId");
 
   try {
     // ユーザーのサークルを全て取得
@@ -21,7 +23,15 @@ export async function GET() {
       return NextResponse.json({ summary: [] });
     }
 
-    const circleIds = memberships.map((m) => m.circleId);
+    const memberCircleIds = memberships.map((m) => m.circleId);
+
+    // 特定のサークルが指定されていて、ユーザーがメンバーでない場合はエラー
+    if (targetCircleId && !memberCircleIds.includes(targetCircleId)) {
+      return NextResponse.json({ error: "Not a member of this circle" }, { status: 403 });
+    }
+
+    // 集計対象のサークルID（指定があればそれ、なければ全サークル）
+    const circleIds = targetCircleId ? [targetCircleId] : memberCircleIds;
 
     // サークル情報を取得
     const circles = await prisma.circle.findMany({
@@ -30,7 +40,7 @@ export async function GET() {
     });
     const circleMap = new Map(circles.map((c) => [c.id, c.name]));
 
-    // 今月の支出を取得（全サークル分）
+    // 今月の支出を取得
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
