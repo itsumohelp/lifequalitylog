@@ -51,6 +51,10 @@ export default function SettingsPage() {
   const [isPublic, setIsPublic] = useState(false);
   const [isSavingPublic, setIsSavingPublic] = useState(false);
   const [copied, setCopied] = useState(false);
+  // サークル追加モーダル用
+  const [isCircleModalOpen, setIsCircleModalOpen] = useState(false);
+  const [newCircleName, setNewCircleName] = useState("");
+  const [isCreatingCircle, setIsCreatingCircle] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -298,6 +302,47 @@ export default function SettingsPage() {
     }
   };
 
+  // 新しいサークルを作成
+  const handleCreateCircle = async () => {
+    if (!newCircleName.trim() || isCreatingCircle) return;
+
+    setIsCreatingCircle(true);
+    setMessage(null);
+
+    try {
+      const res = await fetch("/api/circles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newCircleName.trim() }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        // サークル一覧に追加
+        setCircles((prev) => [
+          ...prev,
+          {
+            id: data.circle.id,
+            name: data.circle.name,
+            role: "ADMIN",
+            adminName: user?.displayName || user?.name || "自分",
+            isPublic: false,
+          },
+        ]);
+        setMessage({ type: "success", text: "サークルを作成しました" });
+      } else {
+        const data = await res.json();
+        setMessage({ type: "error", text: data.error || "サークルの作成に失敗しました" });
+      }
+    } catch {
+      setMessage({ type: "error", text: "通信エラーが発生しました" });
+    } finally {
+      setIsCreatingCircle(false);
+      setIsCircleModalOpen(false);
+      setNewCircleName("");
+    }
+  };
+
   const handleDeleteAccount = async () => {
     if (deleteConfirmText !== "削除する") {
       setMessage({ type: "error", text: "「削除する」と入力してください" });
@@ -473,6 +518,16 @@ export default function SettingsPage() {
                     </button>
                   ))}
                 </div>
+              )}
+              {/* サークル追加ボタン（5個未満の場合のみ表示） */}
+              {circles.length < 5 && (
+                <button
+                  type="button"
+                  onClick={() => setIsCircleModalOpen(true)}
+                  className="w-full mt-3 bg-slate-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-slate-800 active:bg-slate-700"
+                >
+                  サークルを追加
+                </button>
               )}
             </div>
 
@@ -805,6 +860,45 @@ export default function SettingsPage() {
               >
                 閉じる
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* サークル追加モーダル */}
+        {isCircleModalOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl w-full max-w-sm p-4">
+              <h3 className="text-lg font-semibold text-slate-900 mb-4">
+                新しいサークルを作成
+              </h3>
+              <input
+                type="text"
+                value={newCircleName}
+                onChange={(e) => setNewCircleName(e.target.value)}
+                placeholder="サークル名を入力"
+                className="w-full bg-slate-100 border border-slate-200 rounded-lg px-4 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 mb-4"
+                autoFocus
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCircleModalOpen(false);
+                    setNewCircleName("");
+                  }}
+                  className="flex-1 bg-slate-100 text-slate-700 rounded-lg px-4 py-2 text-sm font-medium"
+                >
+                  キャンセル
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCreateCircle}
+                  disabled={!newCircleName.trim() || isCreatingCircle}
+                  className="flex-1 bg-slate-900 text-white rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50"
+                >
+                  {isCreatingCircle ? "作成中..." : "作成"}
+                </button>
+              </div>
             </div>
           </div>
         )}

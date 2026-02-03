@@ -18,9 +18,15 @@ type TagSummaryData = {
   count: number;
 };
 
+type ShortcutItem = {
+  command: string;
+  aliases: string[];
+  description: string;
+};
+
 type FeedItem = {
   id: string;
-  kind: "snapshot" | "expense" | "income" | "summary" | "invite";
+  kind: "snapshot" | "expense" | "income" | "summary" | "invite" | "help";
   circleId: string;
   circleName?: string;
   userId: string;
@@ -37,6 +43,7 @@ type FeedItem = {
   note?: string | null;
   summaryData?: TagSummaryData[];
   inviteUrl?: string;
+  shortcuts?: ShortcutItem[];
   createdAt: string;
 };
 
@@ -419,6 +426,20 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
     }
   }, [feed]);
 
+  // サークル切り替え時に一番下にスクロール + 一時的なアイテムを削除
+  useEffect(() => {
+    // 集計・ヘルプ・招待などの一時的なアイテムを削除
+    setFeed((prev) => prev.filter((item) =>
+      item.kind !== "summary" && item.kind !== "help" && item.kind !== "invite"
+    ));
+    // 少し遅延してスクロール（フィルタリング後のレンダリングを待つ）
+    setTimeout(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }
+    }, 50);
+  }, [selectedCircleId, filterCircleId]);
+
   // リアクションを遅延読み込み
   useEffect(() => {
     fetchReactions(feed);
@@ -428,19 +449,6 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
   const isInviteCommand = (text: string) => {
     const normalized = text.trim().toLowerCase();
     return normalized === "招待" || normalized === "しょうたい" || normalized === "invite";
-  };
-
-  // サークルコマンドかどうかをチェック
-  const isCircleCommand = (text: string) => {
-    const normalized = text.trim().toLowerCase();
-    return (
-      normalized === "サークル" ||
-      normalized === "さーくる" ||
-      normalized === "circle" ||
-      normalized === "cl" ||
-      normalized === "さ" ||
-      normalized === "サ"
-    );
   };
 
   // サークル追加コマンドかどうかをチェック
@@ -464,6 +472,45 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
       normalized === "しゅうけい"
     );
   };
+
+  // ヘルプコマンドかどうかをチェック
+  const isHelpCommand = (text: string) => {
+    const normalized = text.trim().toLowerCase();
+    return (
+      normalized === "?" ||
+      normalized === "？" ||
+      normalized === "ショート" ||
+      normalized === "しょーと" ||
+      normalized === "しょーとかっと" ||
+      normalized === "ショートカット" ||
+      normalized === "help" ||
+      normalized === "ヘルプ"
+    );
+  };
+
+  // ショートカット一覧データ
+  const shortcutList: ShortcutItem[] = [
+    {
+      command: "招待",
+      aliases: ["しょうたい", "invite"],
+      description: "招待リンクを生成してコピー",
+    },
+    {
+      command: "集計",
+      aliases: ["し", "しゅうけい"],
+      description: "今月のタグ別集計を表示",
+    },
+    {
+      command: "サークル追加",
+      aliases: ["さーくるついか", "さつ", "ca", "circleadd"],
+      description: "新しいサークルを作成",
+    },
+    {
+      command: "?",
+      aliases: ["？", "ショートカット", "しょーと", "help"],
+      description: "この一覧を表示",
+    },
+  ];
 
   // 招待リンクを生成
   const handleInvite = () => {
@@ -535,32 +582,12 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
       return;
     }
 
-    // サークルコマンドの処理（サークル一覧へのリンクを表示）
-    if (isCircleCommand(input)) {
-      const linkItem: FeedItem = {
-        id: `link-${Date.now()}`,
-        kind: "invite", // リンク表示用に流用
-        circleId: selectedCircleId,
-        circleName: selectedCircle?.name,
-        userId: currentUserId,
-        userName: "自分",
-        userImage: null,
-        amount: 0,
-        inviteUrl: "/circles",
-        note: "サークル一覧",
-        createdAt: new Date().toISOString(),
-      };
-      setFeed((prev) => [...prev, linkItem]);
-      setInput("");
-      return;
-    }
-
     // 集計コマンドの処理（タグ別集計を表示）
     if (isSummaryCommand(input)) {
       setInput("");
       setIsLoading(true);
       try {
-        const res = await fetch("/api/summary");
+        const res = await fetch(`/api/summary?circleId=${encodeURIComponent(selectedCircleId)}`);
         if (res.ok) {
           const data = await res.json();
           const summaryItem: FeedItem = {
@@ -583,6 +610,24 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
       } finally {
         setIsLoading(false);
       }
+      return;
+    }
+
+    // ヘルプコマンドの処理（ショートカット一覧を表示）
+    if (isHelpCommand(input)) {
+      const helpItem: FeedItem = {
+        id: `help-${Date.now()}`,
+        kind: "help",
+        circleId: selectedCircleId,
+        userId: currentUserId,
+        userName: "自分",
+        userImage: null,
+        amount: 0,
+        shortcuts: shortcutList,
+        createdAt: new Date().toISOString(),
+      };
+      setFeed((prev) => [...prev, helpItem]);
+      setInput("");
       return;
     }
 
@@ -632,7 +677,13 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
           setRecentTags(updated);
         }
 
-        setFeed((prev) => [...prev, newItem]);
+        // 一時的なアイテム（集計・ヘルプ・招待）を削除して新しいアイテムを追加
+        setFeed((prev) => [
+          ...prev.filter((item) =>
+            item.kind !== "summary" && item.kind !== "help" && item.kind !== "invite"
+          ),
+          newItem,
+        ]);
 
         // サークル残高と当月支出を更新（支出なので引く）
         setBalances((prev) =>
@@ -683,7 +734,13 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
           createdAt: new Date().toISOString(),
         };
 
-        setFeed((prev) => [...prev, newItem]);
+        // 一時的なアイテム（集計・ヘルプ・招待）を削除して新しいアイテムを追加
+        setFeed((prev) => [
+          ...prev.filter((item) =>
+            item.kind !== "summary" && item.kind !== "help" && item.kind !== "invite"
+          ),
+          newItem,
+        ]);
 
         // サークル残高を更新（収入なので足す）
         setBalances((prev) =>
@@ -739,7 +796,13 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
           createdAt: new Date().toISOString(),
         };
 
-        setFeed((prev) => [...prev, newSnapshotItem]);
+        // 一時的なアイテム（集計・ヘルプ・招待）を削除して新しいアイテムを追加
+        setFeed((prev) => [
+          ...prev.filter((item) =>
+            item.kind !== "summary" && item.kind !== "help" && item.kind !== "invite"
+          ),
+          newSnapshotItem,
+        ]);
 
         // 旧残高を取得
         const oldBalance = balances.find((cb) => cb.circleId === selectedCircleId)?.balance || 0;
@@ -1156,6 +1219,54 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                                   }`}
                                 >
                                   今月のタグ付き支出がありません
+                                </div>
+                              )}
+                            </>
+                          ) : item.kind === "help" ? (
+                            <>
+                              {/* ショートカット一覧 */}
+                              <div className="text-xs font-medium mb-2">
+                                📋 ショートカット一覧
+                              </div>
+                              {item.shortcuts && item.shortcuts.length > 0 && (
+                                <div className="space-y-2">
+                                  {item.shortcuts.map((shortcut, idx) => (
+                                    <div
+                                      key={idx}
+                                      className={`text-xs ${
+                                        isOwnMessage ? "text-slate-200" : "text-slate-700"
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+                                        <span
+                                          className={`font-medium px-1.5 py-0.5 rounded ${
+                                            isOwnMessage
+                                              ? "bg-slate-600 text-slate-100"
+                                              : "bg-slate-200 text-slate-800"
+                                          }`}
+                                        >
+                                          {shortcut.command}
+                                        </span>
+                                        {shortcut.aliases.slice(0, 2).map((alias, aliasIdx) => (
+                                          <span
+                                            key={aliasIdx}
+                                            className={`text-[10px] ${
+                                              isOwnMessage ? "text-slate-400" : "text-slate-500"
+                                            }`}
+                                          >
+                                            {alias}
+                                          </span>
+                                        ))}
+                                      </div>
+                                      <div
+                                        className={`text-[10px] ${
+                                          isOwnMessage ? "text-slate-400" : "text-slate-500"
+                                        }`}
+                                      >
+                                        {shortcut.description}
+                                      </div>
+                                    </div>
+                                  ))}
                                 </div>
                               )}
                             </>
