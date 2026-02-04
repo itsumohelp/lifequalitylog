@@ -54,7 +54,7 @@ export default async function DashboardPage() {
 
   let feed: FeedItem[] = [];
   let circles: { id: string; name: string; adminName: string }[] = [];
-  let circleBalances: { circleId: string; circleName: string; balance: number; monthlyExpense: number }[] = [];
+  let circleBalances: { circleId: string; circleName: string; balance: number; monthlyExpense: number; allTimeExpense: number }[] = [];
   let totalBalance = 0;
   let previousTotalBalance = 0;
   let totalBalanceDiff: number | null = null;
@@ -142,9 +142,21 @@ export default async function DashboardPage() {
       monthlySnapshotMap.set(ms.circleId, ms.totalExpense);
     }
 
+    // 全期間の支出をサークルごとに集計
+    const allTimeExpenseByCircle = await prisma.expense.groupBy({
+      by: ["circleId"],
+      where: { circleId: { in: circleIds } },
+      _sum: { amount: true },
+    });
+    const allTimeExpenseMap = new Map<string, number>();
+    for (const item of allTimeExpenseByCircle) {
+      allTimeExpenseMap.set(item.circleId, item._sum.amount || 0);
+    }
+
     for (const circleId of circleIds) {
       const circleData = circlesWithAdmin.find((c) => c.id === circleId);
       const circleMonthlyExpense = monthlySnapshotMap.get(circleId) || 0;
+      const circleAllTimeExpense = allTimeExpenseMap.get(circleId) || 0;
 
       // サークル別残高リストに追加（currentBalanceキャッシュを使用）
       circleBalances.push({
@@ -152,6 +164,7 @@ export default async function DashboardPage() {
         circleName: circleData?.name || "（名前なし）",
         balance: circleData?.currentBalance || 0,
         monthlyExpense: circleMonthlyExpense,
+        allTimeExpense: circleAllTimeExpense,
       });
 
       // 管理者サークルのみ合計に加算
@@ -242,21 +255,6 @@ export default async function DashboardPage() {
     // 統合してソート（最新7日分）
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-    // スナップショットの差分を計算するためのマップを作成
-    // snapshots は createdAt desc でソートされているので、同じサークル内で次のスナップショットが前回
-    const snapshotDiffMap = new Map<string, number | null>();
-    for (let i = 0; i < snapshots.length; i++) {
-      const current = snapshots[i];
-      // 同じサークルの前回のスナップショット（配列上は次の要素以降）を探す
-      const previous = snapshots.slice(i + 1).find((s) => s.circleId === current.circleId);
-      if (previous) {
-        snapshotDiffMap.set(current.id, current.amount - previous.amount);
-      } else {
-        // 前回がない場合は null
-        snapshotDiffMap.set(current.id, null);
-      }
-    }
-
     feed = [
       ...snapshots
         .filter((s) => new Date(s.createdAt) >= sevenDaysAgo)
@@ -269,7 +267,7 @@ export default async function DashboardPage() {
           userName: s.user?.displayName || s.user?.name || s.user?.email || "不明",
           userImage: s.user?.image || null,
           amount: s.amount,
-          snapshotDiff: snapshotDiffMap.get(s.id),
+          snapshotDiff: s.diffFromPrev, // データベースに保存された差分を使用
           note: s.note,
           createdAt: s.createdAt.toISOString(),
         })),
