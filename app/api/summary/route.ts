@@ -40,51 +40,81 @@ export async function GET(request: Request) {
     });
     const circleMap = new Map(circles.map((c) => [c.id, c.name]));
 
-    // 今月の支出を取得
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-    const expenses = await prisma.expense.findMany({
+    // 全期間の支出を取得
+    const allExpenses = await prisma.expense.findMany({
       where: {
         circleId: { in: circleIds },
-        createdAt: { gte: startOfMonth },
       },
       select: {
         circleId: true,
         amount: true,
         tags: true,
+        createdAt: true,
       },
     });
 
-    // サークル×タグ別に集計
-    const tagMap = new Map<string, { circleId: string; circleName: string; tag: string; total: number; count: number }>();
+    // 今月の開始日
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    for (const e of expenses) {
+    // 全期間のサークル×タグ別集計
+    const allTimeTagMap = new Map<string, { circleId: string; circleName: string; tag: string; total: number; count: number }>();
+    // 今月のサークル×タグ別集計
+    const monthlyTagMap = new Map<string, { circleId: string; circleName: string; tag: string; total: number; count: number }>();
+
+    for (const e of allExpenses) {
       if (e.tags && e.tags.length > 0) {
+        const isThisMonth = new Date(e.createdAt) >= startOfMonth;
         for (const tag of e.tags) {
           const key = `${e.circleId}:${tag}`;
-          const existing = tagMap.get(key) || {
+
+          // 全期間
+          const existingAll = allTimeTagMap.get(key) || {
             circleId: e.circleId,
             circleName: circleMap.get(e.circleId) || "不明",
             tag,
             total: 0,
             count: 0,
           };
-          tagMap.set(key, {
-            ...existing,
-            total: existing.total + e.amount,
-            count: existing.count + 1,
+          allTimeTagMap.set(key, {
+            ...existingAll,
+            total: existingAll.total + e.amount,
+            count: existingAll.count + 1,
           });
+
+          // 今月分
+          if (isThisMonth) {
+            const existingMonthly = monthlyTagMap.get(key) || {
+              circleId: e.circleId,
+              circleName: circleMap.get(e.circleId) || "不明",
+              tag,
+              total: 0,
+              count: 0,
+            };
+            monthlyTagMap.set(key, {
+              ...existingMonthly,
+              total: existingMonthly.total + e.amount,
+              count: existingMonthly.count + 1,
+            });
+          }
         }
       }
     }
 
     // 金額順に並べる
-    const summary = Array.from(tagMap.values())
+    const allTimeSummary = Array.from(allTimeTagMap.values())
       .sort((a, b) => b.total - a.total)
       .slice(0, 20);
 
-    return NextResponse.json({ summary });
+    const monthlySummary = Array.from(monthlyTagMap.values())
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 20);
+
+    return NextResponse.json({
+      summary: monthlySummary, // 後方互換性のため
+      allTimeSummary,
+      monthlySummary,
+    });
   } catch (error) {
     console.error("Summary error:", error);
     return NextResponse.json(

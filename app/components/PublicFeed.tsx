@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { getCategoryEmoji } from "@/lib/expenseParser";
@@ -62,14 +62,88 @@ function formatDate(dateStr: string) {
   });
 }
 
-export default function PublicFeed({ circle, feed, isLoggedIn, currentUserId }: Props) {
+export default function PublicFeed({ circle, feed: initialFeed, isLoggedIn, currentUserId }: Props) {
+  const [localFeed, setLocalFeed] = useState<FeedItem[]>(initialFeed);
   const [reactions, setReactions] = useState<Record<string, ReactionData>>({});
   const [reactionsLoading, setReactionsLoading] = useState(false);
   const [togglingReaction, setTogglingReaction] = useState<string | null>(null);
+  const [hasMoreHistory, setHasMoreHistory] = useState(true);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  // リアクションを取得
+  // 特定のアイテムのリアクションを取得
+  const fetchReactionsForItems = useCallback(async (items: FeedItem[]) => {
+    const targetItems = items.filter(
+      (item) => item.kind === "expense" || item.kind === "income" || item.kind === "snapshot"
+    );
+    if (targetItems.length === 0) return;
+
+    const targets = targetItems
+      .map((item) => `${item.kind}:${item.id.replace(`${item.kind}-`, "")}`)
+      .join(",");
+
+    try {
+      const res = await fetch(`/api/reactions?targets=${encodeURIComponent(targets)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setReactions((prev) => ({ ...prev, ...(data.reactions || {}) }));
+      }
+    } catch (err) {
+      console.error("Failed to fetch reactions:", err);
+    }
+  }, []);
+
+  // 過去の実績を取得
+  const loadHistory = useCallback(async () => {
+    if (isLoadingHistory) return;
+
+    // 現在の最古のアイテムを取得
+    const oldestItem = localFeed.length > 0
+      ? localFeed.reduce((oldest, item) =>
+          new Date(item.createdAt) < new Date(oldest.createdAt) ? item : oldest
+        )
+      : null;
+
+    const beforeTimestamp = oldestItem
+      ? new Date(oldestItem.createdAt).toISOString()
+      : new Date().toISOString();
+
+    setIsLoadingHistory(true);
+
+    try {
+      const res = await fetch(
+        `/api/feed/public?circleId=${circle.id}&before=${encodeURIComponent(beforeTimestamp)}&limit=20`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        const newItems = data.feed as FeedItem[];
+
+        if (newItems.length > 0) {
+          // 重複を除外して追加
+          setLocalFeed((prev) => {
+            const existingIds = new Set(prev.map((item) => item.id));
+            const uniqueNewItems = newItems.filter((item) => !existingIds.has(item.id));
+            // 時系列順にソート（古い順）
+            return [...uniqueNewItems, ...prev].sort(
+              (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+            );
+          });
+          // 新しいアイテムのリアクションを取得
+          fetchReactionsForItems(newItems);
+        }
+
+        setHasMoreHistory(data.hasMore);
+      }
+    } catch (err) {
+      console.error("Failed to load history:", err);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  }, [circle.id, localFeed, isLoadingHistory, fetchReactionsForItems]);
+
+  // リアクションを取得（初回ロード用）
   const fetchReactions = useCallback(async () => {
-    const targetItems = feed.filter(
+    const targetItems = localFeed.filter(
       (item) => item.kind === "expense" || item.kind === "income" || item.kind === "snapshot"
     );
     if (targetItems.length === 0) return;
@@ -90,7 +164,7 @@ export default function PublicFeed({ circle, feed, isLoggedIn, currentUserId }: 
     } finally {
       setReactionsLoading(false);
     }
-  }, [feed]);
+  }, [localFeed]);
 
   useEffect(() => {
     fetchReactions();
@@ -173,7 +247,7 @@ export default function PublicFeed({ circle, feed, isLoggedIn, currentUserId }: 
   };
 
   // 日付ごとにグループ化
-  const groupedByDate = feed.reduce<Record<string, FeedItem[]>>((acc, item) => {
+  const groupedByDate = localFeed.reduce<Record<string, FeedItem[]>>((acc, item) => {
     const dateKey = formatDate(item.createdAt);
     if (!acc[dateKey]) acc[dateKey] = [];
     acc[dateKey].push(item);
@@ -197,7 +271,24 @@ export default function PublicFeed({ circle, feed, isLoggedIn, currentUserId }: 
       </div>
 
       {/* フィード表示 */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-4 bg-slate-50 min-h-0">
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto px-3 py-4 space-y-4 bg-slate-50 min-h-0"
+      >
+        {/* 以前の実績を取得ボタン */}
+        {hasMoreHistory && (
+          <div className="flex justify-center mb-4">
+            <button
+              type="button"
+              onClick={loadHistory}
+              disabled={isLoadingHistory}
+              className="text-xs text-slate-600 bg-white px-4 py-2 rounded-full border border-slate-300 hover:bg-slate-100 transition disabled:opacity-50"
+            >
+              {isLoadingHistory ? "読み込み中..." : "以前の実績を取得"}
+            </button>
+          </div>
+        )}
+
         {Object.entries(groupedByDate).map(([date, items]) => (
           <div key={date}>
             {/* 日付ヘッダー */}
@@ -425,7 +516,7 @@ export default function PublicFeed({ circle, feed, isLoggedIn, currentUserId }: 
           </div>
         ))}
 
-        {feed.length === 0 && (
+        {localFeed.length === 0 && (
           <div className="text-center text-slate-500 mt-8">
             <p className="mb-2">まだ記録がありません</p>
           </div>
