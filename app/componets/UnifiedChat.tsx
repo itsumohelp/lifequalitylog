@@ -60,6 +60,7 @@ type CircleBalance = {
   circleName: string;
   balance: number;
   monthlyExpense: number;
+  allTimeExpense: number;
 };
 
 type UserRole = {
@@ -779,9 +780,9 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
           return;
         }
 
-        // サーバーから返された差分を使用
+        // サーバーから返された差分を使用（IDはAPIが既にプレフィックス付きで返す）
         const newSnapshotItem: FeedItem = {
-          id: `snapshot-${data.snapshot.id}`,
+          id: data.snapshot.id,
           kind: "snapshot",
           circleId: selectedCircleId,
           circleName: selectedCircle?.name,
@@ -919,6 +920,14 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                 </button>
 
                 <div className="space-y-1 pr-5">
+                  {/* ヘッダー */}
+                  <div className="flex items-center text-[10px] text-slate-500 gap-2 pb-1 border-b border-slate-700">
+                    <span className="flex-1"></span>
+                    <span className="whitespace-nowrap">残高</span>
+                    <span className="whitespace-nowrap w-16 text-right">全期間</span>
+                    <span className="whitespace-nowrap w-16 text-right">今月</span>
+                  </div>
+
                   {/* ADMINサークル（合計に含まれる） */}
                   {adminBalances.map((cb) => (
                     <div
@@ -935,7 +944,10 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                       >
                         ¥{formatYen(cb.balance)}
                       </span>
-                      <span className="text-red-400 whitespace-nowrap w-20 text-right">
+                      <span className="text-red-400 whitespace-nowrap w-16 text-right">
+                        -¥{formatYen(cb.allTimeExpense)}
+                      </span>
+                      <span className="text-red-400 whitespace-nowrap w-16 text-right">
                         -¥{formatYen(cb.monthlyExpense)}
                       </span>
                     </div>
@@ -966,7 +978,10 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                           >
                             ¥{formatYen(cb.balance)}
                           </span>
-                          <span className="text-red-400/70 whitespace-nowrap w-20 text-right">
+                          <span className="text-red-400/70 whitespace-nowrap w-16 text-right">
+                            -¥{formatYen(cb.allTimeExpense)}
+                          </span>
+                          <span className="text-red-400/70 whitespace-nowrap w-16 text-right">
                             -¥{formatYen(cb.monthlyExpense)}
                           </span>
                         </div>

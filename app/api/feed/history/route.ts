@@ -101,26 +101,6 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  // スナップショットの差分を計算するためのマップ
-  const snapshotDiffMap = new Map<string, number | null>();
-
-  // 全スナップショットを取得して差分計算（直前のスナップショットとの差分）
-  const allSnapshots = await prisma.circleSnapshot.findMany({
-    where: { circleId },
-    orderBy: { createdAt: "desc" },
-    select: { id: true, amount: true, createdAt: true },
-  });
-
-  for (let i = 0; i < allSnapshots.length; i++) {
-    const current = allSnapshots[i];
-    const previous = allSnapshots[i + 1];
-    if (previous) {
-      snapshotDiffMap.set(current.id, current.amount - previous.amount);
-    } else {
-      snapshotDiffMap.set(current.id, null);
-    }
-  }
-
   // 統合してソート
   const allItems: FeedItem[] = [
     ...snapshots.map((s) => ({
@@ -132,7 +112,7 @@ export async function GET(request: NextRequest) {
       userName: s.user?.displayName || s.user?.name || s.user?.email || "不明",
       userImage: s.user?.image || null,
       amount: s.amount,
-      snapshotDiff: snapshotDiffMap.get(s.id),
+      snapshotDiff: s.diffFromPrev, // データベースに保存された差分を使用
       note: s.note,
       createdAt: s.createdAt.toISOString(),
     })),
