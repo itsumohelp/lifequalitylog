@@ -41,7 +41,9 @@ type FeedItem = {
   category?: string;
   tags?: string[];
   note?: string | null;
-  summaryData?: TagSummaryData[];
+  summaryData?: TagSummaryData[]; // 後方互換性のため
+  allTimeSummaryData?: TagSummaryData[];
+  monthlySummaryData?: TagSummaryData[];
   inviteUrl?: string;
   shortcuts?: ShortcutItem[];
   createdAt: string;
@@ -598,7 +600,8 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
             userName: "自分",
             userImage: null,
             amount: 0,
-            summaryData: data.summary,
+            allTimeSummaryData: data.allTimeSummary,
+            monthlySummaryData: data.monthlySummary,
             createdAt: new Date().toISOString(),
           };
           setFeed((prev) => [...prev, summaryItem]);
@@ -776,12 +779,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
           return;
         }
 
-        // 前回のスナップショットを探して差分を計算
-        const previousSnapshot = [...feed]
-          .reverse()
-          .find((f) => f.kind === "snapshot" && f.circleId === selectedCircleId);
-        const snapshotDiff = previousSnapshot ? amount - previousSnapshot.amount : null;
-
+        // サーバーから返された差分を使用
         const newSnapshotItem: FeedItem = {
           id: `snapshot-${data.snapshot.id}`,
           kind: "snapshot",
@@ -791,7 +789,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
           userName: "自分",
           userImage: null,
           amount: amount,
-          snapshotDiff: snapshotDiff,
+          snapshotDiff: data.snapshot.snapshotDiff,
           note: data.snapshot.note,
           createdAt: new Date().toISOString(),
         };
@@ -1180,13 +1178,13 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                             </>
                           ) : item.kind === "summary" ? (
                             <>
-                              {/* 集計表示 */}
+                              {/* 全期間集計 */}
                               <div className="text-xs font-medium mb-2">
-                                📊 今月のタグ別集計
+                                📊 全期間のタグ別集計
                               </div>
-                              {item.summaryData && item.summaryData.length > 0 ? (
-                                <div className="space-y-1.5">
-                                  {item.summaryData.map((s, idx) => (
+                              {item.allTimeSummaryData && item.allTimeSummaryData.length > 0 ? (
+                                <div className="space-y-1.5 mb-4">
+                                  {item.allTimeSummaryData.map((s, idx) => (
                                     <div
                                       key={idx}
                                       className={`flex items-center justify-between text-xs ${
@@ -1198,6 +1196,48 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                                           isOwnMessage
                                             ? "bg-sky-600 text-sky-100"
                                             : "bg-sky-100 text-sky-700"
+                                        }`}
+                                      >
+                                        {s.tag}
+                                      </span>
+                                      <span
+                                        className={`font-medium ${
+                                          isOwnMessage ? "text-red-300" : "text-red-600"
+                                        }`}
+                                      >
+                                        -¥{formatYen(s.total)}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div
+                                  className={`text-[10px] mb-4 ${
+                                    isOwnMessage ? "text-slate-400" : "text-slate-500"
+                                  }`}
+                                >
+                                  タグ付き支出がありません
+                                </div>
+                              )}
+
+                              {/* 今月分集計 */}
+                              <div className="text-xs font-medium mb-2">
+                                📅 今月のタグ別集計
+                              </div>
+                              {item.monthlySummaryData && item.monthlySummaryData.length > 0 ? (
+                                <div className="space-y-1.5">
+                                  {item.monthlySummaryData.map((s, idx) => (
+                                    <div
+                                      key={idx}
+                                      className={`flex items-center justify-between text-xs ${
+                                        isOwnMessage ? "text-slate-200" : "text-slate-700"
+                                      }`}
+                                    >
+                                      <span
+                                        className={`px-2 py-0.5 rounded-full ${
+                                          isOwnMessage
+                                            ? "bg-emerald-600 text-emerald-100"
+                                            : "bg-emerald-100 text-emerald-700"
                                         }`}
                                       >
                                         {s.tag}

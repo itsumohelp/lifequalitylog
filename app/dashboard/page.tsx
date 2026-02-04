@@ -311,11 +311,21 @@ export default async function DashboardPage() {
     ]
       .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
-    // サークル×タグ別集計を計算（今月分）
+    // サークル×タグ別集計を計算（全期間）
+    // 全期間の支出を取得
+    const allExpenses = await prisma.expense.findMany({
+      where: { circleId: { in: circleIds } },
+      select: {
+        circleId: true,
+        amount: true,
+        tags: true,
+      },
+    });
+
     const tagMap = new Map<string, { circleId: string; circleName: string; total: number; count: number }>();
 
-    for (const e of expenses) {
-      if (new Date(e.createdAt) >= startOfMonth && e.tags && e.tags.length > 0) {
+    for (const e of allExpenses) {
+      if (e.tags && e.tags.length > 0) {
         const circle = circles.find((c) => c.id === e.circleId);
         for (const tag of e.tags) {
           const key = `${e.circleId}:${tag}`;

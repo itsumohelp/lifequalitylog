@@ -33,6 +33,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Permission denied" }, { status: 403 });
   }
 
+  // 前回のスナップショットを取得して差分を計算
+  const previousSnapshot = await prisma.circleSnapshot.findFirst({
+    where: { circleId },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const snapshotDiff = previousSnapshot ? amount - previousSnapshot.amount : null;
+
   // スナップショットを登録
   const snapshot = await prisma.circleSnapshot.create({
     data: {
@@ -45,7 +53,7 @@ export async function POST(request: NextRequest) {
       signatureAlgo: "none",
       signatureAt: new Date(),
       isSignatureVerified: false,
-      diffFromPrev: null,
+      diffFromPrev: snapshotDiff,
     },
     include: {
       circle: { select: { name: true } },
@@ -69,6 +77,7 @@ export async function POST(request: NextRequest) {
       userName: snapshot.user?.name || "不明",
       userImage: snapshot.user?.image || null,
       amount: snapshot.amount,
+      snapshotDiff: snapshotDiff,
       note: snapshot.note,
       createdAt: snapshot.createdAt.toISOString(),
     },
