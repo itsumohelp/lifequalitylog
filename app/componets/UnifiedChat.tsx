@@ -84,8 +84,8 @@ type Props = {
   userRoles: UserRole[];
   tagSummary: TagSummaryItem[];
   initialTotalBalance: number;
-  initialTotalBalanceDiff: number | null;
   initialMonthlyExpense: number;
+  initialDailyExpense: number;
   adminCircleIds: string[];
 };
 
@@ -169,11 +169,12 @@ function addToRecentTags(newTags: string[]) {
   return trimmed;
 }
 
-export default function UnifiedChat({ initialFeed, circles, circleBalances, currentUserId, userRoles, tagSummary, initialTotalBalance, initialTotalBalanceDiff, initialMonthlyExpense, adminCircleIds }: Props) {
+export default function UnifiedChat({ initialFeed, circles, circleBalances, currentUserId, userRoles, tagSummary, initialTotalBalance, initialMonthlyExpense, initialDailyExpense, adminCircleIds }: Props) {
   const [feed, setFeed] = useState<FeedItem[]>(initialFeed);
   const [balances, setBalances] = useState<CircleBalance[]>(circleBalances);
   const [totalBalance, setTotalBalance] = useState<number>(initialTotalBalance);
   const [monthlyExpense, setMonthlyExpense] = useState<number>(initialMonthlyExpense);
+  const [dailyExpense, setDailyExpense] = useState<number>(initialDailyExpense);
   const [selectedCircleId, setSelectedCircleId] = useState<string>(circles[0]?.id || "");
   const [isBreakdownOpen, setIsBreakdownOpen] = useState(false);
   const [filterCircleId, setFilterCircleId] = useState<string>(""); // "" = すべて表示
@@ -389,6 +390,16 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
           if (adminCircleIds.includes(item.circleId)) {
             setTotalBalance((prev) => prev + expenseAmount);
             setMonthlyExpense((prev) => prev - expenseAmount);
+            // 当日の支出だった場合は当日支出も減算
+            const itemDate = new Date(item.createdAt);
+            const today = new Date();
+            if (
+              itemDate.getFullYear() === today.getFullYear() &&
+              itemDate.getMonth() === today.getMonth() &&
+              itemDate.getDate() === today.getDate()
+            ) {
+              setDailyExpense((prev) => prev - expenseAmount);
+            }
           }
         } else if (kind === "income") {
           // 収入を削除 → 残高を戻す（マイナス）
@@ -702,10 +713,11 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
           )
         );
 
-        // ADMINサークルの場合、合計残高と当月支出も更新
+        // ADMINサークルの場合、合計残高と当月支出・当日支出も更新
         if (adminCircleIds.includes(selectedCircleId)) {
           setTotalBalance((prev) => prev - data.expense.amount);
           setMonthlyExpense((prev) => prev + data.expense.amount);
+          setDailyExpense((prev) => prev + data.expense.amount);
         }
       } else if (inputMode === "income") {
         // 収入入力
@@ -854,39 +866,38 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
       {/* 合計残高ヘッダー */}
       <div className="flex-shrink-0 bg-white px-3 pt-1 pb-1">
         <div className="rounded-xl bg-slate-900 px-3 py-1.5">
-          <div className="flex items-center justify-center gap-2">
-            <span className="font-semibold text-white text-xl">
-              ¥{formatYen(totalBalance)}
-            </span>
-            {/* 前回残高との差分 */}
-            {initialTotalBalanceDiff !== null && (
-              <span
-                className={`text-sm ${
-                  initialTotalBalanceDiff >= 0 ? "text-emerald-400" : "text-red-400"
-                }`}
-              >
-                {initialTotalBalanceDiff >= 0
-                  ? `(+¥${formatYen(initialTotalBalanceDiff)})`
-                  : `(-¥${formatYen(Math.abs(initialTotalBalanceDiff))})`}
+          <div className="flex items-center justify-between gap-2">
+            {/* 残高 */}
+            <div className="flex flex-col items-center flex-1">
+              <span className="text-[10px] text-slate-400">残高</span>
+              <span className="font-semibold text-white text-lg">
+                ¥{formatYen(totalBalance)}
               </span>
-            )}
+            </div>
+            {/* 当月支出 */}
+            <div className="flex flex-col items-center flex-1">
+              <span className="text-[10px] text-slate-400">当月支出</span>
+              <span className="font-semibold text-red-400 text-lg">
+                ¥{formatYen(monthlyExpense)}
+              </span>
+            </div>
+            {/* 当日支出 */}
+            <div className="flex flex-col items-center flex-1">
+              <span className="text-[10px] text-slate-400">当日支出</span>
+              <span className="font-semibold text-red-400 text-lg">
+                ¥{formatYen(dailyExpense)}
+              </span>
+            </div>
             {/* 内訳ボタン */}
             {balances.length > 0 && (
               <button
                 type="button"
                 onClick={() => setIsBreakdownOpen(!isBreakdownOpen)}
-                className="ml-auto text-[10px] text-slate-400 hover:text-slate-200 px-2 py-0.5 rounded border border-slate-600 hover:border-slate-500 transition"
+                className="text-[10px] text-slate-400 hover:text-slate-200 px-2 py-0.5 rounded border border-slate-600 hover:border-slate-500 transition"
               >
                 内訳
               </button>
             )}
-          </div>
-          {/* 当月支出 */}
-          <div className="flex items-center justify-center gap-1 mt-0.5">
-            <span className="text-[10px] text-slate-400">当月支出</span>
-            <span className="text-[10px] text-red-400">
-              -¥{formatYen(monthlyExpense)}
-            </span>
           </div>
 
           {/* サークル別残高（内訳） */}
@@ -1670,14 +1681,6 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-slate-500">内容</span>
                   <span className="text-sm text-slate-700">{selectedItem.description}</span>
-                </div>
-              )}
-
-              {/* 場所（支出の場合） */}
-              {selectedItem.place && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-slate-500">場所</span>
-                  <span className="text-sm text-slate-700">{selectedItem.place}</span>
                 </div>
               )}
 
