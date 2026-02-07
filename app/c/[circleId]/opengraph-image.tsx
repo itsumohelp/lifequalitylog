@@ -39,8 +39,8 @@ export default async function Image({ params }: Props) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: "#0f172a",
-            color: "#fff",
+            backgroundColor: "#e2e8f0",
+            color: "#0f172a",
             fontSize: 48,
           }}
         >
@@ -51,27 +51,28 @@ export default async function Image({ params }: Props) {
     );
   }
 
-  // 最新の取引を取得（支出・収入・スナップショット）
-  const [latestExpense, latestIncome, latestSnapshot] = await Promise.all([
+  // 最新の取引を取得（支出・収入）
+  const [latestExpense, latestIncome] = await Promise.all([
     prisma.expense.findFirst({
       where: { circleId },
       orderBy: { createdAt: "desc" },
-      select: { amount: true, description: true, createdAt: true },
+      select: { amount: true, description: true, tags: true, createdAt: true },
     }),
     prisma.income.findFirst({
       where: { circleId },
       orderBy: { createdAt: "desc" },
-      select: { amount: true, description: true, createdAt: true },
-    }),
-    prisma.circleSnapshot.findFirst({
-      where: { circleId },
-      orderBy: { createdAt: "desc" },
-      select: { amount: true, note: true, createdAt: true },
+      select: { amount: true, description: true, tags: true, createdAt: true },
     }),
   ]);
 
   // 最新の取引を特定
-  type LatestItem = { type: "expense" | "income" | "snapshot"; amount: number; description: string; createdAt: Date };
+  type LatestItem = {
+    type: "expense" | "income";
+    amount: number;
+    description: string;
+    tags: string[];
+    createdAt: Date;
+  };
   const items: LatestItem[] = [];
 
   if (latestExpense) {
@@ -79,6 +80,7 @@ export default async function Image({ params }: Props) {
       type: "expense",
       amount: latestExpense.amount,
       description: latestExpense.description,
+      tags: latestExpense.tags || [],
       createdAt: latestExpense.createdAt,
     });
   }
@@ -87,32 +89,13 @@ export default async function Image({ params }: Props) {
       type: "income",
       amount: latestIncome.amount,
       description: latestIncome.description,
+      tags: latestIncome.tags || [],
       createdAt: latestIncome.createdAt,
-    });
-  }
-  if (latestSnapshot) {
-    items.push({
-      type: "snapshot",
-      amount: latestSnapshot.amount,
-      description: latestSnapshot.note || "残高更新",
-      createdAt: latestSnapshot.createdAt,
     });
   }
 
   items.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   const latest = items[0];
-
-  // 最新取引の表示テキスト
-  let latestText = "";
-  if (latest) {
-    if (latest.type === "expense") {
-      latestText = `支出: -¥${formatYen(latest.amount)} ${latest.description}`;
-    } else if (latest.type === "income") {
-      latestText = `収入: +¥${formatYen(latest.amount)} ${latest.description}`;
-    } else {
-      latestText = `残高更新: ¥${formatYen(latest.amount)}`;
-    }
-  }
 
   return new ImageResponse(
     (
@@ -122,49 +105,119 @@ export default async function Image({ params }: Props) {
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          backgroundColor: "#0f172a",
+          backgroundColor: "#e2e8f0",
           padding: "48px 64px",
-          position: "relative",
         }}
       >
-        {/* メインコンテンツ */}
-        <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-          {/* サークル名 */}
-          <div
+        {/* サークル名 + の支出管理（左寄せ） */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "baseline",
+            marginBottom: 24,
+          }}
+        >
+          <span
             style={{
-              fontSize: 36,
-              color: "#94a3b8",
-              marginBottom: 8,
+              fontSize: 48,
+              fontWeight: 700,
+              color: "#0f172a",
             }}
           >
-            {circle.name}の支出管理
-          </div>
+            {circle.name}
+          </span>
+          <span
+            style={{
+              fontSize: 32,
+              color: "#64748b",
+              marginLeft: 8,
+            }}
+          >
+            の支出管理
+          </span>
+        </div>
 
+        {/* メインコンテンツ（中央寄せ） */}
+        <div style={{ display: "flex", flexDirection: "column", flex: 1, alignItems: "center", justifyContent: "center" }}>
           {/* 残高 */}
           <div
             style={{
-              fontSize: 96,
-              fontWeight: 700,
-              color: "#fff",
-              marginBottom: 24,
+              display: "flex",
+              alignItems: "center",
+              gap: 16,
+              marginBottom: 32,
             }}
           >
-            ¥{formatYen(circle.currentBalance)}
+            <span
+              style={{
+                fontSize: 48,
+                color: "#64748b",
+              }}
+            >
+              合計
+            </span>
+            <span
+              style={{
+                fontSize: 160,
+                fontWeight: 700,
+                color: "#0f172a",
+              }}
+            >
+              ¥{formatYen(circle.currentBalance)}
+            </span>
           </div>
 
           {/* 最新の取引 */}
-          {latestText && (
+          {latest && (
             <div
               style={{
-                fontSize: 32,
-                color: latest?.type === "expense" ? "#f87171" : latest?.type === "income" ? "#4ade80" : "#94a3b8",
-                backgroundColor: "#1e293b",
-                padding: "16px 24px",
-                borderRadius: 12,
                 display: "flex",
+                alignItems: "center",
+                backgroundColor: "#fff",
+                padding: "20px 28px",
+                borderRadius: 16,
+                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                gap: 16,
               }}
             >
-              {latestText}
+              <span
+                style={{
+                  fontSize: 24,
+                  color: "#64748b",
+                }}
+              >
+                最新の収入支出
+              </span>
+              {/* 金額 */}
+              <span
+                style={{
+                  fontSize: 36,
+                  fontWeight: 700,
+                  color: latest.type === "expense" ? "#dc2626" : "#16a34a",
+                }}
+              >
+                {latest.type === "expense" ? "-" : "+"}¥{formatYen(latest.amount)}
+              </span>
+              {/* タグ */}
+              {latest.tags.length > 0 && (
+                <div style={{ display: "flex", gap: 8 }}>
+                  {latest.tags.slice(0, 3).map((tag, i) => (
+                    <span
+                      key={i}
+                      style={{
+                        display: "flex",
+                        fontSize: 24,
+                        backgroundColor: "#0ea5e9",
+                        color: "#ffffff",
+                        padding: "6px 18px",
+                        borderRadius: 9999,
+                      }}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -178,29 +231,39 @@ export default async function Image({ params }: Props) {
             gap: 12,
           }}
         >
-          {/* ロゴ (SVGをシンプルな図形で表現) */}
-          <div
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: "50%",
-              border: "3px solid #0ea5e9",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 24,
-              fontWeight: 700,
-              color: "#0f172a",
-              backgroundColor: "#0ea5e9",
-            }}
+          {/* ロゴ（Cの形の円とRの文字） */}
+          <svg
+            width="48"
+            height="48"
+            viewBox="0 0 32 32"
+            fill="none"
           >
-            CR
-          </div>
+            {/* 外側の円（C） */}
+            <circle
+              cx="16"
+              cy="16"
+              r="12"
+              stroke="#0ea5e9"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeDasharray="56 20"
+              transform="rotate(-45 16 16)"
+            />
+            {/* 内側のR */}
+            <path
+              d="M13 10h4a3 3 0 0 1 0 6h-4v6M17 16l4 6"
+              stroke="#0f172a"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
           <div
             style={{
+              display: "flex",
               fontSize: 32,
               fontWeight: 600,
-              color: "#fff",
+              color: "#0f172a",
             }}
           >
             CircleRun
