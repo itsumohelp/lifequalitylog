@@ -1004,6 +1004,10 @@ export default function SettingsPage() {
             <span>|</span>
             <a href="/licenses" className="hover:text-slate-600 underline">ライセンス</a>
           </div>
+          {/* バージョンID */}
+          <div className="mt-2 text-center text-[10px] text-slate-300">
+            v{process.env.NEXT_PUBLIC_BUILD_ID || "DEV"}
+          </div>
         </div>
 
         {/* サークル追加モーダル */}
