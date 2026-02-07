@@ -23,7 +23,7 @@ export default function Header({ session }: HeaderProps) {
   }
 
   return (
-    <header className="bg-slate-950">
+    <header className="bg-sky-200">
       <div className="mx-auto max-w-md px-4 py-2 flex items-center justify-between">
         {/* 左：ロゴ + アイコン */}
         <Link href="/dashboard" className="flex items-center gap-2">
@@ -41,7 +41,7 @@ export default function Header({ session }: HeaderProps) {
               cx="16"
               cy="16"
               r="12"
-              stroke="#38bdf8"
+              stroke="#0ea5e9"
               strokeWidth="3"
               strokeLinecap="round"
               strokeDasharray="56 20"
@@ -50,13 +50,13 @@ export default function Header({ session }: HeaderProps) {
             {/* 内側のR */}
             <path
               d="M13 10h4a3 3 0 0 1 0 6h-4v6M17 16l4 6"
-              stroke="#f0f9ff"
+              stroke="#0f172a"
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           </svg>
-          <span className="text-sm font-bold tracking-wide text-sky-100">
+          <span className="text-sm font-bold tracking-wide text-slate-900">
             CircleRun
           </span>
         </Link>
@@ -67,7 +67,7 @@ export default function Header({ session }: HeaderProps) {
             <div className="flex items-center gap-2">
               {/* アイコン＋名前 */}
               <div className="flex items-center gap-1">
-                <div className="w-7 h-7 rounded-full bg-slate-700 overflow-hidden flex items-center justify-center">
+                <div className="w-7 h-7 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center">
                   {user.image ? (
                     <Image
                       src={user.image}
@@ -77,12 +77,12 @@ export default function Header({ session }: HeaderProps) {
                       className="w-7 h-7 object-cover"
                     />
                   ) : (
-                    <span className="text-[11px] text-slate-300">
+                    <span className="text-[11px] text-slate-500">
                       {(user.name ?? user.email ?? "?").slice(0, 2)}
                     </span>
                   )}
                 </div>
-                <span className="text-[11px] text-slate-300 max-w-[90px] truncate">
+                <span className="text-[11px] text-slate-600 max-w-[90px] truncate">
                   {user.name ?? user.email}
                 </span>
               </div>
@@ -91,7 +91,7 @@ export default function Header({ session }: HeaderProps) {
               <form action={handleSignOut}>
                 <button
                   type="submit"
-                  className="text-[11px] px-2 py-1 rounded-full border border-slate-600 text-slate-300 hover:bg-slate-800"
+                  className="text-[11px] px-2 py-1 rounded-full border border-slate-300 text-slate-600 hover:bg-slate-100"
                 >
                   ログアウト
                 </button>
@@ -102,7 +102,7 @@ export default function Header({ session }: HeaderProps) {
             <form action={handleSignIn}>
               <button
                 type="submit"
-                className="text-[11px] px-3 py-1 rounded-full border border-sky-500 text-sky-400 hover:bg-sky-700/30"
+                className="text-[11px] px-3 py-1 rounded-full border border-sky-500 text-sky-600 hover:bg-sky-50"
               >
                 ログイン
               </button>

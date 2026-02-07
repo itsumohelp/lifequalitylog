@@ -257,12 +257,12 @@ export default function PublicFeed({ circle, feed: initialFeed, isLoggedIn, curr
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* 残高ヘッダー */}
-      <div className="flex-shrink-0 bg-slate-900 px-4 py-3 rounded-b-xl">
+      <div className="flex-shrink-0 bg-sky-100 px-4 py-3">
         <div className="flex items-center justify-center gap-2 mb-1">
-          <span className="text-sm text-slate-400">{circle.name}</span>
+          <span className="text-sm text-slate-500">{circle.name}</span>
         </div>
         <div className="flex items-center justify-center">
-          <span className="font-semibold text-white text-2xl">
+          <span className="font-semibold text-slate-900 text-2xl">
             ¥{formatYen(circle.currentBalance)}
           </span>
         </div>

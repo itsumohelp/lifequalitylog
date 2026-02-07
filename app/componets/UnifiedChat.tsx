@@ -864,26 +864,26 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* 合計残高ヘッダー */}
-      <div className="flex-shrink-0 bg-slate-900 px-3 py-1.5 rounded-b-xl">
+      <div className="flex-shrink-0 bg-sky-100 px-3 py-1.5">
           <div className="flex items-center justify-between gap-2">
             {/* 残高 */}
             <div className="flex flex-col items-center flex-1">
-              <span className="text-[10px] text-slate-400">残高</span>
-              <span className="font-semibold text-white text-lg">
+              <span className="text-[10px] text-slate-500">残高</span>
+              <span className="font-semibold text-slate-900 text-lg">
                 ¥{formatYen(totalBalance)}
               </span>
             </div>
             {/* 当月支出 */}
             <div className="flex flex-col items-center flex-1">
-              <span className="text-[10px] text-slate-400">当月支出</span>
-              <span className="font-semibold text-red-400 text-lg">
+              <span className="text-[10px] text-slate-500">当月支出</span>
+              <span className="font-semibold text-red-500 text-lg">
                 ¥{formatYen(monthlyExpense)}
               </span>
             </div>
             {/* 当日支出 */}
             <div className="flex flex-col items-center flex-1">
-              <span className="text-[10px] text-slate-400">当日支出</span>
-              <span className="font-semibold text-red-400 text-lg">
+              <span className="text-[10px] text-slate-500">当日支出</span>
+              <span className="font-semibold text-red-500 text-lg">
                 ¥{formatYen(dailyExpense)}
               </span>
             </div>
@@ -892,7 +892,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
               <button
                 type="button"
                 onClick={() => setIsBreakdownOpen(!isBreakdownOpen)}
-                className="text-[10px] text-slate-400 hover:text-slate-200 px-2 py-0.5 rounded border border-slate-600 hover:border-slate-500 transition"
+                className="text-[10px] text-slate-500 hover:text-slate-700 px-2 py-0.5 rounded border border-slate-300 hover:border-slate-400 transition"
               >
                 内訳
               </button>
@@ -905,12 +905,12 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
             const invitedBalances = balances.filter((cb) => !adminCircleIds.includes(cb.circleId));
 
             return (
-              <div className="mt-2 bg-slate-800 rounded-lg p-2 relative">
+              <div className="mt-2 bg-slate-100 rounded-lg p-2 relative">
                 {/* 閉じるボタン */}
                 <button
                   type="button"
                   onClick={() => setIsBreakdownOpen(false)}
-                  className="absolute top-1 right-1 text-slate-500 hover:text-slate-300 p-1"
+                  className="absolute top-1 right-1 text-slate-400 hover:text-slate-600 p-1"
                   title="閉じる"
                 >
                   <svg
@@ -931,7 +931,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
 
                 <div className="space-y-1 pr-5">
                   {/* ヘッダー */}
-                  <div className="flex items-center text-[10px] text-slate-500 gap-2 pb-1 border-b border-slate-700">
+                  <div className="flex items-center text-[10px] text-slate-500 gap-2 pb-1 border-b border-slate-300">
                     <span className="flex-1"></span>
                     <span className="whitespace-nowrap">残高</span>
                     <span className="whitespace-nowrap w-16 text-right">全期間</span>
@@ -944,20 +944,20 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                       key={cb.circleId}
                       className="flex items-center text-xs gap-2"
                     >
-                      <span className="text-slate-400 truncate flex-1">
+                      <span className="text-slate-600 truncate flex-1">
                         {cb.circleName}
                       </span>
                       <span
                         className={`font-medium whitespace-nowrap ${
-                          cb.balance < 0 ? "text-red-400" : "text-white"
+                          cb.balance < 0 ? "text-red-500" : "text-slate-900"
                         }`}
                       >
                         ¥{formatYen(cb.balance)}
                       </span>
-                      <span className="text-red-400 whitespace-nowrap w-16 text-right">
+                      <span className="text-red-500 whitespace-nowrap w-16 text-right">
                         -¥{formatYen(cb.allTimeExpense)}
                       </span>
-                      <span className="text-red-400 whitespace-nowrap w-16 text-right">
+                      <span className="text-red-500 whitespace-nowrap w-16 text-right">
                         -¥{formatYen(cb.monthlyExpense)}
                       </span>
                     </div>
@@ -967,11 +967,11 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                   {invitedBalances.length > 0 && (
                     <>
                       <div className="flex items-center gap-2 pt-1">
-                        <div className="flex-1 border-t border-slate-600" />
+                        <div className="flex-1 border-t border-slate-300" />
                         <span className="text-[10px] text-slate-500 whitespace-nowrap">
                           招待されたサークル
                         </span>
-                        <div className="flex-1 border-t border-slate-600" />
+                        <div className="flex-1 border-t border-slate-300" />
                       </div>
                       {invitedBalances.map((cb) => (
                         <div
@@ -983,7 +983,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                           </span>
                           <span
                             className={`font-medium whitespace-nowrap ${
-                              cb.balance < 0 ? "text-red-400" : "text-slate-400"
+                              cb.balance < 0 ? "text-red-500" : "text-slate-600"
                             }`}
                           >
                             ¥{formatYen(cb.balance)}
@@ -1007,7 +1007,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
       {/* フィード表示 */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto px-3 py-4 space-y-4 bg-slate-50 min-h-0"
+        className="flex-1 overflow-y-auto px-3 py-1 space-y-1 bg-slate-50 min-h-0"
       >
         {/* 以前の実績を取得ボタン（特定ウォレット表示時のみ） */}
         {filterCircleId && hasMoreHistory[filterCircleId] !== false && (
@@ -1032,14 +1032,14 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
           Object.entries(groupedFeed).map(([date, items]) => (
             <div key={date}>
               {/* 日付ヘッダー */}
-              <div className="flex justify-center mb-3">
+              <div className="flex justify-center mb-0.5">
                 <span className="text-xs text-slate-500 bg-white px-3 py-1 rounded-full border border-slate-200">
                   {date}
                 </span>
               </div>
 
               {/* その日のアイテム */}
-              <div className="space-y-2">
+              <div className="space-y-0.5">
                 {items.map((item, idx) => {
                   const isOwnMessage = item.userId === currentUserId;
                   const prevItem = idx > 0 ? items[idx - 1] : null;
@@ -1585,7 +1585,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
         </form>
 
         {/* iPhoneセーフエリア用スペース */}
-        <div className="h-6" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} />
+        <div className="h-2" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} />
       </div>
 
       {/* サークル追加モーダル */}
