@@ -2,6 +2,47 @@ import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import PublicFeed from "@/app/components/PublicFeed";
+import type { Metadata } from "next";
+
+function formatYen(amount: number) {
+  return new Intl.NumberFormat("ja-JP").format(amount);
+}
+
+type PageParams = { params: Promise<{ circleId: string }> };
+
+export async function generateMetadata({ params }: PageParams): Promise<Metadata> {
+  const { circleId } = await params;
+
+  const circle = await prisma.circle.findUnique({
+    where: { id: circleId },
+    select: { name: true, currentBalance: true, isPublic: true },
+  });
+
+  if (!circle || !circle.isPublic) {
+    return {
+      title: "CircleRun",
+    };
+  }
+
+  const title = `${circle.name}の支出管理 | CircleRun`;
+  const description = `残高: ¥${formatYen(circle.currentBalance)} - ${circle.name}のお金の流れをリアルタイムで共有`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      siteName: "CircleRun",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
+  };
+}
 
 type FeedItem = {
   id: string;
@@ -23,9 +64,7 @@ type FeedItem = {
   createdAt: string;
 };
 
-type Params = { params: Promise<{ circleId: string }> };
-
-export default async function PublicCirclePage({ params }: Params) {
+export default async function PublicCirclePage({ params }: PageParams) {
   const { circleId } = await params;
 
   // サークル情報と公開設定を確認
