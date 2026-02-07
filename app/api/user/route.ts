@@ -26,9 +26,10 @@ export async function GET() {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  // 所属サークル一覧を取得
+  // 所属サークル一覧を取得（サークル作成日順）
   const memberships = await prisma.circleMember.findMany({
     where: { userId },
+    orderBy: { circle: { createdAt: "asc" } },
     select: {
       role: true,
       circle: {

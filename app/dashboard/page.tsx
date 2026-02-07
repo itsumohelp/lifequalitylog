@@ -56,15 +56,15 @@ export default async function DashboardPage() {
   let circles: { id: string; name: string; adminName: string }[] = [];
   let circleBalances: { circleId: string; circleName: string; balance: number; monthlyExpense: number; allTimeExpense: number }[] = [];
   let totalBalance = 0;
-  let previousTotalBalance = 0;
-  let totalBalanceDiff: number | null = null;
   let monthlyExpense = 0;
+  let dailyExpense = 0;
   let tagSummary: TagSummaryItem[] = [];
 
   if (hasCircles) {
     // サークル情報を取得（ADMIN名、currentBalanceも含む）
     const circlesWithAdmin = await prisma.circle.findMany({
       where: { id: { in: circleIds } },
+      orderBy: { createdAt: "asc" }, // 作成順（古い順）で並べる
       select: {
         id: true,
         name: true,
@@ -153,6 +153,17 @@ export default async function DashboardPage() {
       allTimeExpenseMap.set(item.circleId, item._sum.amount || 0);
     }
 
+    // 当日の支出を集計（管理者サークルのみ）
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const dailyExpenseResult = await prisma.expense.aggregate({
+      where: {
+        circleId: { in: adminCircleIds },
+        createdAt: { gte: startOfToday },
+      },
+      _sum: { amount: true },
+    });
+    dailyExpense = dailyExpenseResult._sum.amount || 0;
+
     for (const circleId of circleIds) {
       const circleData = circlesWithAdmin.find((c) => c.id === circleId);
       const circleMonthlyExpense = monthlySnapshotMap.get(circleId) || 0;
@@ -171,24 +182,7 @@ export default async function DashboardPage() {
       if (adminCircleIds.includes(circleId)) {
         totalBalance += circleData?.currentBalance || 0;
         monthlyExpense += circleMonthlyExpense;
-
-        // 一つ前のスナップショットを探す（前回残高との差分計算用）
-        const circleSnapshots = snapshots.filter((s) => s.circleId === circleId);
-        if (circleSnapshots.length >= 2) {
-          // 2番目のスナップショット（一つ前）の金額を加算
-          previousTotalBalance += circleSnapshots[1].amount;
-        }
       }
-    }
-
-    // 前回残高が存在する場合のみ差分を計算
-    // (少なくとも1つのサークルに2つ以上のスナップショットがある場合)
-    const hasAnyPreviousSnapshot = adminCircleIds.some((circleId) => {
-      const circleSnapshots = snapshots.filter((s) => s.circleId === circleId);
-      return circleSnapshots.length >= 2;
-    });
-    if (hasAnyPreviousSnapshot) {
-      totalBalanceDiff = totalBalance - previousTotalBalance;
     }
 
     // 各トランザクション時点のサークル残高を計算
@@ -381,8 +375,8 @@ export default async function DashboardPage() {
             userRoles={memberships.map((m) => ({ circleId: m.circleId, role: m.role }))}
             tagSummary={tagSummary}
             initialTotalBalance={totalBalance}
-            initialTotalBalanceDiff={totalBalanceDiff}
             initialMonthlyExpense={monthlyExpense}
+            initialDailyExpense={dailyExpense}
             adminCircleIds={adminCircleIds}
           />
         )}
