@@ -27,6 +27,9 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
   const title = `${circle.name}の支出管理 | CircleRun`;
   const description = `残高: ¥${formatYen(circle.currentBalance)} - ${circle.name}のお金の流れをリアルタイムで共有`;
 
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://crun.click";
+  const ogImageUrl = `${baseUrl}/c/${circleId}/opengraph-image`;
+
   return {
     title,
     description,
@@ -35,11 +38,20 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
       description,
       type: "website",
       siteName: "CircleRun",
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${circle.name}の支出管理`,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      images: [ogImageUrl],
     },
   };
 }

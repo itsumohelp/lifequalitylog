@@ -864,8 +864,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* 合計残高ヘッダー */}
-      <div className="flex-shrink-0 bg-white px-3 pt-1 pb-1">
-        <div className="rounded-xl bg-slate-900 px-3 py-1.5">
+      <div className="flex-shrink-0 bg-slate-900 px-3 py-1.5 rounded-b-xl">
           <div className="flex items-center justify-between gap-2">
             {/* 残高 */}
             <div className="flex flex-col items-center flex-1">
@@ -1003,9 +1002,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
               </div>
             );
           })()}
-        </div>
       </div>
-
 
       {/* フィード表示 */}
       <div
@@ -1424,7 +1421,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
       </div>
 
       {/* 入力エリア（画面下部に固定） */}
-      <div className="sticky bottom-0 bg-white border-t border-slate-200">
+      <div className="flex-shrink-0 bg-white border-t border-slate-200">
         {/* エラー表示 */}
         {error && (
           <div className="mx-3 mt-2 px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">

@@ -346,8 +346,8 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="h-dvh bg-white overflow-hidden">
-      <div className="mx-auto max-w-md flex flex-col h-full">
+    <div className="flex-1 bg-white flex flex-col min-h-0">
+      <div className="mx-auto max-w-md flex flex-col flex-1 w-full min-h-0">
         {/* メインコンテンツ */}
         {!hasCircles ? (
           <div className="flex-1 flex items-center justify-center text-center px-6">
