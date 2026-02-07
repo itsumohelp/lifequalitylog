@@ -864,7 +864,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* 合計残高ヘッダー */}
-      <div className="flex-shrink-0 bg-sky-100 px-3 py-1.5">
+      <div className="flex-shrink-0 bg-sky-100 px-3 py-1.5 border-b border-sky-200">
           <div className="flex items-center justify-between gap-2">
             {/* 残高 */}
             <div className="flex flex-col items-center flex-1">
