@@ -36,9 +36,9 @@ export default async function RootLayout({
   return (
     <html lang="ja">
       <body className="text-slate-50 bg-slate-50">
-        <div className="min-h-screen flex flex-col bg-slate-50">
+        <div className="h-dvh flex flex-col bg-slate-50 overflow-hidden">
           <Header session={session} />
-          <main className="flex-1 bg-slate-50">{children}</main>
+          <main className="flex-1 bg-slate-50 overflow-hidden flex flex-col min-h-0">{children}</main>
         </div>
       </body>
       <GoogleAnalytics gaId="G-64XWZ672CX" />
