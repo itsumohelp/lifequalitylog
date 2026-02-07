@@ -436,7 +436,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-white">
+    <div className="flex-1 bg-white overflow-y-auto">
       <div className="mx-auto max-w-md px-4 py-4">
         {/* ヘッダー */}
         <div className="flex items-center justify-between mb-6">
