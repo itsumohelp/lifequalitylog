@@ -331,6 +331,23 @@ export type EnumIncomeCategoryWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumIncomeCategoryFilter<$PrismaModel>
 }
 
+export type EnumBalanceTransactionTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.BalanceTransactionType | Prisma.EnumBalanceTransactionTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.BalanceTransactionType[] | Prisma.ListEnumBalanceTransactionTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.BalanceTransactionType[] | Prisma.ListEnumBalanceTransactionTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumBalanceTransactionTypeFilter<$PrismaModel> | $Enums.BalanceTransactionType
+}
+
+export type EnumBalanceTransactionTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.BalanceTransactionType | Prisma.EnumBalanceTransactionTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.BalanceTransactionType[] | Prisma.ListEnumBalanceTransactionTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.BalanceTransactionType[] | Prisma.ListEnumBalanceTransactionTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumBalanceTransactionTypeWithAggregatesFilter<$PrismaModel> | $Enums.BalanceTransactionType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumBalanceTransactionTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumBalanceTransactionTypeFilter<$PrismaModel>
+}
+
 export type EnumReactionTypeFilter<$PrismaModel = never> = {
   equals?: $Enums.ReactionType | Prisma.EnumReactionTypeFieldRefInput<$PrismaModel>
   in?: $Enums.ReactionType[] | Prisma.ListEnumReactionTypeFieldRefInput<$PrismaModel>
@@ -647,6 +664,23 @@ export type NestedEnumIncomeCategoryWithAggregatesFilter<$PrismaModel = never> =
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumIncomeCategoryFilter<$PrismaModel>
   _max?: Prisma.NestedEnumIncomeCategoryFilter<$PrismaModel>
+}
+
+export type NestedEnumBalanceTransactionTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.BalanceTransactionType | Prisma.EnumBalanceTransactionTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.BalanceTransactionType[] | Prisma.ListEnumBalanceTransactionTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.BalanceTransactionType[] | Prisma.ListEnumBalanceTransactionTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumBalanceTransactionTypeFilter<$PrismaModel> | $Enums.BalanceTransactionType
+}
+
+export type NestedEnumBalanceTransactionTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.BalanceTransactionType | Prisma.EnumBalanceTransactionTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.BalanceTransactionType[] | Prisma.ListEnumBalanceTransactionTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.BalanceTransactionType[] | Prisma.ListEnumBalanceTransactionTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumBalanceTransactionTypeWithAggregatesFilter<$PrismaModel> | $Enums.BalanceTransactionType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumBalanceTransactionTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumBalanceTransactionTypeFilter<$PrismaModel>
 }
 
 export type NestedEnumReactionTypeFilter<$PrismaModel = never> = {

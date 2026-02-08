@@ -49,9 +49,27 @@ export async function addBalanceSnapshot(formData: FormData) {
   });
 
   // サークルのcurrentBalanceをスナップショットの金額で上書き
+  const circleBeforeSnapshot = await prisma.circle.findUnique({
+    where: { id: circleId },
+    select: { currentBalance: true },
+  });
+  const balanceBefore = circleBeforeSnapshot!.currentBalance;
+
   await prisma.circle.update({
     where: { id: circleId },
     data: { currentBalance: amount },
+  });
+
+  await prisma.balanceTransaction.create({
+    data: {
+      circleId,
+      userId,
+      type: "SNAPSHOT",
+      isDelete: false,
+      amount,
+      balanceBefore,
+      balanceAfter: amount,
+    },
   });
 
   revalidatePath(`/circles/${circleId}`);
@@ -101,9 +119,27 @@ export async function addBalanceSnapshotBasic(formData: FormData) {
   });
 
   // サークルのcurrentBalanceをスナップショットの金額で上書き
+  const circleBeforeSnapshot = await prisma.circle.findUnique({
+    where: { id: circleId },
+    select: { currentBalance: true },
+  });
+  const balanceBeforeBasic = circleBeforeSnapshot!.currentBalance;
+
   await prisma.circle.update({
     where: { id: circleId },
     data: { currentBalance: amount },
+  });
+
+  await prisma.balanceTransaction.create({
+    data: {
+      circleId,
+      userId,
+      type: "SNAPSHOT",
+      isDelete: false,
+      amount,
+      balanceBefore: balanceBeforeBasic,
+      balanceAfter: amount,
+    },
   });
 
   revalidatePath(`/dashboard`);
@@ -158,9 +194,27 @@ export async function delBalanceSnapshot(formData: FormData) {
   });
   newBalance += incomesAfter._sum.amount || 0;
 
+  const circleBeforeDelete = await prisma.circle.findUnique({
+    where: { id: snapshot.circleId },
+    select: { currentBalance: true },
+  });
+  const balanceBeforeDel = circleBeforeDelete!.currentBalance;
+
   await prisma.circle.update({
     where: { id: snapshot.circleId },
     data: { currentBalance: newBalance },
+  });
+
+  await prisma.balanceTransaction.create({
+    data: {
+      circleId: snapshot.circleId,
+      userId,
+      type: "SNAPSHOT",
+      isDelete: true,
+      amount: snapshot.amount,
+      balanceBefore: balanceBeforeDel,
+      balanceAfter: newBalance,
+    },
   });
 
   revalidatePath(`/dashboard`);

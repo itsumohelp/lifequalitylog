@@ -66,7 +66,7 @@ model Account {
   @@unique([provider, providerAccountId])
   @@map("accounts")
 }
- 
+
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique @map("session_token")
@@ -75,7 +75,7 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@map("sessions")
 }
- 
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -91,9 +91,10 @@ model User {
   expenses      Expense[]
   incomes       Income[]
   reactions     Reaction[]
+  balanceTransactions BalanceTransaction[]
   @@map("users")
 }
- 
+
 model VerificationToken {
   identifier String
   token      String
@@ -119,6 +120,7 @@ model Circle {
   expenses       Expense[]
   incomes        Income[]
   monthlySnapshots MonthlySnapshot[]
+  balanceTransactions BalanceTransaction[]
 }
 
 model CircleMember {
@@ -238,6 +240,30 @@ model Income {
   incomeDate  DateTime        @default(now()) // 収入日時
   createdAt   DateTime        @default(now())
   @@index([circleId, incomeDate])
+  @@index([userId])
+}
+
+// 残高変更種別
+enum BalanceTransactionType {
+  EXPENSE     // 支出
+  INCOME      // 収入
+  SNAPSHOT    // 残高更新
+}
+
+// 残高変更トランザクションログ
+model BalanceTransaction {
+  id              String                @id @default(cuid())
+  circleId        String
+  circle          Circle                @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User                  @relation(fields: [userId], references: [id])
+  type            BalanceTransactionType
+  isDelete        Boolean               @default(false)
+  amount          Int
+  balanceBefore   Int
+  balanceAfter    Int
+  createdAt       DateTime              @default(now())
+  @@index([circleId, createdAt])
   @@index([userId])
 }
 

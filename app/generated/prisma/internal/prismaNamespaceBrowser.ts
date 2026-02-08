@@ -65,6 +65,7 @@ export const ModelName = {
   MonthlySnapshot: 'MonthlySnapshot',
   Expense: 'Expense',
   Income: 'Income',
+  BalanceTransaction: 'BalanceTransaction',
   Reaction: 'Reaction'
 } as const
 
@@ -272,6 +273,21 @@ export const IncomeScalarFieldEnum = {
 } as const
 
 export type IncomeScalarFieldEnum = (typeof IncomeScalarFieldEnum)[keyof typeof IncomeScalarFieldEnum]
+
+
+export const BalanceTransactionScalarFieldEnum = {
+  id: 'id',
+  circleId: 'circleId',
+  userId: 'userId',
+  type: 'type',
+  isDelete: 'isDelete',
+  amount: 'amount',
+  balanceBefore: 'balanceBefore',
+  balanceAfter: 'balanceAfter',
+  createdAt: 'createdAt'
+} as const
+
+export type BalanceTransactionScalarFieldEnum = (typeof BalanceTransactionScalarFieldEnum)[keyof typeof BalanceTransactionScalarFieldEnum]
 
 
 export const ReactionScalarFieldEnum = {
