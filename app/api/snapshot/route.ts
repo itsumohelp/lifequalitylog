@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     },
     include: {
       circle: { select: { name: true } },
-      user: { select: { name: true, image: true } },
+      user: { select: { displayName: true, name: true, image: true } },
     },
   });
 
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       circleId: snapshot.circleId,
       circleName: snapshot.circle.name,
       userId: snapshot.userId,
-      userName: snapshot.user?.name || "不明",
+      userName: snapshot.user?.displayName || snapshot.user?.name || "未設定",
       userImage: snapshot.user?.image || null,
       amount: snapshot.amount,
       snapshotDiff: snapshotDiff,

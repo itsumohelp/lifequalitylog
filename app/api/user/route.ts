@@ -64,7 +64,7 @@ export async function GET() {
     adminName:
       m.circle.members[0]?.user?.displayName ||
       m.circle.members[0]?.user?.name ||
-      "不明",
+      "未設定",
   }));
 
   return NextResponse.json({

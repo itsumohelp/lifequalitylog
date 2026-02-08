@@ -71,19 +71,19 @@ export default function Header({ session }: HeaderProps) {
                   {user.image ? (
                     <Image
                       src={user.image}
-                      alt={user.name ?? user.email ?? "user"}
+                      alt={user.name ?? "user"}
                       width={28}
                       height={28}
                       className="w-7 h-7 object-cover"
                     />
                   ) : (
                     <span className="text-[11px] text-slate-500">
-                      {(user.name ?? user.email ?? "?").slice(0, 2)}
+                      {(user.name ?? "?").slice(0, 2)}
                     </span>
                   )}
                 </div>
                 <span className="text-[11px] text-slate-600 max-w-[90px] truncate">
-                  {user.name ?? user.email}
+                  {user.name ?? "未設定"}
                 </span>
               </div>
 
@@ -97,17 +97,7 @@ export default function Header({ session }: HeaderProps) {
                 </button>
               </form>
             </div>
-          ) : (
-            // 未ログイン時：サインインボタン
-            <form action={handleSignIn}>
-              <button
-                type="submit"
-                className="text-[11px] px-3 py-1 rounded-full border border-sky-500 text-sky-600 hover:bg-sky-50"
-              >
-                ログイン
-              </button>
-            </form>
-          )}
+          ) : null}
         </div>
       </div>
     </header>

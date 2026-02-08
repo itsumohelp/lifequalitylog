@@ -7,6 +7,14 @@ export const authConfig: NextAuthConfig = {
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: null,
+          email: null,
+          image: profile.picture,
+        };
+      },
     }),
   ],
   session: {

@@ -87,7 +87,7 @@ export default async function DashboardPage() {
     circles = circlesWithAdmin.map((c) => ({
       id: c.id,
       name: c.name,
-      adminName: c.members[0]?.user?.displayName || c.members[0]?.user?.name || "不明",
+      adminName: c.members[0]?.user?.displayName || c.members[0]?.user?.name || "未設定",
     }));
 
     // 残高スナップショットを取得（全サークル分）
@@ -124,11 +124,15 @@ export default async function DashboardPage() {
     });
 
     // 各サークルの残高を取得（キャッシュから）
+    // JSTで日付を計算
     const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const jstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+    const jstYear = jstNow.getUTCFullYear();
+    const jstMonth = jstNow.getUTCMonth();
+    const jstDate = jstNow.getUTCDate();
 
     // 当月の月次集計を取得（全サークル分）
-    const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const yearMonth = `${jstYear}${String(jstMonth + 1).padStart(2, "0")}`;
     const monthlySnapshotsAll = await prisma.monthlySnapshot.findMany({
       where: {
         circleId: { in: circleIds },
@@ -153,8 +157,8 @@ export default async function DashboardPage() {
       allTimeExpenseMap.set(item.circleId, item._sum.amount || 0);
     }
 
-    // 当日の支出を集計（管理者サークルのみ）
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    // 当日の支出を集計（管理者サークルのみ）JSTの0:00をUTCに変換
+    const startOfToday = new Date(Date.UTC(jstYear, jstMonth, jstDate) - 9 * 60 * 60 * 1000);
     const dailyExpenseResult = await prisma.expense.aggregate({
       where: {
         circleId: { in: adminCircleIds },
@@ -258,7 +262,7 @@ export default async function DashboardPage() {
           circleId: s.circleId,
           circleName: s.circle.name,
           userId: s.userId,
-          userName: s.user?.displayName || s.user?.name || s.user?.email || "不明",
+          userName: s.user?.displayName || s.user?.name || "未設定",
           userImage: s.user?.image || null,
           amount: s.amount,
           snapshotDiff: s.diffFromPrev, // データベースに保存された差分を使用
@@ -273,7 +277,7 @@ export default async function DashboardPage() {
           circleId: e.circleId,
           circleName: e.circle.name,
           userId: e.userId,
-          userName: e.user?.displayName || e.user?.name || e.user?.email || "不明",
+          userName: e.user?.displayName || e.user?.name || "未設定",
           userImage: e.user?.image || null,
           amount: -e.amount,
           circleBalanceAfter: circleBalanceAfterMap.get(e.id),
@@ -291,7 +295,7 @@ export default async function DashboardPage() {
           circleId: i.circleId,
           circleName: i.circle.name,
           userId: i.userId,
-          userName: i.user?.displayName || i.user?.name || i.user?.email || "不明",
+          userName: i.user?.displayName || i.user?.name || "未設定",
           userImage: i.user?.image || null,
           amount: i.amount,
           description: i.description,
@@ -323,7 +327,7 @@ export default async function DashboardPage() {
           const key = `${e.circleId}:${tag}`;
           const existing = tagMap.get(key) || {
             circleId: e.circleId,
-            circleName: circle?.name || "不明",
+            circleName: circle?.name || "未設定",
             total: 0,
             count: 0,
           };
@@ -346,7 +350,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="flex-1 bg-white flex flex-col min-h-0">
+    <div className="flex-1 bg-white flex flex-col min-h-0 overflow-hidden">
       <div className="mx-auto max-w-md flex flex-col flex-1 w-full min-h-0">
         {/* メインコンテンツ */}
         {!hasCircles ? (
