@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
+import { getAvatarColor, getAvatarInitial } from "@/lib/avatar";
 
 type User = {
   id: string;
@@ -59,6 +60,35 @@ export default function SettingsPage() {
   const [isCircleModalOpen, setIsCircleModalOpen] = useState(false);
   const [newCircleName, setNewCircleName] = useState("");
   const [isCreatingCircle, setIsCreatingCircle] = useState(false);
+  const [isSavingImageOptOut, setIsSavingImageOptOut] = useState(false);
+
+  const handleImageOptOut = async () => {
+    if (!user?.image || isSavingImageOptOut) return;
+
+    setIsSavingImageOptOut(true);
+    setMessage(null);
+
+    try {
+      const res = await fetch("/api/user", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageOptOut: true }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data.user);
+        setMessage({ type: "success", text: "Googleアイコンを削除しました" });
+      } else {
+        const data = await res.json();
+        setMessage({ type: "error", text: data.error || "更新に失敗しました" });
+      }
+    } catch {
+      setMessage({ type: "error", text: "通信エラーが発生しました" });
+    } finally {
+      setIsSavingImageOptOut(false);
+    }
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -468,7 +498,7 @@ export default function SettingsPage() {
           <div className="space-y-6">
             {/* プロフィール画像 */}
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-slate-200 overflow-hidden">
+              <div className="w-16 h-16 rounded-full overflow-hidden">
                 {user.image ? (
                   <Image
                     src={user.image}
@@ -478,8 +508,11 @@ export default function SettingsPage() {
                     className="w-16 h-16 object-cover"
                   />
                 ) : (
-                  <div className="w-16 h-16 flex items-center justify-center text-2xl text-slate-500">
-                    {(user.displayName || user.name || "?").slice(0, 1)}
+                  <div
+                    className="w-16 h-16 flex items-center justify-center text-2xl text-white font-medium"
+                    style={{ backgroundColor: getAvatarColor(user.id) }}
+                  >
+                    {getAvatarInitial(user.displayName || user.name)}
                   </div>
                 )}
               </div>
@@ -487,6 +520,27 @@ export default function SettingsPage() {
                 <div className="text-slate-900 font-medium">{user.displayName || user.name || "未設定"}</div>
               </div>
             </div>
+
+            {/* Googleアイコン削除 */}
+            {user.image && (
+              <div className="bg-slate-50 rounded-xl p-4">
+                <h2 className="text-sm font-medium text-slate-700 mb-3">プロフィール画像</h2>
+                <p className="text-xs text-slate-500 mb-3">
+                  Googleアカウントのプロフィール画像を使用しています。削除すると自動生成アイコンに切り替わります。
+                </p>
+                <p className="text-xs text-red-500 mb-3">
+                  ※ 一度削除すると元に戻せません
+                </p>
+                <button
+                  type="button"
+                  onClick={handleImageOptOut}
+                  disabled={isSavingImageOptOut}
+                  className="w-full bg-red-600 text-white rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50"
+                >
+                  {isSavingImageOptOut ? "削除中..." : "Googleアイコンを削除"}
+                </button>
+              </div>
+            )}
 
             {/* 表示名設定 */}
             <div className="bg-slate-50 rounded-xl p-4">
@@ -771,7 +825,7 @@ export default function SettingsPage() {
                         key={member.userId}
                         className="flex items-center gap-3 bg-slate-50 rounded-lg px-3 py-2"
                       >
-                        <div className="w-8 h-8 rounded-full bg-slate-200 overflow-hidden flex-shrink-0">
+                        <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
                           {member.image ? (
                             <Image
                               src={member.image}
@@ -781,8 +835,11 @@ export default function SettingsPage() {
                               className="w-8 h-8 object-cover"
                             />
                           ) : (
-                            <div className="w-8 h-8 flex items-center justify-center text-sm text-slate-500">
-                              {member.name.slice(0, 1)}
+                            <div
+                              className="w-8 h-8 flex items-center justify-center text-sm text-white font-medium"
+                              style={{ backgroundColor: getAvatarColor(member.userId) }}
+                            >
+                              {getAvatarInitial(member.name)}
                             </div>
                           )}
                         </div>

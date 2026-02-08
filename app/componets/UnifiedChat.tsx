@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { getCategoryEmoji } from "@/lib/expenseParser";
+import { getAvatarColor, getAvatarInitial } from "@/lib/avatar";
 import type { ExpenseCategory, ReactionType } from "@/app/generated/prisma/enums";
 
 type ReactionData = {
@@ -1056,7 +1057,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                       {isSameUserAsPrev ? (
                         <div className="w-8 flex-shrink-0" />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-slate-300 overflow-hidden flex-shrink-0">
+                        <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
                           {item.userImage ? (
                             <Image
                               src={item.userImage}
@@ -1066,8 +1067,11 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                               className="w-8 h-8 object-cover"
                             />
                           ) : (
-                            <div className="w-8 h-8 flex items-center justify-center text-xs text-slate-600">
-                              {item.userName?.slice(0, 1) || "?"}
+                            <div
+                              className="w-8 h-8 flex items-center justify-center text-xs text-white font-medium"
+                              style={{ backgroundColor: getAvatarColor(item.userId) }}
+                            >
+                              {getAvatarInitial(item.userName)}
                             </div>
                           )}
                         </div>

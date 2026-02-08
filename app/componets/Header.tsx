@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Session } from "next-auth";
 import { signIn, signOut } from "@/auth";
+import { getAvatarColor, getAvatarInitial } from "@/lib/avatar";
 
 type HeaderProps = {
   session: Session | null;
@@ -9,6 +10,8 @@ type HeaderProps = {
 
 export default function Header({ session }: HeaderProps) {
   const user = session?.user;
+  const displayName = (user as Record<string, unknown> | undefined)?.displayName as string | null;
+  const userName = displayName || user?.name || "未設定";
 
   // サーバーアクション：Googleで即サインイン → /dashboard
   async function handleSignIn() {
@@ -67,7 +70,7 @@ export default function Header({ session }: HeaderProps) {
             <div className="flex items-center gap-2">
               {/* アイコン＋名前 */}
               <div className="flex items-center gap-1">
-                <div className="w-7 h-7 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center">
+                <div className="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center">
                   {user.image ? (
                     <Image
                       src={user.image}
@@ -77,13 +80,16 @@ export default function Header({ session }: HeaderProps) {
                       className="w-7 h-7 object-cover"
                     />
                   ) : (
-                    <span className="text-[11px] text-slate-500">
-                      {(user.name ?? "?").slice(0, 2)}
-                    </span>
+                    <div
+                      className="w-7 h-7 flex items-center justify-center text-[11px] text-white font-medium"
+                      style={{ backgroundColor: getAvatarColor((user as Record<string, unknown>).id as string || "default") }}
+                    >
+                      {getAvatarInitial(userName)}
+                    </div>
                   )}
                 </div>
                 <span className="text-[11px] text-slate-600 max-w-[90px] truncate">
-                  {user.name ?? "未設定"}
+                  {userName}
                 </span>
               </div>
 

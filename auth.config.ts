@@ -23,9 +23,10 @@ export const authConfig: NextAuthConfig = {
   },
   callbacks: {
     async session({ session, user }) {
-      // user.id を session.user に載せたい場合
       if (session.user) {
         (session.user as any).id = user.id;
+        // displayName をセッションに載せる（ヘッダー等で利用）
+        (session.user as any).displayName = (user as any).displayName || null;
       }
       return session;
     },
