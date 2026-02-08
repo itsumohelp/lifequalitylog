@@ -53,7 +53,7 @@ export async function GET(_request: Request, { params }: Params) {
   const formattedMembers = members.map((m) => ({
     userId: m.userId,
     role: m.role,
-    name: m.user.displayName || m.user.name || "不明",
+    name: m.user.displayName || m.user.name || "未設定",
     image: m.user.image,
   }));
 

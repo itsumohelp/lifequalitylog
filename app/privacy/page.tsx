@@ -36,12 +36,8 @@ export default function PrivacyPage() {
             </p>
             <ul className="list-disc pl-5 text-slate-700 space-y-1">
               <li>
-                <strong>メールアドレス</strong>
-                ：アカウントの識別および通知のために使用します
-              </li>
-              <li>
-                <strong>氏名</strong>
-                ：サービス内での表示名の初期値として使用します
+                <strong>GoogleアカウントID</strong>
+                ：アカウントの識別に使用します
               </li>
               <li>
                 <strong>プロフィール画像</strong>

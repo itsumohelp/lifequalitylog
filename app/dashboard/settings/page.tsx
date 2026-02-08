@@ -484,8 +484,7 @@ export default function SettingsPage() {
                 )}
               </div>
               <div>
-                <div className="text-sm text-slate-500">メールアドレス</div>
-                <div className="text-slate-900">{user.email}</div>
+                <div className="text-slate-900 font-medium">{user.displayName || user.name || "未設定"}</div>
               </div>
             </div>
 
@@ -493,14 +492,6 @@ export default function SettingsPage() {
             <div className="bg-slate-50 rounded-xl p-4">
               <h2 className="text-sm font-medium text-slate-700 mb-3">表示名</h2>
               <div className="space-y-3">
-                <div>
-                  <label className="text-xs text-slate-500 block mb-1">
-                    Googleアカウント名
-                  </label>
-                  <div className="text-sm text-slate-700 bg-white px-3 py-2 rounded-lg border border-slate-200">
-                    {user.name || "（未設定）"}
-                  </div>
-                </div>
                 <div>
                   <label className="text-xs text-slate-500 block mb-1">
                     表示名（他のユーザーに表示される名前）
