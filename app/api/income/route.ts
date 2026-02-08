@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     if (!circleId || !text) {
       return NextResponse.json(
         { error: "サークルIDとテキストが必要です" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     if (!membership) {
       return NextResponse.json(
         { error: "このサークルに参加していません" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -39,18 +39,27 @@ export async function POST(request: Request) {
     if (!parsed || parsed.amount <= 0) {
       return NextResponse.json(
         { error: "金額を読み取れませんでした" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // 収入カテゴリを判定
-    let category: "SALARY" | "BONUS" | "INVESTMENT" | "TRANSFER" | "OTHER" = "OTHER";
+    let category: "SALARY" | "BONUS" | "INVESTMENT" | "TRANSFER" | "OTHER" =
+      "OTHER";
     const lowerText = text.toLowerCase();
-    if (lowerText.includes("給与") || lowerText.includes("給料") || lowerText.includes("月給")) {
+    if (
+      lowerText.includes("給与") ||
+      lowerText.includes("給料") ||
+      lowerText.includes("月給")
+    ) {
       category = "SALARY";
     } else if (lowerText.includes("ボーナス") || lowerText.includes("賞与")) {
       category = "BONUS";
-    } else if (lowerText.includes("配当") || lowerText.includes("投資") || lowerText.includes("利息")) {
+    } else if (
+      lowerText.includes("配当") ||
+      lowerText.includes("投資") ||
+      lowerText.includes("利息")
+    ) {
       category = "INVESTMENT";
     } else if (lowerText.includes("振込") || lowerText.includes("入金")) {
       category = "TRANSFER";
@@ -73,9 +82,28 @@ export async function POST(request: Request) {
     });
 
     // サークルのcurrentBalanceを更新（収入なので増やす）
+    const circleBeforeIncome = await prisma.circle.findUnique({
+      where: { id: circleId },
+      select: { currentBalance: true },
+    });
+    const balanceBefore = circleBeforeIncome!.currentBalance;
+    const balanceAfter = balanceBefore + parsed.amount;
+
     await prisma.circle.update({
       where: { id: circleId },
       data: { currentBalance: { increment: parsed.amount } },
+    });
+
+    await prisma.balanceTransaction.create({
+      data: {
+        circleId,
+        userId,
+        type: "INCOME",
+        isDelete: false,
+        amount: parsed.amount,
+        balanceBefore,
+        balanceAfter,
+      },
     });
 
     return NextResponse.json({ income }, { status: 201 });
@@ -83,7 +111,7 @@ export async function POST(request: Request) {
     console.error("Income creation error:", error);
     return NextResponse.json(
       { error: "収入の登録に失敗しました" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

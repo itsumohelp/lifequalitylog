@@ -14,7 +14,10 @@ export async function GET(request: NextRequest) {
   const circleId = searchParams.get("circleId");
 
   if (!circleId) {
-    return NextResponse.json({ error: "circleId is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "circleId is required" },
+      { status: 400 },
+    );
   }
 
   // ユーザーがサークルメンバーか確認
@@ -58,7 +61,7 @@ export async function POST(request: NextRequest) {
   if (!circleId || !text) {
     return NextResponse.json(
       { error: "circleId and text are required" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -81,7 +84,7 @@ export async function POST(request: NextRequest) {
   if (!parsed) {
     return NextResponse.json(
       { error: "入力を解析できませんでした。例: 「コンビニで500円」" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -104,9 +107,28 @@ export async function POST(request: NextRequest) {
   });
 
   // サークルのcurrentBalanceを更新（支出なので減らす）
+  const circleBeforeExpense = await prisma.circle.findUnique({
+    where: { id: circleId },
+    select: { currentBalance: true },
+  });
+  const balanceBefore = circleBeforeExpense!.currentBalance;
+  const balanceAfter = balanceBefore - parsed.amount;
+
   await prisma.circle.update({
     where: { id: circleId },
     data: { currentBalance: { decrement: parsed.amount } },
+  });
+
+  await prisma.balanceTransaction.create({
+    data: {
+      circleId,
+      userId: session.user.id,
+      type: "EXPENSE",
+      isDelete: false,
+      amount: parsed.amount,
+      balanceBefore,
+      balanceAfter,
+    },
   });
 
   // 月次集計を更新（YYYYMM形式）

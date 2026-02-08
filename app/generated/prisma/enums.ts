@@ -42,6 +42,15 @@ export const IncomeCategory = {
 export type IncomeCategory = (typeof IncomeCategory)[keyof typeof IncomeCategory]
 
 
+export const BalanceTransactionType = {
+  EXPENSE: 'EXPENSE',
+  INCOME: 'INCOME',
+  SNAPSHOT: 'SNAPSHOT'
+} as const
+
+export type BalanceTransactionType = (typeof BalanceTransactionType)[keyof typeof BalanceTransactionType]
+
+
 export const ReactionType = {
   CHECK: 'CHECK',
   GOOD: 'GOOD',

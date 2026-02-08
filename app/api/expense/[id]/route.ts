@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 // 支出を削除
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -38,9 +38,28 @@ export async function DELETE(
   }
 
   // サークルのcurrentBalanceを更新（支出削除なので戻す）
+  const circleBeforeDelete = await prisma.circle.findUnique({
+    where: { id: expense.circleId },
+    select: { currentBalance: true },
+  });
+  const balanceBefore = circleBeforeDelete!.currentBalance;
+  const balanceAfter = balanceBefore + expense.amount;
+
   await prisma.circle.update({
     where: { id: expense.circleId },
     data: { currentBalance: { increment: expense.amount } },
+  });
+
+  await prisma.balanceTransaction.create({
+    data: {
+      circleId: expense.circleId,
+      userId: session.user.id,
+      type: "EXPENSE",
+      isDelete: true,
+      amount: expense.amount,
+      balanceBefore,
+      balanceAfter,
+    },
   });
 
   // 月次集計を更新

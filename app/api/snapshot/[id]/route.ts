@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 // 残高スナップショットを削除
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -81,9 +81,27 @@ export async function DELETE(
   newBalance += incomesAfter._sum.amount || 0;
 
   // currentBalanceを更新
+  const circleBeforeDelete = await prisma.circle.findUnique({
+    where: { id: snapshot.circleId },
+    select: { currentBalance: true },
+  });
+  const balanceBefore = circleBeforeDelete!.currentBalance;
+
   await prisma.circle.update({
     where: { id: snapshot.circleId },
     data: { currentBalance: newBalance },
+  });
+
+  await prisma.balanceTransaction.create({
+    data: {
+      circleId: snapshot.circleId,
+      userId: session.user.id,
+      type: "SNAPSHOT",
+      isDelete: true,
+      amount: snapshot.amount,
+      balanceBefore,
+      balanceAfter: newBalance,
+    },
   });
 
   return NextResponse.json({ success: true });

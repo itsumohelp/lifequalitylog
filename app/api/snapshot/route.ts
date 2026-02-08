@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
   if (!circleId || typeof amount !== "number") {
     return NextResponse.json(
       { error: "circleId and amount are required" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -39,7 +39,9 @@ export async function POST(request: NextRequest) {
     orderBy: { createdAt: "desc" },
   });
 
-  const snapshotDiff = previousSnapshot ? amount - previousSnapshot.amount : null;
+  const snapshotDiff = previousSnapshot
+    ? amount - previousSnapshot.amount
+    : null;
 
   // スナップショットを登録
   const snapshot = await prisma.circleSnapshot.create({
@@ -62,9 +64,27 @@ export async function POST(request: NextRequest) {
   });
 
   // サークルのcurrentBalanceをスナップショットの金額で上書き
+  const circleBeforeSnapshot = await prisma.circle.findUnique({
+    where: { id: circleId },
+    select: { currentBalance: true },
+  });
+  const balanceBefore = circleBeforeSnapshot!.currentBalance;
+
   await prisma.circle.update({
     where: { id: circleId },
     data: { currentBalance: amount },
+  });
+
+  await prisma.balanceTransaction.create({
+    data: {
+      circleId,
+      userId: session.user.id,
+      type: "SNAPSHOT",
+      isDelete: false,
+      amount,
+      balanceBefore,
+      balanceAfter: amount,
+    },
   });
 
   return NextResponse.json({

@@ -110,6 +110,11 @@ export type Expense = Prisma.ExpenseModel
  */
 export type Income = Prisma.IncomeModel
 /**
+ * Model BalanceTransaction
+ * 
+ */
+export type BalanceTransaction = Prisma.BalanceTransactionModel
+/**
  * Model Reaction
  * 
  */

@@ -48,9 +48,27 @@ export async function POST() {
       balance += incomesAfter._sum.amount || 0;
 
       // currentBalanceを更新
+      const circleBefore = await prisma.circle.findUnique({
+        where: { id: circle.id },
+        select: { currentBalance: true },
+      });
+      const balanceBefore = circleBefore!.currentBalance;
+
       await prisma.circle.update({
         where: { id: circle.id },
         data: { currentBalance: balance },
+      });
+
+      await prisma.balanceTransaction.create({
+        data: {
+          circleId: circle.id,
+          userId: session.user.id,
+          type: "SNAPSHOT",
+          isDelete: false,
+          amount: balance,
+          balanceBefore,
+          balanceAfter: balance,
+        },
       });
 
       results.push({ circleId: circle.id, balance });
@@ -65,7 +83,7 @@ export async function POST() {
     console.error("Balance initialization error:", error);
     return NextResponse.json(
       { error: "残高の初期化に失敗しました" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
