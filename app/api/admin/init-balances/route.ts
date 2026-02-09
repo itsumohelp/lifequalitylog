@@ -9,6 +9,13 @@ export async function POST() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  if (
+    !process.env.ADMIN_USER_ID ||
+    session.user.id !== process.env.ADMIN_USER_ID
+  ) {
+    return new NextResponse(null, { status: 404 });
+  }
+
   try {
     // 全サークルを取得
     const circles = await prisma.circle.findMany({
