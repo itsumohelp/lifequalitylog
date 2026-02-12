@@ -10,7 +10,8 @@ type HeaderProps = {
 
 export default function Header({ session }: HeaderProps) {
   const user = session?.user;
-  const displayName = (user as Record<string, unknown> | undefined)?.displayName as string | null;
+  const displayName = (user as Record<string, unknown> | undefined)
+    ?.displayName as string | null;
   const userName = displayName || user?.name || "未設定";
 
   // サーバーアクション：Googleで即サインイン → /dashboard
@@ -24,6 +25,9 @@ export default function Header({ session }: HeaderProps) {
     "use server";
     await signOut({ redirectTo: "/" });
   }
+
+  // 未ログイン時はヘッダーを表示しない
+  if (!user) return null;
 
   return (
     <header className="bg-sky-200">
@@ -82,7 +86,12 @@ export default function Header({ session }: HeaderProps) {
                   ) : (
                     <div
                       className="w-7 h-7 flex items-center justify-center text-[11px] text-white font-medium"
-                      style={{ backgroundColor: getAvatarColor((user as Record<string, unknown>).id as string || "default") }}
+                      style={{
+                        backgroundColor: getAvatarColor(
+                          ((user as Record<string, unknown>).id as string) ||
+                            "default",
+                        ),
+                      }}
                     >
                       {getAvatarInitial(userName)}
                     </div>

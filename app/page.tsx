@@ -2,6 +2,7 @@ import { auth, signIn } from "@/auth";
 import { redirect } from "next/navigation";
 import WebViewAlert from "@/app/components/WebViewAlert";
 import LoginForm from "@/app/components/LoginForm";
+import UsageDemo from "@/app/components/UsageDemo";
 
 type HomePageProps = {
   searchParams: Promise<{ callbackUrl?: string }>;
@@ -24,16 +25,18 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   async function handleGoogleLogin() {
     "use server";
     // callbackUrlを取得するためにクロージャで参照
-    const redirectTo = callbackUrl ? decodeURIComponent(callbackUrl) : "/dashboard";
+    const redirectTo = callbackUrl
+      ? decodeURIComponent(callbackUrl)
+      : "/dashboard";
     await signIn("google", { redirectTo });
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-white">
+    <main className="min-h-screen bg-slate-50">
       {/* WebViewの場合にブラウザで開くよう促すポップアップ */}
       <WebViewAlert />
 
-      <div className="w-full max-w-md mx-auto px-6 py-12">
+      <div className="w-full max-w-md mx-auto px-6 pt-2 pb-6">
         {/* ロゴ */}
         <div className="mb-8 text-center">
           <div className="flex justify-center mb-4">
@@ -75,15 +78,12 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </div>
 
         {/* カード */}
-        <div className="rounded-2xl bg-slate-50 border border-slate-200 p-6 shadow-sm">
-          <ul className="text-sm text-slate-800 leading-relaxed mb-6 space-y-2">
-            <li>・支出や収入をチャット感覚でサクッと記録</li>
-            <li>・家族・友人・サークルでお金の動きを共有</li>
-            <li>・タグ別・期間別のグラフで支出を見える化</li>
-          </ul>
-
+        <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-sm">
           <LoginForm action={handleGoogleLogin} />
         </div>
+
+        {/* 利用イメージ */}
+        <UsageDemo />
       </div>
     </main>
   );

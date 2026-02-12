@@ -28,8 +28,8 @@ export default function LoginForm({ action }: Props) {
             onClick={(e) => e.stopPropagation()}
           >
             利用規約
-          </Link>
-          {" "}と{" "}
+          </Link>{" "}
+          と{" "}
           <Link
             href="/privacy"
             target="_blank"
@@ -37,8 +37,8 @@ export default function LoginForm({ action }: Props) {
             onClick={(e) => e.stopPropagation()}
           >
             プライバシーポリシー
-          </Link>
-          {" "}に同意する
+          </Link>{" "}
+          に同意する
         </span>
       </label>
 
@@ -74,10 +74,6 @@ export default function LoginForm({ action }: Props) {
           <span>Googleでログイン</span>
         </button>
       </form>
-
-      <p className="mt-4 text-[11px] text-slate-400 text-center">
-        ※ 現在は Google アカウントのみ対応
-      </p>
     </div>
   );
 }
