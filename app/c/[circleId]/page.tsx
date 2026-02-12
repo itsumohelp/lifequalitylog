@@ -10,7 +10,9 @@ function formatYen(amount: number) {
 
 type PageParams = { params: Promise<{ circleId: string }> };
 
-export async function generateMetadata({ params }: PageParams): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageParams): Promise<Metadata> {
   const { circleId } = await params;
 
   const circle = await prisma.circle.findUnique({
@@ -27,8 +29,7 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
   const title = `${circle.name}の支出管理 | CircleRun`;
   const description = `残高: ¥${formatYen(circle.currentBalance)} - ${circle.name}のお金の流れをリアルタイムで共有`;
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://crun.click";
-  const ogImageUrl = `${baseUrl}/c/${circleId}/opengraph-image`;
+  const ogImageUrl = `/c/${circleId}/opengraph-image`;
 
   return {
     title,
@@ -131,7 +132,12 @@ export default async function PublicCirclePage({ params }: PageParams) {
   ]);
 
   // 各トランザクション時点のサークル残高を計算
-  type Transaction = { id: string; type: "expense" | "income" | "snapshot"; amount: number; createdAt: Date };
+  type Transaction = {
+    id: string;
+    type: "expense" | "income" | "snapshot";
+    amount: number;
+    createdAt: Date;
+  };
   const transactions: Transaction[] = [];
 
   for (const s of snapshots) {
@@ -234,7 +240,9 @@ export default async function PublicCirclePage({ params }: PageParams) {
       tags: i.tags,
       createdAt: i.createdAt.toISOString(),
     })),
-  ].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  ].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+  );
 
   return (
     <div className="h-dvh bg-white overflow-hidden">
