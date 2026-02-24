@@ -29,7 +29,10 @@ export async function GET(request: NextRequest) {
   const limit = parseInt(searchParams.get("limit") || "20", 10);
 
   if (!circleId) {
-    return NextResponse.json({ error: "circleId is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "circleId is required" },
+      { status: 400 },
+    );
   }
 
   // サークル情報を取得（公開設定も確認）
@@ -44,7 +47,10 @@ export async function GET(request: NextRequest) {
 
   // 非公開サークルの場合は403
   if (!circle.isPublic) {
-    return NextResponse.json({ error: "Circle is not public" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Circle is not public" },
+      { status: 403 },
+    );
   }
 
   const beforeDate = before ? new Date(before) : new Date();
@@ -58,7 +64,9 @@ export async function GET(request: NextRequest) {
     orderBy: { createdAt: "desc" },
     take: limit + 1,
     include: {
-      user: { select: { id: true, name: true, displayName: true, image: true } },
+      user: {
+        select: { id: true, name: true, displayName: true, image: true },
+      },
     },
   });
 
@@ -71,7 +79,9 @@ export async function GET(request: NextRequest) {
     orderBy: { createdAt: "desc" },
     take: limit + 1,
     include: {
-      user: { select: { id: true, name: true, displayName: true, image: true } },
+      user: {
+        select: { id: true, name: true, displayName: true, image: true },
+      },
     },
   });
 
@@ -84,7 +94,9 @@ export async function GET(request: NextRequest) {
     orderBy: { createdAt: "desc" },
     take: limit + 1,
     include: {
-      user: { select: { id: true, name: true, displayName: true, image: true } },
+      user: {
+        select: { id: true, name: true, displayName: true, image: true },
+      },
     },
   });
 
@@ -133,14 +145,51 @@ export async function GET(request: NextRequest) {
       tags: i.tags,
       createdAt: i.createdAt.toISOString(),
     })),
-  ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  ].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
 
   // limitを超える分があるかチェック
   const hasMore = allItems.length > limit;
   const feed = allItems.slice(0, limit);
 
+  // フィード内最古アイテムの直前の残高を計算
+  const oldestItem = feed.length > 0 ? feed[feed.length - 1] : null;
+  const oldestDate = oldestItem ? new Date(oldestItem.createdAt) : beforeDate;
+
+  const latestSnapshotBefore = await prisma.circleSnapshot.findFirst({
+    where: { circleId, createdAt: { lt: oldestDate } },
+    orderBy: { createdAt: "desc" },
+    select: { amount: true, createdAt: true },
+  });
+
+  let initialBalance = 0;
+  if (latestSnapshotBefore) {
+    const [expensesBetween, incomesBetween] = await Promise.all([
+      prisma.expense.aggregate({
+        where: {
+          circleId,
+          createdAt: { gt: latestSnapshotBefore.createdAt, lt: oldestDate },
+        },
+        _sum: { amount: true },
+      }),
+      prisma.income.aggregate({
+        where: {
+          circleId,
+          createdAt: { gt: latestSnapshotBefore.createdAt, lt: oldestDate },
+        },
+        _sum: { amount: true },
+      }),
+    ]);
+    initialBalance =
+      latestSnapshotBefore.amount -
+      (expensesBetween._sum.amount || 0) +
+      (incomesBetween._sum.amount || 0);
+  }
+
   return NextResponse.json({
     feed,
     hasMore,
+    initialBalance,
   });
 }

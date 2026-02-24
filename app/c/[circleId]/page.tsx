@@ -132,6 +132,38 @@ export default async function PublicCirclePage({ params }: PageParams) {
   ]);
 
   // 各トランザクション時点のサークル残高を計算
+  // 表示期間より前の最新スナップショットを起点にする
+  const latestSnapshotBefore = await prisma.circleSnapshot.findFirst({
+    where: { circleId, createdAt: { lt: sevenDaysAgo } },
+    orderBy: { createdAt: "desc" },
+    select: { amount: true, createdAt: true },
+  });
+
+  let initialBalance = 0;
+  if (latestSnapshotBefore) {
+    // スナップショット以降〜表示期間前のトランザクションを集計
+    const [expensesBetween, incomesBetween] = await Promise.all([
+      prisma.expense.aggregate({
+        where: {
+          circleId,
+          createdAt: { gt: latestSnapshotBefore.createdAt, lt: sevenDaysAgo },
+        },
+        _sum: { amount: true },
+      }),
+      prisma.income.aggregate({
+        where: {
+          circleId,
+          createdAt: { gt: latestSnapshotBefore.createdAt, lt: sevenDaysAgo },
+        },
+        _sum: { amount: true },
+      }),
+    ]);
+    initialBalance =
+      latestSnapshotBefore.amount -
+      (expensesBetween._sum.amount || 0) +
+      (incomesBetween._sum.amount || 0);
+  }
+
   type Transaction = {
     id: string;
     type: "expense" | "income" | "snapshot";
@@ -170,7 +202,7 @@ export default async function PublicCirclePage({ params }: PageParams) {
   transactions.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
   const circleBalanceAfterMap = new Map<string, number>();
-  let runningBalance = 0;
+  let runningBalance = initialBalance;
   for (const tx of transactions) {
     if (tx.type === "snapshot") {
       runningBalance = tx.amount;
@@ -254,6 +286,7 @@ export default async function PublicCirclePage({ params }: PageParams) {
             currentBalance: circle.currentBalance,
           }}
           feed={feed}
+          initialBalance={initialBalance}
           isLoggedIn={!!currentUserId}
           currentUserId={currentUserId}
         />

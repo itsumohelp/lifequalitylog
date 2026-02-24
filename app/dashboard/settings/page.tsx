@@ -39,10 +39,15 @@ export default function SettingsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
   const [selectedCircle, setSelectedCircle] = useState<Circle | null>(null);
   const [isLeaving, setIsLeaving] = useState(false);
-  const [selectedAdminCircle, setSelectedAdminCircle] = useState<Circle | null>(null);
+  const [selectedAdminCircle, setSelectedAdminCircle] = useState<Circle | null>(
+    null,
+  );
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoadingMembers, setIsLoadingMembers] = useState(false);
   const [isRemovingMember, setIsRemovingMember] = useState<string | null>(null);
@@ -186,16 +191,21 @@ export default function SettingsPage() {
           prev.map((c) =>
             c.id === selectedAdminCircle.id
               ? { ...c, isPublic: newIsPublic }
-              : c
-          )
+              : c,
+          ),
         );
         setMessage({
           type: "success",
-          text: newIsPublic ? "フィードを公開しました" : "フィードを非公開にしました",
+          text: newIsPublic
+            ? "フィードを公開しました"
+            : "フィードを非公開にしました",
         });
       } else {
         const data = await res.json();
-        setMessage({ type: "error", text: data.error || "設定の更新に失敗しました" });
+        setMessage({
+          type: "error",
+          text: data.error || "設定の更新に失敗しました",
+        });
       }
     } catch {
       setMessage({ type: "error", text: "通信エラーが発生しました" });
@@ -226,8 +236,8 @@ export default function SettingsPage() {
           prev.map((c) =>
             c.id === selectedAdminCircle.id
               ? { ...c, allowNewMembers: newAllowNewMembers }
-              : c
-          )
+              : c,
+          ),
         );
         setMessage({
           type: "success",
@@ -237,7 +247,10 @@ export default function SettingsPage() {
         });
       } else {
         const data = await res.json();
-        setMessage({ type: "error", text: data.error || "設定の更新に失敗しました" });
+        setMessage({
+          type: "error",
+          text: data.error || "設定の更新に失敗しました",
+        });
       }
     } catch {
       setMessage({ type: "error", text: "通信エラーが発生しました" });
@@ -246,10 +259,11 @@ export default function SettingsPage() {
     }
   };
 
-  // 公開URLをクリップボードにコピー
+  // 公開URLをクリップボードにコピー（SNSキャッシュ回避のためクエリ付与）
   const handleCopyUrl = () => {
     if (!selectedAdminCircle) return;
-    const url = `${window.location.origin}/c/${selectedAdminCircle.id}`;
+    const t = Math.floor(Date.now() / 1000);
+    const url = `${window.location.origin}/c/${selectedAdminCircle.id}?t=${t}`;
     navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -272,9 +286,12 @@ export default function SettingsPage() {
     setMessage(null);
 
     try {
-      const res = await fetch(`/api/circles/${selectedAdminCircle.id}/members/${memberId}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(
+        `/api/circles/${selectedAdminCircle.id}/members/${memberId}`,
+        {
+          method: "DELETE",
+        },
+      );
 
       if (res.ok) {
         setMembers((prev) => prev.filter((m) => m.userId !== memberId));
@@ -314,12 +331,12 @@ export default function SettingsPage() {
           prev.map((c) =>
             c.id === selectedAdminCircle.id
               ? { ...c, name: data.circle.name }
-              : c
-          )
+              : c,
+          ),
         );
         // モーダル内のサークル情報も更新
         setSelectedAdminCircle((prev) =>
-          prev ? { ...prev, name: data.circle.name } : null
+          prev ? { ...prev, name: data.circle.name } : null,
         );
         setIsEditingCircleName(false);
         setMessage({ type: "success", text: "サークル名を更新しました" });
@@ -347,7 +364,9 @@ export default function SettingsPage() {
       });
 
       if (res.ok) {
-        setCircles((prev) => prev.filter((c) => c.id !== selectedAdminCircle.id));
+        setCircles((prev) =>
+          prev.filter((c) => c.id !== selectedAdminCircle.id),
+        );
         setSelectedAdminCircle(null);
         setMessage({ type: "success", text: "サークルを削除しました" });
       } else {
@@ -418,7 +437,10 @@ export default function SettingsPage() {
         setMessage({ type: "success", text: "サークルを作成しました" });
       } else {
         const data = await res.json();
-        setMessage({ type: "error", text: data.error || "サークルの作成に失敗しました" });
+        setMessage({
+          type: "error",
+          text: data.error || "サークルの作成に失敗しました",
+        });
       }
     } catch {
       setMessage({ type: "error", text: "通信エラーが発生しました" });
@@ -517,14 +539,18 @@ export default function SettingsPage() {
                 )}
               </div>
               <div>
-                <div className="text-slate-900 font-medium">{user.displayName || user.name || "未設定"}</div>
+                <div className="text-slate-900 font-medium">
+                  {user.displayName || user.name || "未設定"}
+                </div>
               </div>
             </div>
 
             {/* Googleアイコン削除 */}
             {user.image && (
               <div className="bg-slate-50 rounded-xl p-4">
-                <h2 className="text-sm font-medium text-slate-700 mb-3">プロフィール画像</h2>
+                <h2 className="text-sm font-medium text-slate-700 mb-3">
+                  プロフィール画像
+                </h2>
                 <p className="text-xs text-slate-500 mb-3">
                   Googleアカウントのプロフィール画像を使用しています。削除すると自動生成アイコンに切り替わります。
                 </p>
@@ -544,7 +570,9 @@ export default function SettingsPage() {
 
             {/* 表示名設定 */}
             <div className="bg-slate-50 rounded-xl p-4">
-              <h2 className="text-sm font-medium text-slate-700 mb-3">表示名</h2>
+              <h2 className="text-sm font-medium text-slate-700 mb-3">
+                表示名
+              </h2>
               <div className="space-y-3">
                 <div>
                   <label className="text-xs text-slate-500 block mb-1">
@@ -575,7 +603,9 @@ export default function SettingsPage() {
                 所属サークル（{circles.length}/5）
               </h2>
               {circles.length === 0 ? (
-                <p className="text-sm text-slate-500">所属しているサークルはありません</p>
+                <p className="text-sm text-slate-500">
+                  所属しているサークルはありません
+                </p>
               ) : (
                 <div className="space-y-2">
                   {circles.map((circle) => (
@@ -771,7 +801,9 @@ export default function SettingsPage() {
                       <button
                         type="button"
                         onClick={handleSaveCircleName}
-                        disabled={isSavingCircleName || !editingCircleName.trim()}
+                        disabled={
+                          isSavingCircleName || !editingCircleName.trim()
+                        }
                         className="flex-1 bg-slate-900 text-white rounded-lg px-3 py-1.5 text-xs font-medium disabled:opacity-50"
                       >
                         {isSavingCircleName ? "保存中..." : "保存"}
@@ -817,7 +849,9 @@ export default function SettingsPage() {
                   メンバー（{members.length}人）
                 </h4>
                 {isLoadingMembers ? (
-                  <div className="text-sm text-slate-500 py-2">読み込み中...</div>
+                  <div className="text-sm text-slate-500 py-2">
+                    読み込み中...
+                  </div>
                 ) : (
                   <div className="space-y-2">
                     {members.map((member) => (
@@ -837,7 +871,9 @@ export default function SettingsPage() {
                           ) : (
                             <div
                               className="w-8 h-8 flex items-center justify-center text-sm text-white font-medium"
-                              style={{ backgroundColor: getAvatarColor(member.userId) }}
+                              style={{
+                                backgroundColor: getAvatarColor(member.userId),
+                              }}
                             >
                               {getAvatarInitial(member.name)}
                             </div>
@@ -862,7 +898,9 @@ export default function SettingsPage() {
                             disabled={isRemovingMember === member.userId}
                             className="text-xs text-red-600 hover:text-red-700 disabled:opacity-50"
                           >
-                            {isRemovingMember === member.userId ? "削除中..." : "削除"}
+                            {isRemovingMember === member.userId
+                              ? "削除中..."
+                              : "削除"}
                           </button>
                         )}
                       </div>
@@ -878,7 +916,9 @@ export default function SettingsPage() {
                 </h4>
                 <div className="flex items-center justify-between bg-white border border-slate-200 rounded-lg px-3 py-3">
                   <div>
-                    <div className="text-sm text-slate-700">新規メンバーの参加を許可</div>
+                    <div className="text-sm text-slate-700">
+                      新規メンバーの参加を許可
+                    </div>
                     <div className="text-xs text-slate-500">
                       OFFにすると招待リンクでの参加を停止できます
                     </div>
@@ -928,7 +968,9 @@ export default function SettingsPage() {
                 </h4>
                 <div className="flex items-center justify-between bg-white border border-slate-200 rounded-lg px-3 py-3">
                   <div>
-                    <div className="text-sm text-slate-700">フィードを公開する</div>
+                    <div className="text-sm text-slate-700">
+                      フィードを公開する
+                    </div>
                     <div className="text-xs text-slate-500">
                       URLを知っている人は誰でも閲覧可能
                     </div>
@@ -1022,7 +1064,9 @@ export default function SettingsPage() {
 
         {/* お問い合わせ・リンク */}
         <div className="mt-6 border-t border-slate-200 pt-4">
-          <h3 className="text-sm font-medium text-slate-700 mb-3">お問い合わせ</h3>
+          <h3 className="text-sm font-medium text-slate-700 mb-3">
+            お問い合わせ
+          </h3>
           <div className="space-y-2">
             <a
               href="https://docs.google.com/forms/d/e/1FAIpQLSfhB8vxhCqwYbtJf7tFUIxb5wHAZ1e-Gd-sRo7LtwLmF9Qznw/viewform?usp=header"
@@ -1030,9 +1074,37 @@ export default function SettingsPage() {
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-lg px-3 py-2.5 transition"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                <polyline points="22,6 12,13 2,6" />
+              </svg>
               お問い合わせフォーム
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-auto text-slate-400"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="ml-auto text-slate-400"
+              >
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
             </a>
             <a
               href="https://discord.gg/3gcKp8ht"
@@ -1040,17 +1112,56 @@ export default function SettingsPage() {
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 bg-white border border-slate-200 rounded-lg px-3 py-2.5 transition"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.095 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.095 2.157 2.42 0 1.333-.947 2.418-2.157 2.418z"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.095 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.095 2.157 2.42 0 1.333-.947 2.418-2.157 2.418z" />
+              </svg>
               Discordコミュニティ
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-auto text-slate-400"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="ml-auto text-slate-400"
+              >
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
             </a>
           </div>
           <div className="mt-3 flex justify-center flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-400">
-            <a href="/terms" target="_blank" rel="noopener noreferrer" className="hover:text-slate-600 underline">利用規約</a>
+            <a
+              href="/terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-slate-600 underline"
+            >
+              利用規約
+            </a>
             <span>|</span>
-            <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-600 underline">プライバシーポリシー</a>
+            <a
+              href="/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-slate-600 underline"
+            >
+              プライバシーポリシー
+            </a>
             <span>|</span>
-            <a href="/licenses" className="hover:text-slate-600 underline">ライセンス</a>
+            <a href="/licenses" className="hover:text-slate-600 underline">
+              ライセンス
+            </a>
           </div>
           {/* バージョンID */}
           <div className="mt-2 text-center text-[10px] text-slate-300">

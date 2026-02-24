@@ -5,7 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { getCategoryEmoji } from "@/lib/expenseParser";
 import { getAvatarColor, getAvatarInitial } from "@/lib/avatar";
-import type { ExpenseCategory, ReactionType } from "@/app/generated/prisma/enums";
+import type {
+  ExpenseCategory,
+  ReactionType,
+} from "@/app/generated/prisma/enums";
 
 type ReactionData = {
   counts: Record<ReactionType, number>;
@@ -39,6 +42,7 @@ type Props = {
     currentBalance: number;
   };
   feed: FeedItem[];
+  initialBalance: number;
   isLoggedIn: boolean;
   currentUserId: string | null;
 };
@@ -63,8 +67,34 @@ function formatDate(dateStr: string) {
   });
 }
 
-export default function PublicFeed({ circle, feed: initialFeed, isLoggedIn, currentUserId }: Props) {
+// フィード全体の circleBalanceAfter を再計算する
+function recalcBalanceAfter(
+  feed: FeedItem[],
+  startBalance: number,
+): FeedItem[] {
+  let running = startBalance;
+  return feed.map((item) => {
+    if (item.kind === "snapshot") {
+      running = item.amount;
+    } else if (item.kind === "expense") {
+      running += item.amount; // amount is already negative for expenses
+    } else if (item.kind === "income") {
+      running += item.amount;
+    }
+    return { ...item, circleBalanceAfter: running };
+  });
+}
+
+export default function PublicFeed({
+  circle,
+  feed: initialFeed,
+  initialBalance,
+  isLoggedIn,
+  currentUserId,
+}: Props) {
   const [localFeed, setLocalFeed] = useState<FeedItem[]>(initialFeed);
+  const [currentInitialBalance, setCurrentInitialBalance] =
+    useState(initialBalance);
   const [reactions, setReactions] = useState<Record<string, ReactionData>>({});
   const [reactionsLoading, setReactionsLoading] = useState(false);
   const [togglingReaction, setTogglingReaction] = useState<string | null>(null);
@@ -75,7 +105,10 @@ export default function PublicFeed({ circle, feed: initialFeed, isLoggedIn, curr
   // 特定のアイテムのリアクションを取得
   const fetchReactionsForItems = useCallback(async (items: FeedItem[]) => {
     const targetItems = items.filter(
-      (item) => item.kind === "expense" || item.kind === "income" || item.kind === "snapshot"
+      (item) =>
+        item.kind === "expense" ||
+        item.kind === "income" ||
+        item.kind === "snapshot",
     );
     if (targetItems.length === 0) return;
 
@@ -84,7 +117,9 @@ export default function PublicFeed({ circle, feed: initialFeed, isLoggedIn, curr
       .join(",");
 
     try {
-      const res = await fetch(`/api/reactions?targets=${encodeURIComponent(targets)}`);
+      const res = await fetch(
+        `/api/reactions?targets=${encodeURIComponent(targets)}`,
+      );
       if (res.ok) {
         const data = await res.json();
         setReactions((prev) => ({ ...prev, ...(data.reactions || {}) }));
@@ -99,11 +134,14 @@ export default function PublicFeed({ circle, feed: initialFeed, isLoggedIn, curr
     if (isLoadingHistory) return;
 
     // 現在の最古のアイテムを取得
-    const oldestItem = localFeed.length > 0
-      ? localFeed.reduce((oldest, item) =>
-          new Date(item.createdAt) < new Date(oldest.createdAt) ? item : oldest
-        )
-      : null;
+    const oldestItem =
+      localFeed.length > 0
+        ? localFeed.reduce((oldest, item) =>
+            new Date(item.createdAt) < new Date(oldest.createdAt)
+              ? item
+              : oldest,
+          )
+        : null;
 
     const beforeTimestamp = oldestItem
       ? new Date(oldestItem.createdAt).toISOString()
@@ -113,22 +151,29 @@ export default function PublicFeed({ circle, feed: initialFeed, isLoggedIn, curr
 
     try {
       const res = await fetch(
-        `/api/feed/public?circleId=${circle.id}&before=${encodeURIComponent(beforeTimestamp)}&limit=20`
+        `/api/feed/public?circleId=${circle.id}&before=${encodeURIComponent(beforeTimestamp)}&limit=20`,
       );
       if (res.ok) {
         const data = await res.json();
         const newItems = data.feed as FeedItem[];
 
         if (newItems.length > 0) {
-          // 重複を除外して追加
+          const newInitialBalance = data.initialBalance as number;
+          // 重複を除外して追加し、残高を再計算
           setLocalFeed((prev) => {
             const existingIds = new Set(prev.map((item) => item.id));
-            const uniqueNewItems = newItems.filter((item) => !existingIds.has(item.id));
-            // 時系列順にソート（古い順）
-            return [...uniqueNewItems, ...prev].sort(
-              (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+            const uniqueNewItems = newItems.filter(
+              (item) => !existingIds.has(item.id),
             );
+            // 時系列順にソート（古い順）
+            const merged = [...uniqueNewItems, ...prev].sort(
+              (a, b) =>
+                new Date(a.createdAt).getTime() -
+                new Date(b.createdAt).getTime(),
+            );
+            return recalcBalanceAfter(merged, newInitialBalance);
           });
+          setCurrentInitialBalance(newInitialBalance);
           // 新しいアイテムのリアクションを取得
           fetchReactionsForItems(newItems);
         }
@@ -145,7 +190,10 @@ export default function PublicFeed({ circle, feed: initialFeed, isLoggedIn, curr
   // リアクションを取得（初回ロード用）
   const fetchReactions = useCallback(async () => {
     const targetItems = localFeed.filter(
-      (item) => item.kind === "expense" || item.kind === "income" || item.kind === "snapshot"
+      (item) =>
+        item.kind === "expense" ||
+        item.kind === "income" ||
+        item.kind === "snapshot",
     );
     if (targetItems.length === 0) return;
 
@@ -155,7 +203,9 @@ export default function PublicFeed({ circle, feed: initialFeed, isLoggedIn, curr
 
     setReactionsLoading(true);
     try {
-      const res = await fetch(`/api/reactions?targets=${encodeURIComponent(targets)}`);
+      const res = await fetch(
+        `/api/reactions?targets=${encodeURIComponent(targets)}`,
+      );
       if (res.ok) {
         const data = await res.json();
         setReactions(data.reactions || {});
@@ -202,9 +252,14 @@ export default function PublicFeed({ circle, feed: initialFeed, isLoggedIn, curr
               updated[itemKey] = {
                 counts: {
                   ...updated[itemKey].counts,
-                  [reactionType]: Math.max(0, updated[itemKey].counts[reactionType] - 1),
+                  [reactionType]: Math.max(
+                    0,
+                    updated[itemKey].counts[reactionType] - 1,
+                  ),
                 },
-                userReactions: updated[itemKey].userReactions.filter((r) => r !== reactionType),
+                userReactions: updated[itemKey].userReactions.filter(
+                  (r) => r !== reactionType,
+                ),
               };
             }
             return updated;
@@ -248,12 +303,15 @@ export default function PublicFeed({ circle, feed: initialFeed, isLoggedIn, curr
   };
 
   // 日付ごとにグループ化
-  const groupedByDate = localFeed.reduce<Record<string, FeedItem[]>>((acc, item) => {
-    const dateKey = formatDate(item.createdAt);
-    if (!acc[dateKey]) acc[dateKey] = [];
-    acc[dateKey].push(item);
-    return acc;
-  }, {});
+  const groupedByDate = localFeed.reduce<Record<string, FeedItem[]>>(
+    (acc, item) => {
+      const dateKey = formatDate(item.createdAt);
+      if (!acc[dateKey]) acc[dateKey] = [];
+      acc[dateKey].push(item);
+      return acc;
+    },
+    {},
+  );
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
@@ -301,7 +359,8 @@ export default function PublicFeed({ circle, feed: initialFeed, isLoggedIn, curr
             <div className="space-y-2">
               {items.map((item, idx) => {
                 const prevItem = idx > 0 ? items[idx - 1] : null;
-                const isSameUserAsPrev = prevItem && prevItem.userId === item.userId;
+                const isSameUserAsPrev =
+                  prevItem && prevItem.userId === item.userId;
                 const isOwnMessage = item.userId === currentUserId;
                 const itemKey = `${item.kind}:${item.id.replace(`${item.kind}-`, "")}`;
                 const reactionData = reactions[itemKey];
@@ -327,7 +386,9 @@ export default function PublicFeed({ circle, feed: initialFeed, isLoggedIn, curr
                         ) : (
                           <div
                             className="w-8 h-8 flex items-center justify-center text-xs text-white font-medium"
-                            style={{ backgroundColor: getAvatarColor(item.userId) }}
+                            style={{
+                              backgroundColor: getAvatarColor(item.userId),
+                            }}
                           >
                             {getAvatarInitial(item.userName)}
                           </div>
@@ -336,7 +397,9 @@ export default function PublicFeed({ circle, feed: initialFeed, isLoggedIn, curr
                     )}
 
                     {/* メッセージ部分 */}
-                    <div className={`max-w-[70%] ${isOwnMessage ? "items-end" : ""}`}>
+                    <div
+                      className={`max-w-[70%] ${isOwnMessage ? "items-end" : ""}`}
+                    >
                       {/* 投稿者名（バブルの上、連続投稿時は非表示） */}
                       {!isSameUserAsPrev && (
                         <div
@@ -372,7 +435,9 @@ export default function PublicFeed({ circle, feed: initialFeed, isLoggedIn, curr
                             {/* カテゴリ絵文字 + 金額 + 残高 + タグバッジ */}
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <span className="text-sm">
-                                {getCategoryEmoji((item.category || "OTHER") as ExpenseCategory)}
+                                {getCategoryEmoji(
+                                  (item.category || "OTHER") as ExpenseCategory,
+                                )}
                               </span>
                               <span
                                 className={`font-semibold text-sm ${
@@ -384,7 +449,9 @@ export default function PublicFeed({ circle, feed: initialFeed, isLoggedIn, curr
                               {item.circleBalanceAfter !== undefined && (
                                 <span
                                   className={`text-xs ${
-                                    isOwnMessage ? "text-slate-400" : "text-slate-500"
+                                    isOwnMessage
+                                      ? "text-slate-400"
+                                      : "text-slate-500"
                                   }`}
                                 >
                                   (¥{formatYen(item.circleBalanceAfter)})
@@ -415,7 +482,9 @@ export default function PublicFeed({ circle, feed: initialFeed, isLoggedIn, curr
                               <span className="text-sm">💰</span>
                               <span
                                 className={`font-semibold text-sm ${
-                                  isOwnMessage ? "text-emerald-300" : "text-emerald-600"
+                                  isOwnMessage
+                                    ? "text-emerald-300"
+                                    : "text-emerald-600"
                                 }`}
                               >
                                 +¥{formatYen(item.amount)}
@@ -452,7 +521,9 @@ export default function PublicFeed({ circle, feed: initialFeed, isLoggedIn, curr
                               {item.snapshotDiff !== undefined && (
                                 <span
                                   className={`text-xs ${
-                                    isOwnMessage ? "text-slate-400" : "text-slate-500"
+                                    isOwnMessage
+                                      ? "text-slate-400"
+                                      : "text-slate-500"
                                   }`}
                                 >
                                   {item.snapshotDiff === null
@@ -466,7 +537,9 @@ export default function PublicFeed({ circle, feed: initialFeed, isLoggedIn, curr
                             {item.note && (
                               <p
                                 className={`text-[10px] mt-0.5 ${
-                                  isOwnMessage ? "text-slate-300" : "text-slate-600"
+                                  isOwnMessage
+                                    ? "text-slate-300"
+                                    : "text-slate-600"
                                 }`}
                               >
                                 {item.note}
@@ -482,29 +555,46 @@ export default function PublicFeed({ circle, feed: initialFeed, isLoggedIn, curr
                           isOwnMessage ? "justify-end" : "justify-start"
                         }`}
                       >
-                        {(["CHECK", "GOOD", "BAD", "DOGEZA"] as ReactionType[]).map((type) => {
+                        {(
+                          ["CHECK", "GOOD", "BAD", "DOGEZA"] as ReactionType[]
+                        ).map((type) => {
                           const count = reactionData?.counts[type] || 0;
-                          const hasReacted = reactionData?.userReactions.includes(type);
-                          const isToggling = togglingReaction === `${item.id}:${type}`;
-                          const emoji = type === "CHECK" ? "✅" : type === "GOOD" ? "👍" : type === "BAD" ? "👎" : "🙇";
+                          const hasReacted =
+                            reactionData?.userReactions.includes(type);
+                          const isToggling =
+                            togglingReaction === `${item.id}:${type}`;
+                          const emoji =
+                            type === "CHECK"
+                              ? "✅"
+                              : type === "GOOD"
+                                ? "👍"
+                                : type === "BAD"
+                                  ? "👎"
+                                  : "🙇";
 
                           return (
                             <button
                               key={type}
                               type="button"
                               onClick={() => toggleReaction(item, type)}
-                              disabled={!isLoggedIn || reactionsLoading || !!togglingReaction}
+                              disabled={
+                                !isLoggedIn ||
+                                reactionsLoading ||
+                                !!togglingReaction
+                              }
                               className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs transition ${
                                 hasReacted
                                   ? "bg-slate-700 text-white"
                                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                              } ${(reactionsLoading || isToggling) ? "opacity-50" : ""} ${
+                              } ${reactionsLoading || isToggling ? "opacity-50" : ""} ${
                                 !isLoggedIn ? "cursor-default" : ""
                               }`}
                             >
                               <span className="text-[11px]">{emoji}</span>
                               {count > 0 && (
-                                <span className="text-[10px] min-w-[12px] text-center">{count}</span>
+                                <span className="text-[10px] min-w-[12px] text-center">
+                                  {count}
+                                </span>
                               )}
                             </button>
                           );
