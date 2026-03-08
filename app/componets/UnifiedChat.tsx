@@ -54,6 +54,7 @@ type Circle = {
   id: string;
   name: string;
   adminName: string;
+  isPublic?: boolean;
 };
 
 type CircleBalance = {
@@ -195,10 +196,27 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
   const [togglingReaction, setTogglingReaction] = useState<string | null>(null); // "itemId:type"
   const [hasMoreHistory, setHasMoreHistory] = useState<Record<string, boolean>>({}); // circleId -> hasMore
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [showShareNotEnabledDialog, setShowShareNotEnabledDialog] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const selectedCircle = circles.find((c) => c.id === selectedCircleId);
+
+  // シェアボタン処理
+  const handleShare = () => {
+    if (!selectedCircle?.isPublic) {
+      setShowShareNotEnabledDialog(true);
+      return;
+    }
+    const t = Math.floor(Date.now() / 1000);
+    const url = `${window.location.origin}/c/${selectedCircle.id}?t=${t}`;
+    if (navigator.share) {
+      navigator.share({ url });
+    } else {
+      const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}`;
+      window.open(twitterUrl, "_blank", "noopener,noreferrer");
+    }
+  };
 
   // ユーザーがサークルの編集権限を持っているかチェック
   const canEditCircle = (circleId: string) => {
@@ -1486,18 +1504,19 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
             </svg>
           </Link>
 
-          {/* 更新ボタン */}
+          {/* シェアボタン */}
           <button
             type="button"
-            onClick={() => window.location.reload()}
+            onClick={handleShare}
             className="flex-shrink-0 p-2.5 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 active:bg-slate-300 active:scale-95 transition"
-            title="更新"
+            title="シェア"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-              <path d="M3 3v5h5" />
-              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-              <path d="M16 16h5v5" />
+              <circle cx="18" cy="5" r="3" />
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="19" r="3" />
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
             </svg>
           </button>
 
@@ -1593,6 +1612,36 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
       </div>
 
       {/* サークル追加モーダル */}
+      {/* シェア未許可ダイアログ */}
+      {showShareNotEnabledDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-sm p-5">
+            <h3 className="text-base font-semibold text-slate-900 mb-2">
+              シェアが許可されていません
+            </h3>
+            <p className="text-sm text-slate-600 mb-4">
+              設定画面からシェアをONにしてください。
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setShowShareNotEnabledDialog(false)}
+                className="flex-1 bg-slate-100 text-slate-700 rounded-lg px-4 py-2 text-sm font-medium"
+              >
+                閉じる
+              </button>
+              <a
+                href="/dashboard/settings"
+                className="flex-1 bg-slate-900 text-white rounded-lg px-4 py-2 text-sm font-medium text-center"
+                onClick={() => setShowShareNotEnabledDialog(false)}
+              >
+                設定へ
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       {isCircleModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl w-full max-w-sm p-4">
