@@ -53,7 +53,7 @@ export default async function DashboardPage() {
   const hasCircles = circleIds.length > 0;
 
   let feed: FeedItem[] = [];
-  let circles: { id: string; name: string; adminName: string }[] = [];
+  let circles: { id: string; name: string; adminName: string; isPublic: boolean }[] = [];
   let circleBalances: { circleId: string; circleName: string; balance: number; monthlyExpense: number; allTimeExpense: number }[] = [];
   let totalBalance = 0;
   let monthlyExpense = 0;
@@ -69,6 +69,7 @@ export default async function DashboardPage() {
         id: true,
         name: true,
         currentBalance: true,
+        isPublic: true,
         members: {
           where: { role: "ADMIN" },
           select: {
@@ -88,6 +89,7 @@ export default async function DashboardPage() {
       id: c.id,
       name: c.name,
       adminName: c.members[0]?.user?.displayName || c.members[0]?.user?.name || "未設定",
+      isPublic: c.isPublic,
     }));
 
     // 残高スナップショットを取得（全サークル分）
