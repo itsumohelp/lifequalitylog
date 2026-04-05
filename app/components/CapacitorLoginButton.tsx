@@ -37,8 +37,8 @@ export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
 
   const handleLogin = async () => {
     if (!Browser) return;
-    // Open the normal sign-in page — the exact same web auth flow that already works.
-    await Browser.open({ url: `${SERVER_URL}/` });
+    // Open /ios-signin which auto-starts Google OAuth — skips showing the login page again.
+    await Browser.open({ url: `${SERVER_URL}/ios-signin` });
   };
 
   if (!Browser && typeof window !== "undefined" && !(window as any).Capacitor) {
