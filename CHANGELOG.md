@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.13] - 2026-04-05
+
+### Fixed
+- **iOS Login UX**: Eliminated the redundant login page shown in SFSafariViewController. `CapacitorLoginButton` now opens `/ios-signin` which auto-fetches a CSRF token and submits directly to Google OAuth — the user goes straight to Google without seeing the login page again.
+
+---
+
+### 修正
+- **iOSログインUX改善**: SFSafariViewControllerで再度ログイン画面が表示される問題を修正。`CapacitorLoginButton`が`/ios-signin`を開き、CSRFトークンを自動取得してGoogle OAuthに直接遷移。ユーザーがログインページを2回見ることなくスムーズにGoogleログインへ進む。
+
 ## [0.0.12] - 2026-04-05
 
 ### Fixed
