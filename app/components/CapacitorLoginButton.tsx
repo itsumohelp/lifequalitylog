@@ -32,8 +32,11 @@ export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
             credentials: "include",
           });
           // Navigate to dashboard without adding to history (avoids flash of home page)
-          await Browser.close();
-          window.location.replace("https://crun.click/dashboard");
+          // sessionStorageにフラグを立てた後、Swiftにdashboard遷移を依頼
+          // dashboard側がロード完了後にBrowser.close()を呼ぶことで
+          // 「ブラウザが閉じた瞬間にdashboardが表示済み」を保証する
+          sessionStorage.setItem("pendingBrowserClose", "true");
+          (window as any).webkit?.messageHandlers?.navigateToDashboard?.postMessage({});
         }
       } catch {}
     }, 2000);

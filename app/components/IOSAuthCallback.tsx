@@ -9,9 +9,13 @@ export default function IOSAuthCallback() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
+    // CapacitorLoginButtonがフラグを立てた場合: dashboard完全ロード後にブラウザを閉じる
+    if (sessionStorage.getItem("pendingBrowserClose") === "true") {
+      sessionStorage.removeItem("pendingBrowserClose");
+      import("@capacitor/browser").then(({ Browser }) => Browser.close());
+      return;
+    }
     if (searchParams.get("iosCallback") === "1") {
-      // Redirect to URL scheme — SFSafariVC cannot handle it, so iOS closes it
-      // and opens the app, triggering browserFinished in CapacitorLoginButton.
       window.location.href = "click.crun.circlerun://auth-complete";
     }
   }, [searchParams]);
