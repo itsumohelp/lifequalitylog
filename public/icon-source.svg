@@ -1,0 +1,27 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="224" fill="#ffffff"/>
+
+  <!-- Outer arc (C shape) -->
+  <circle
+    cx="512"
+    cy="512"
+    r="280"
+    stroke="#0ea5e9"
+    stroke-width="72"
+    stroke-linecap="round"
+    stroke-dasharray="1320 480"
+    transform="rotate(-45 512 512)"
+    fill="none"
+  />
+
+  <!-- R letterform -->
+  <path
+    d="M420 328h128a96 96 0 0 1 0 192H420v192M548 520l128 192"
+    stroke="#0f172a"
+    stroke-width="72"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+</svg>

@@ -17,8 +17,7 @@ export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
   const handleLogin = async () => {
     if (!Browser) return;
 
-    const callbackUrl = encodeURIComponent("/dashboard");
-    const signinUrl = `${SERVER_URL}/api/auth/signin/google?callbackUrl=${callbackUrl}`;
+    const signinUrl = `${SERVER_URL}/ios-signin`;
 
     await Browser.open({ url: signinUrl, windowName: "_self" });
 
