@@ -1,62 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { registerPlugin } from "@capacitor/core";
 
-const SERVER_URL = "https://crun.click";
+const IOSAuthPlugin = registerPlugin<{ startGoogleAuth: () => Promise<{ url: string }> }>("IOSAuthPlugin");
 
 export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
-  const [Browser, setBrowser] = useState<any>(null);
+  const [isCapacitor, setIsCapacitor] = useState(false);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !(window as any).Capacitor) return;
-
-    import("@capacitor/browser").then(({ Browser: B }) => {
-      setBrowser(B);
-
-      let checking = false;
-      // On every page load inside SFSafariViewController, check if the user is now logged in.
-      // Once Google OAuth completes and /dashboard loads, session exists → close browser automatically.
-      B.addListener("browserPageLoaded", async () => {
-        if (checking) return;
-        checking = true;
-        try {
-          const res = await fetch(`${SERVER_URL}/api/auth/session`);
-          const data = await res.json();
-          if (data?.user) {
-            await B.close();
-            window.location.href = "/dashboard";
-          }
-        } catch {
-          // ignore network errors during OAuth steps
-        } finally {
-          checking = false;
-        }
-      });
-
-      // If user manually closes SFSafariVC, reload to reflect login state
-      B.addListener("browserFinished", async () => {
-        try {
-          const res = await fetch(`${SERVER_URL}/api/auth/session`);
-          const data = await res.json();
-          if (data?.user) {
-            window.location.href = "/dashboard";
-          }
-        } catch {
-          // ignore
-        }
-      });
-    });
+    setIsCapacitor(typeof window !== "undefined" && !!(window as any).Capacitor);
   }, []);
 
   const handleLogin = async () => {
-    if (!Browser) return;
-    // Open /ios-signin which auto-starts Google OAuth — skips showing the login page again.
-    await Browser.open({ url: `${SERVER_URL}/ios-signin` });
+    try {
+      await IOSAuthPlugin.startGoogleAuth();
+      // ASWebAuthenticationSession closes automatically after OAuth.
+      // IOSAuthPlugin.swift navigates WKWebView to /dashboard on success.
+    } catch (e: any) {
+      if (e?.message !== "Cancelled") {
+        console.error("Auth error:", e);
+      }
+    }
   };
 
-  if (!Browser && typeof window !== "undefined" && !(window as any).Capacitor) {
-    return null;
-  }
+  if (!isCapacitor) return null;
 
   return (
     <button
@@ -79,4 +47,5 @@ export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
     </button>
   );
 }
+
 
