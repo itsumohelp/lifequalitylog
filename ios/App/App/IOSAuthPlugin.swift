@@ -7,7 +7,7 @@ public class IOSAuthPlugin: CAPPlugin, ASWebAuthenticationPresentationContextPro
 
     private var authSession: ASWebAuthenticationSession?
 
-    @objc func startGoogleAuth(_ call: CAPPluginCall) {
+    @objc public func startGoogleAuth(_ call: CAPPluginCall) {
         let pollId = call.getString("pollId") ?? ""
         guard let authURL = URL(string: "https://crun.click/ios-signin?pollId=\(pollId)") else {
             call.reject("Invalid auth URL")
@@ -20,18 +20,21 @@ public class IOSAuthPlugin: CAPPlugin, ASWebAuthenticationPresentationContextPro
             let session = ASWebAuthenticationSession(
                 url: authURL,
                 callbackURLScheme: "click.crun.circlerun"
-            ) { _, error in
+            ) { [weak self] _, error in
                 if let error = error as? ASWebAuthenticationSessionError,
                    error.code == .canceledLogin {
                     call.reject("Cancelled")
                     return
                 }
-                // 完了: pollがセッション設定とdashboard遷移を制御する
+                // OAuth完了をJSに即通知してpollを即時実行させる
+                DispatchQueue.main.async {
+                    self?.bridge?.webView?.evaluateJavaScript("window.__authSessionCompleted && window.__authSessionCompleted()")
+                }
                 call.resolve()
             }
 
-            // ダイアログ無し・ブラウザUI無し
-            session.prefersEphemeralWebBrowserSession = true
+            // Safariのログイン状態を共有（初回のみ確認ダイアログ）
+            session.prefersEphemeralWebBrowserSession = false
             session.presentationContextProvider = self
             self.authSession = session
             session.start()

@@ -1,6 +1,11 @@
 "use client";
 
 import { useRef, useEffect } from "react";
+import { registerPlugin } from "@capacitor/core";
+
+const IOSAuth = registerPlugin<{
+  startGoogleAuth: (opts: { pollId: string }) => Promise<void>;
+}>("IOSAuthPlugin");
 
 export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -21,25 +26,29 @@ export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
     return false;
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     const pollId = crypto.randomUUID();
 
-    // Swift OAuth完了時に即時チェックするコールバックを登録
+    // Swift OAuth完了時に即時チェック
     (window as any).__authSessionCompleted = async () => {
       const found = await checkPoll(pollId);
-      // 念のため見つからなかった場合は通常pollに任せる
       if (!found) {
         pollRef.current = setInterval(() => checkPoll(pollId), 2000);
       }
     };
 
-    // 通常poll（ASWebAuthenticationSessionがキャンセルされた場合などのフォールバック）
+    // フォールバック用poll
     pollRef.current = setInterval(() => checkPoll(pollId), 2000);
 
-    (window as any).webkit?.messageHandlers?.startAuth?.postMessage({ pollId });
+    try {
+      await IOSAuth.startGoogleAuth({ pollId });
+    } catch {
+      // キャンセル時はpollをクリア
+      clearInterval(pollRef.current!);
+      delete (window as any).__authSessionCompleted;
+    }
   };
 
-  // アンマウント時にクリーンアップ
   useEffect(() => {
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);

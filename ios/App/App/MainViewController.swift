@@ -9,6 +9,11 @@ class MainViewController: CAPBridgeViewController, WKScriptMessageHandler, ASWeb
 
     override func viewDidLoad() {
         super.viewDidLoad()
+    }
+
+    override func webViewDidLoad() {
+        super.webViewDidLoad()
+        // webViewがCapacitorによって確実に初期化された後にハンドラを登録する
         webView?.configuration.userContentController.add(self, name: "startAuth")
     }
 
