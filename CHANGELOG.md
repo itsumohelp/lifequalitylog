@@ -5,7 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.20] - 2026-04-05
+## [0.0.21] - 2026-04-05
+
+### Fixed
+- **Emoji display (definitive fix)**: Replaced all emoji text rendering with Twemoji SVG images (`<img>` via CDN). Eliminates all font/encoding dependency in WKWebView. Affects reaction buttons (✅👍👎🙇) and expense category icons (🍽️🛒🚃🎮💡🏥📝).
+- **iOS login: SFSafariVC not closing after OAuth**: Replaced JS URL scheme redirect (blocked on iOS 16.4+) with WKWebView polling. WKWebView generates a `pollId`, opens SFSafariVC, and polls `/api/auth/ios-poll` every 2 seconds. When OAuth completes, `/api/auth/ios-callback` stores a signed JWT keyed by `pollId`. WKWebView receives the token, calls `Browser.close()` to close SFSafariVC, then navigates to `/api/auth/ios-session` to set the session cookie and redirect to `/dashboard`.
+
+---
+
+### 修正
+- **絵文字表示（最終修正）**: 全ての絵文字テキスト描画をTwemoji SVG画像（CDN経由の`<img>`タグ）に置き換え。WKWebViewでのフォント・文字コード依存を完全に排除。リアクションボタン（✅👍👎🙇）と支出カテゴリアイコン（🍽️🛒🚃🎮💡🏥📝）に適用。
+- **iOSログイン: OAuth後にSFSafariVCが閉じない問題（最終修正）**: JSのURLスキームリダイレクト（iOS 16.4以降でセキュリティポリシーによりブロック）をWKWebViewポーリング方式に変更。WKWebViewが`pollId`を生成してSFSafariVCを開き、2秒ごとに`/api/auth/ios-poll`をポーリング。OAuth完了時に`/api/auth/ios-callback`が`pollId`をキーに署名済みJWTを保存。WKWebViewがトークンを受け取り`Browser.close()`でSFSafariVCを閉じ、`/api/auth/ios-session`でCookieをセットして`/dashboard`へ遷移。
+
+
 
 ### Fixed
 - **Emoji display in WKWebView (proper fix)**: Reverted body `font-family` to `Arial, Helvetica, sans-serif` (adding Apple Color Emoji to body broke all Japanese text). Added `.emoji-icon` CSS class with `"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji"` font stack. Applied `emoji-icon` class to reaction buttons and category emoji spans in `UnifiedChat.tsx`.

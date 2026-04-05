@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { getCategoryEmoji } from "@/lib/expenseParser";
+import TwemojiImg from "@/app/components/TwemojiImg";
 import { getAvatarColor, getAvatarInitial } from "@/lib/avatar";
 import type { ExpenseCategory, ReactionType } from "@/app/generated/prisma/enums";
 import MiniBalanceChart, { type BalanceDataPoint } from "@/app/componets/MiniBalanceChart";
@@ -1268,9 +1269,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                             <>
                               {/* カテゴリ絵文字 + 金額 + 累計 + タグバッジ */}
                               <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className="emoji-icon text-sm">
-                                  {getCategoryEmoji((item.category || "OTHER") as ExpenseCategory)}
-                                </span>
+                                <TwemojiImg emoji={getCategoryEmoji((item.category || "OTHER") as ExpenseCategory)} size={16} />
                                 <span
                                   className={`font-semibold text-sm ${
                                     isOwnMessage ? "text-red-300" : "text-red-600"
@@ -1535,10 +1534,10 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                               const hasReacted = reactionData?.userReactions.includes(type);
                               const isToggling = togglingReaction === `${item.id}:${type}`;
                               const emoji =
-                                type === "CHECK"  ? String.fromCodePoint(0x2705)  :  // ✅
-                                type === "GOOD"   ? String.fromCodePoint(0x1F44D) :  // 👍
-                                type === "BAD"    ? String.fromCodePoint(0x1F44E) :  // 👎
-                                                    String.fromCodePoint(0x1F647);   // 🙇
+                                type === "CHECK"  ? "✅" :
+                                type === "GOOD"   ? "👍" :
+                                type === "BAD"    ? "👎" :
+                                                    "🙇";
 
                               return (
                                 <button
@@ -1555,7 +1554,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                                   } ${(reactionsLoading || isToggling) ? "opacity-50" : ""}`}
                                 >
-                                  <span className="emoji-icon">{emoji}</span>
+                                  <TwemojiImg emoji={emoji} size={18} />
                                   {count > 0 && (
                                     <span className="text-[10px] min-w-[12px] text-center">{count}</span>
                                   )}

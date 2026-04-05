@@ -2,16 +2,15 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-// Opened in SFSafariViewController from iOS app.
-// Fetches CSRF token client-side (within SFSafariVC cookie context),
-// then POSTs to NextAuth sign-in endpoint to initiate Google OAuth.
-export default function iOSSignInPage() {
+function iOSSignInInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     async function startSignIn() {
-      // If already signed in, redirect to dashboard
       const sessionRes = await fetch("/api/auth/session");
       const session = await sessionRes.json();
       if (session?.user) {
@@ -19,11 +18,10 @@ export default function iOSSignInPage() {
         return;
       }
 
-      // Fetch CSRF token — sets next-auth.csrf-token cookie in SFSafariVC's context
+      const pollId = searchParams.get("pollId") || "";
       const res = await fetch("/api/auth/csrf");
       const { csrfToken } = await res.json();
 
-      // Build and submit form POST to NextAuth
       const form = document.createElement("form");
       form.method = "POST";
       form.action = "/api/auth/signin/google";
@@ -37,14 +35,14 @@ export default function iOSSignInPage() {
       const callbackInput = document.createElement("input");
       callbackInput.type = "hidden";
       callbackInput.name = "callbackUrl";
-      callbackInput.value = "/api/auth/ios-callback";
+      callbackInput.value = `/api/auth/ios-callback?pollId=${pollId}`;
       form.appendChild(callbackInput);
 
       document.body.appendChild(form);
       form.submit();
     }
     startSignIn();
-  }, [router]);
+  }, [router, searchParams]);
 
   return (
     <main className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -53,3 +51,10 @@ export default function iOSSignInPage() {
   );
 }
 
+export default function iOSSignInPage() {
+  return (
+    <Suspense>
+      <iOSSignInInner />
+    </Suspense>
+  );
+}
