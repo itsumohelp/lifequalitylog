@@ -1,40 +1,51 @@
 "use client";
 
-import { useRef } from "react";
-import { registerPlugin } from "@capacitor/core";
-
-const IOSAuth = registerPlugin<{ startGoogleAuth: (opts: { pollId: string }) => Promise<void> }>("IOSAuthPlugin");
+import { useRef, useEffect } from "react";
 
 export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const handleLogin = async () => {
+  const checkPoll = async (pollId: string) => {
+    try {
+      const res = await fetch(`https://crun.click/api/auth/ios-poll?pollId=${pollId}`);
+      const data = await res.json();
+      if (data.token) {
+        clearInterval(pollRef.current!);
+        await fetch(`https://crun.click/api/auth/ios-session?token=${encodeURIComponent(data.token)}`, {
+          credentials: "include",
+        });
+        window.location.replace("https://crun.click/dashboard");
+        return true;
+      }
+    } catch {}
+    return false;
+  };
+
+  const handleLogin = () => {
     const pollId = crypto.randomUUID();
 
-    // Poll開始（ASWebAuthenticationSession中もバックグラウンドで動く）
-    pollRef.current = setInterval(async () => {
-      try {
-        const res = await fetch(`https://crun.click/api/auth/ios-poll?pollId=${pollId}`);
-        const data = await res.json();
-        if (data.token) {
-          clearInterval(pollRef.current!);
-          await fetch(`https://crun.click/api/auth/ios-session?token=${encodeURIComponent(data.token)}`, {
-            credentials: "include",
-          });
-          window.location.replace("https://crun.click/dashboard");
-        }
-      } catch {}
-    }, 2000);
+    // Swift OAuth完了時に即時チェックするコールバックを登録
+    (window as any).__authSessionCompleted = async () => {
+      const found = await checkPoll(pollId);
+      // 念のため見つからなかった場合は通常pollに任せる
+      if (!found) {
+        pollRef.current = setInterval(() => checkPoll(pollId), 2000);
+      }
+    };
 
-    try {
-      // ASWebAuthenticationSession でOAuth（ブラウザUI無し、ダイアログ無し）
-      // 完了・キャンセル問わずpollが制御する
-      await IOSAuth.startGoogleAuth({ pollId });
-    } catch {
-      // キャンセル時はpollをクリア
-      clearInterval(pollRef.current!);
-    }
+    // 通常poll（ASWebAuthenticationSessionがキャンセルされた場合などのフォールバック）
+    pollRef.current = setInterval(() => checkPoll(pollId), 2000);
+
+    (window as any).webkit?.messageHandlers?.startAuth?.postMessage({ pollId });
   };
+
+  // アンマウント時にクリーンアップ
+  useEffect(() => {
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+      delete (window as any).__authSessionCompleted;
+    };
+  }, []);
 
   if (typeof window !== "undefined" && !(window as any).Capacitor) {
     return null;
