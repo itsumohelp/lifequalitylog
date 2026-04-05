@@ -89,22 +89,23 @@ export function parseExpenseInput(input: string): ParsedExpense | null {
   let place: string | null = null;
   let amount: number | null = null;
 
-  // 各パターンを順に試行
-  for (const pattern of [pattern1, pattern2, pattern3]) {
-    const match = normalized.match(pattern);
-    if (match) {
-      place = match[1].trim();
-      amount = parseAmount(match[2]);
-      break;
-    }
+  // 金額のみのパターンを最初にチェック（例: 「500円」「1000」「１，０００円」）
+  // ※ パターン3より先にチェックしないと「1500」→タグ「1」金額「500」になるため
+  const amountOnly = normalized.match(new RegExp(`^(${numPattern})\\s*円?$`));
+  if (amountOnly) {
+    amount = parseAmount(amountOnly[1]);
+    place = null;
   }
 
-  // 金額のみのパターン（例: 「500円」「1000」「１，０００円」）
+  // 金額のみでなければ各パターンを順に試行
   if (amount === null) {
-    const amountOnly = normalized.match(new RegExp(`^(${numPattern})\\s*円?$`));
-    if (amountOnly) {
-      amount = parseAmount(amountOnly[1]);
-      place = null;
+    for (const pattern of [pattern1, pattern2, pattern3]) {
+      const match = normalized.match(pattern);
+      if (match) {
+        place = match[1].trim();
+        amount = parseAmount(match[2]);
+        break;
+      }
     }
   }
 

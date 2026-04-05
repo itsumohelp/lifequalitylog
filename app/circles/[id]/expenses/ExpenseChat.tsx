@@ -209,7 +209,7 @@ export default function ExpenseChat({ circleId, initialExpenses }: Props) {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="「〇〇で△△円」「〇〇 △△円」の形式で入力"
+            placeholder="「500」「ランチ 800円」「コンビニで500円」"
             disabled={isLoading}
             className="flex-1 bg-slate-800 border border-slate-700 rounded-full px-4 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-sky-500 disabled:opacity-50"
           />

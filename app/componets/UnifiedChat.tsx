@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { getCategoryEmoji } from "@/lib/expenseParser";
 import { getAvatarColor, getAvatarInitial } from "@/lib/avatar";
 import type { ExpenseCategory, ReactionType } from "@/app/generated/prisma/enums";
+import MiniBalanceChart, { type BalanceDataPoint } from "@/app/componets/MiniBalanceChart";
 
 type ReactionData = {
   counts: Record<ReactionType, number>;
@@ -191,12 +192,15 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
   const [selectedItem, setSelectedItem] = useState<FeedItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isCreatingCircle, setIsCreatingCircle] = useState(false);
+  const [tagInput, setTagInput] = useState("");
+  const [isTagging, setIsTagging] = useState(false);
   const [reactions, setReactions] = useState<Record<string, ReactionData>>({});
   const [reactionsLoading, setReactionsLoading] = useState(false);
   const [togglingReaction, setTogglingReaction] = useState<string | null>(null); // "itemId:type"
   const [hasMoreHistory, setHasMoreHistory] = useState<Record<string, boolean>>({}); // circleId -> hasMore
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [showShareNotEnabledDialog, setShowShareNotEnabledDialog] = useState(false);
+  const [showMiniChart, setShowMiniChart] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -445,6 +449,81 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
       setError("通信エラーが発生しました");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  // 支出にタグを追加
+  const handleAddTag = async (item: FeedItem, newTag: string) => {
+    const trimmed = newTag.trim();
+    if (!trimmed || isTagging) return;
+
+    const currentTags = item.tags || [];
+    if (currentTags.includes(trimmed)) return;
+
+    const id = item.id.replace("expense-", "");
+    const updatedTags = [...currentTags, trimmed];
+
+    setIsTagging(true);
+    try {
+      const res = await fetch(`/api/expense/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tags: updatedTags }),
+      });
+
+      if (res.ok) {
+        setFeed((prev) =>
+          prev.map((f) =>
+            f.id === item.id ? { ...f, tags: updatedTags } : f
+          )
+        );
+        setSelectedItem((prev) =>
+          prev && prev.id === item.id ? { ...prev, tags: updatedTags } : prev
+        );
+        setTagInput("");
+      } else {
+        const data = await res.json();
+        setError(data.error || "タグの追加に失敗しました");
+      }
+    } catch {
+      setError("通信エラーが発生しました");
+    } finally {
+      setIsTagging(false);
+    }
+  };
+
+  // 支出のタグを削除
+  const handleRemoveTag = async (item: FeedItem, tagToRemove: string) => {
+    if (isTagging) return;
+
+    const id = item.id.replace("expense-", "");
+    const updatedTags = (item.tags || []).filter((t) => t !== tagToRemove);
+
+    setIsTagging(true);
+    try {
+      const res = await fetch(`/api/expense/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tags: updatedTags }),
+      });
+
+      if (res.ok) {
+        setFeed((prev) =>
+          prev.map((f) =>
+            f.id === item.id ? { ...f, tags: updatedTags } : f
+          )
+        );
+        setSelectedItem((prev) =>
+          prev && prev.id === item.id ? { ...prev, tags: updatedTags } : prev
+        );
+      } else {
+        const data = await res.json();
+        setError(data.error || "タグの削除に失敗しました");
+      }
+    } catch {
+      setError("通信エラーが発生しました");
+    } finally {
+      setIsTagging(false);
     }
   };
 
@@ -711,6 +790,9 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
           setRecentTags(updated);
         }
 
+        // 登録後にミニチャートを表示
+        setShowMiniChart(true);
+
         // 一時的なアイテム（集計・ヘルプ・招待）を削除して新しいアイテムを追加
         setFeed((prev) => [
           ...prev.filter((item) =>
@@ -790,6 +872,9 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
         if (adminCircleIds.includes(selectedCircleId)) {
           setTotalBalance((prev) => prev + data.income.amount);
         }
+
+        // 登録後にミニチャートを表示
+        setShowMiniChart(true);
       } else {
         // 残高更新
         const amount = parseInt(input.replace(/[^0-9]/g, ""), 10);
@@ -851,6 +936,9 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
         if (adminCircleIds.includes(selectedCircleId)) {
           setTotalBalance((prev) => prev + balanceDiff);
         }
+
+        // 登録後にミニチャートを表示
+        setShowMiniChart(true);
       }
 
       setInput("");
@@ -866,6 +954,38 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
   const filteredFeed = filterCircleId
     ? feed.filter((item) => item.circleId === filterCircleId)
     : feed;
+
+  // 選択中サークルの直近30日間の残高推移データ（チャート用）
+  const miniChartData = useMemo((): BalanceDataPoint[] => {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const points = feed
+      .filter((item) => {
+        if (item.circleId !== selectedCircleId) return false;
+        if (new Date(item.createdAt) < thirtyDaysAgo) return false;
+        if (item.kind === "snapshot") return true;
+        if ((item.kind === "expense" || item.kind === "income") && item.circleBalanceAfter !== undefined) return true;
+        return false;
+      })
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+      .map((item) => ({
+        date: item.createdAt,
+        balance: item.kind === "snapshot" ? item.amount : item.circleBalanceAfter!,
+      }));
+
+    return points;
+  }, [feed, selectedCircleId]);
+
+  // 選択中アイテムのサークルに存在する既存タグ一覧（詳細モーダルのサジェスト用）
+  const existingCircleTags = useMemo((): string[] => {
+    if (!selectedItem) return [];
+    const tags = new Set<string>();
+    feed
+      .filter((item) => item.circleId === selectedItem.circleId && item.tags)
+      .forEach((item) => item.tags!.forEach((t) => tags.add(t)));
+    return Array.from(tags);
+  }, [feed, selectedItem]);
 
   // 日付でグループ化
   const groupedFeed = filteredFeed.reduce(
@@ -1022,6 +1142,14 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
             );
           })()}
       </div>
+
+      {/* 直近30日間の残高推移チャート（登録後に表示） */}
+      {showMiniChart && miniChartData.length >= 2 && (
+        <MiniBalanceChart
+          data={miniChartData}
+          onClose={() => setShowMiniChart(false)}
+        />
+      )}
 
       {/* フィード表示 */}
       <div
@@ -1742,8 +1870,85 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                 </div>
               )}
 
-              {/* タグ */}
-              {selectedItem.tags && selectedItem.tags.length > 0 && (
+              {/* タグ（支出の場合はタグ編集UI） */}
+              {selectedItem.kind === "expense" && canEditCircle(selectedItem.circleId) ? (
+                <div className="space-y-2">
+                  <span className="text-sm text-slate-500">タグ</span>
+
+                  {/* 現在のタグ */}
+                  <div className="flex flex-wrap gap-1.5 min-h-[24px]">
+                    {(selectedItem.tags || []).length === 0 ? (
+                      <span className="text-xs text-slate-400">タグなし</span>
+                    ) : (
+                      (selectedItem.tags || []).map((tag, idx) => (
+                        <span
+                          key={idx}
+                          className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700"
+                        >
+                          {tag}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveTag(selectedItem, tag)}
+                            disabled={isTagging}
+                            className="text-sky-400 hover:text-sky-600 leading-none disabled:opacity-50"
+                            aria-label={`${tag}を削除`}
+                          >
+                            ✕
+                          </button>
+                        </span>
+                      ))
+                    )}
+                  </div>
+
+                  {/* 既存タグから選択 */}
+                  {existingCircleTags.filter((t) => !(selectedItem.tags || []).includes(t)).length > 0 && (
+                    <div>
+                      <div className="text-[11px] text-slate-400 mb-1">既存のタグから選択</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {existingCircleTags
+                          .filter((t) => !(selectedItem.tags || []).includes(t))
+                          .map((tag, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => handleAddTag(selectedItem, tag)}
+                              disabled={isTagging}
+                              className="text-xs px-2 py-0.5 rounded-full border border-sky-300 text-sky-600 hover:bg-sky-50 active:scale-95 transition disabled:opacity-50"
+                            >
+                              + {tag}
+                            </button>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 新規タグ入力 */}
+                  <div className="flex gap-1.5">
+                    <input
+                      type="text"
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddTag(selectedItem, tagInput);
+                        }
+                      }}
+                      placeholder="新しいタグ名"
+                      disabled={isTagging}
+                      className="flex-1 text-sm border border-slate-300 rounded-lg px-2 py-1 focus:outline-none focus:border-sky-400 disabled:opacity-50"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleAddTag(selectedItem, tagInput)}
+                      disabled={isTagging || !tagInput.trim()}
+                      className="text-xs bg-sky-500 text-white rounded-lg px-3 py-1 font-medium disabled:opacity-50 active:scale-95 transition"
+                    >
+                      追加
+                    </button>
+                  </div>
+                </div>
+              ) : selectedItem.tags && selectedItem.tags.length > 0 ? (
                 <div className="flex justify-between items-start">
                   <span className="text-sm text-slate-500">タグ</span>
                   <div className="flex flex-wrap gap-1 justify-end">
@@ -1757,7 +1962,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                     ))}
                   </div>
                 </div>
-              )}
+              ) : null}
 
               {/* メモ（残高の場合） */}
               {selectedItem.note && (
@@ -1786,7 +1991,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
             <div className="flex gap-2 mt-6">
               <button
                 type="button"
-                onClick={() => setSelectedItem(null)}
+                onClick={() => { setSelectedItem(null); setTagInput(""); }}
                 className="flex-1 bg-slate-100 text-slate-700 rounded-lg px-4 py-2 text-sm font-medium"
               >
                 戻る
