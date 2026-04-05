@@ -27,9 +27,13 @@ export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
         const data = await res.json();
         if (data.token) {
           clearInterval(pollRef.current!);
+          // Set session cookie via fetch (credentials:include applies Set-Cookie header)
+          await fetch(`https://crun.click/api/auth/ios-session?token=${encodeURIComponent(data.token)}`, {
+            credentials: "include",
+          });
+          // Navigate to dashboard without adding to history (avoids flash of home page)
+          window.location.replace("https://crun.click/dashboard");
           await Browser.close();
-          // Load ios-session in WKWebView to set cookie then go to dashboard
-          window.location.href = `https://crun.click/api/auth/ios-session?token=${encodeURIComponent(data.token)}`;
         }
       } catch {}
     }, 2000);

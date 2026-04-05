@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
-// Called by AppDelegate after receiving click.crun.circlerun://auth?token=xxx URL scheme.
-// Validates signed JWT, sets session cookie in WKWebView, redirects to /dashboard.
+// Called via fetch() from CapacitorLoginButton after OAuth completes.
+// Sets session cookie via Set-Cookie header and returns JSON.
+// WKWebView then navigates to /dashboard via window.location.replace (no history entry).
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token");
   if (!token) {
-    return NextResponse.redirect("https://crun.click/");
+    return NextResponse.json({ error: "missing token" }, { status: 400 });
   }
 
   try {
@@ -14,17 +15,10 @@ export async function GET(req: NextRequest) {
     const { payload } = await jwtVerify(decodeURIComponent(token), secret);
     const sessionToken = payload.st as string;
     if (!sessionToken) {
-      return NextResponse.redirect("https://crun.click/");
+      return NextResponse.json({ error: "invalid token" }, { status: 400 });
     }
 
-    const response = NextResponse.redirect("https://crun.click/dashboard");
-    // NextAuth v5 uses "authjs.session-token" / "__Secure-authjs.session-token"
-    response.cookies.set("authjs.session-token", sessionToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "lax",
-      path: "/",
-    });
+    const response = NextResponse.json({ ok: true });
     response.cookies.set("__Secure-authjs.session-token", sessionToken, {
       httpOnly: true,
       secure: true,
@@ -33,6 +27,6 @@ export async function GET(req: NextRequest) {
     });
     return response;
   } catch {
-    return NextResponse.redirect("https://crun.click/");
+    return NextResponse.json({ error: "invalid token" }, { status: 400 });
   }
 }
