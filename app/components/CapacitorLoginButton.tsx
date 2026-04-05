@@ -1,9 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { registerPlugin } from "@capacitor/core";
-
-const IOSAuthPlugin = registerPlugin<{ startGoogleAuth: () => Promise<{ url: string }> }>("IOSAuthPlugin");
 
 export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
   const [isCapacitor, setIsCapacitor] = useState(false);
@@ -12,16 +9,9 @@ export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
     setIsCapacitor(typeof window !== "undefined" && !!(window as any).Capacitor);
   }, []);
 
-  const handleLogin = async () => {
-    try {
-      await IOSAuthPlugin.startGoogleAuth();
-      // ASWebAuthenticationSession closes automatically after OAuth.
-      // IOSAuthPlugin.swift navigates WKWebView to /dashboard on success.
-    } catch (e: any) {
-      if (e?.message !== "Cancelled") {
-        console.error("Auth error:", e);
-      }
-    }
+  const handleLogin = () => {
+    // Trigger ASWebAuthenticationSession via WKScriptMessageHandler in MainViewController.swift
+    (window as any).webkit?.messageHandlers?.startAuth?.postMessage({});
   };
 
   if (!isCapacitor) return null;
