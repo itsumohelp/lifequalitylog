@@ -35,6 +35,8 @@ export default async function IOSCompletePage() {
   return (
     <main style={{ fontFamily: "-apple-system, sans-serif", display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", margin: 0, background: "#f8fafc" }}>
       <p style={{ color: "#64748b", fontSize: "15px" }}>ログイン完了。アプリに戻っています...</p>
+      {/* カスタムURLスキームにリダイレクトしてSafariブラウザを閉じる */}
+      <script dangerouslySetInnerHTML={{ __html: `setTimeout(function(){ window.location.href = "click.crun.circlerun://auth-complete"; }, 300);` }} />
     </main>
   );
 }
