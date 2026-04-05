@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.16] - 2026-04-05
+
+### Changed
+- **iOS OAuth: SFSafariVC → ASWebAuthenticationSession**: Replaced `@capacitor/browser` (SFSafariViewController) with a custom Capacitor plugin (`IOSAuthPlugin`) that uses `ASWebAuthenticationSession`. Unlike SFSafariVC, `ASWebAuthenticationSession` shares cookies with the app's WKWebView, allowing the session to persist after OAuth without browser chrome remaining visible.
+
+### Fixed
+- **Reaction icons unified to emoji**: All 4 reaction buttons (✅👍👎🙇) now use `String.fromCodePoint()` for reliable emoji rendering, removing the mixed SVG/emoji inconsistency.
+
+---
+
+### 変更
+- **iOS OAuth: SFSafariVC → ASWebAuthenticationSession**: `@capacitor/browser`（SFSafariViewController）を`IOSAuthPlugin`カスタムCapacitorプラグインに置き換え。`ASWebAuthenticationSession`はアプリのWKWebViewとCookieを共有するため、OAuth完了後にブラウザのUIが残らず、セッションが正常に引き継がれる。
+
+### 修正
+- **リアクションアイコンを絵文字に統一**: 4つのリアクションボタン（✅👍👎🙇）を`String.fromCodePoint()`による絵文字に統一。SVGと絵文字の混在を解消。
+
 ## [0.0.15] - 2026-04-05
 
 ### Fixed

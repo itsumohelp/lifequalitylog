@@ -7,7 +7,6 @@ import { getCategoryEmoji } from "@/lib/expenseParser";
 import { getAvatarColor, getAvatarInitial } from "@/lib/avatar";
 import type { ExpenseCategory, ReactionType } from "@/app/generated/prisma/enums";
 import MiniBalanceChart, { type BalanceDataPoint } from "@/app/componets/MiniBalanceChart";
-import { CheckCircle, ThumbsUp, ThumbsDown, Heart } from "lucide-react";
 
 type ReactionData = {
   counts: Record<ReactionType, number>;
@@ -1535,11 +1534,11 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                               const count = reactionData?.counts[type] || 0;
                               const hasReacted = reactionData?.userReactions.includes(type);
                               const isToggling = togglingReaction === `${item.id}:${type}`;
-                              const ReactionIcon =
-                                type === "CHECK" ? CheckCircle :
-                                type === "GOOD"  ? ThumbsUp :
-                                type === "BAD"   ? ThumbsDown :
-                                                   Heart;
+                              const emoji =
+                                type === "CHECK"  ? String.fromCodePoint(0x2705)  :  // ✅
+                                type === "GOOD"   ? String.fromCodePoint(0x1F44D) :  // 👍
+                                type === "BAD"    ? String.fromCodePoint(0x1F44E) :  // 👎
+                                                    String.fromCodePoint(0x1F647);   // 🙇
 
                               return (
                                 <button
@@ -1556,7 +1555,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                                   } ${(reactionsLoading || isToggling) ? "opacity-50" : ""}`}
                                 >
-                                  <ReactionIcon size={14} />
+                                  <span className="text-base leading-none">{emoji}</span>
                                   {count > 0 && (
                                     <span className="text-[10px] min-w-[12px] text-center">{count}</span>
                                   )}
