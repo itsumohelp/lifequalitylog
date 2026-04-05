@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.14] - 2026-04-05
+
+### Fixed
+- **Reaction emoji rendering on iOS**: Emoji icons (✅ 👍 👎 🙏) in reaction buttons were displaying as `?` due to font size being too small (11px). Increased to 16px and added explicit emoji font family for iOS WebView compatibility.
+- **iOS back navigation after login**: `/ios-signin` now checks for an existing session first and redirects to `/dashboard` if already logged in, preventing Internal Server Error on browser back.
+- **SFSafariVC auto-close**: Added `browserFinished` listener so that if the user manually closes SFSafariViewController after completing login, the app automatically navigates to `/dashboard`.
+
+---
+
+### 修正
+- **iOSでのリアクション絵文字表示**: リアクションボタンの絵文字（✅ 👍 👎 🙏）がフォントサイズ11px小さすぎて`?`と表示されていた問題を修正。16pxに拡大し絵文字フォントファミリーを明示指定。
+- **ログイン後のブラウザバックでエラー**: `/ios-signin`でセッション確認を追加し、ログイン済みの場合は`/dashboard`にリダイレクトしてInternal Server Errorを回避。
+- **SFSafariVC手動クローズ対応**: `browserFinished`リスナーを追加し、ユーザーがログイン完了後にSFSafariVCを手動で閉じた場合も自動で`/dashboard`に遷移。
+
 ## [0.0.13] - 2026-04-05
 
 ### Fixed
