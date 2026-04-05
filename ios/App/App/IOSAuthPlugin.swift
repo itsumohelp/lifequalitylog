@@ -8,7 +8,8 @@ public class IOSAuthPlugin: CAPPlugin, ASWebAuthenticationPresentationContextPro
     private var authSession: ASWebAuthenticationSession?
 
     @objc func startGoogleAuth(_ call: CAPPluginCall) {
-        guard let authURL = URL(string: "https://crun.click/ios-signin") else {
+        let pollId = call.getString("pollId") ?? ""
+        guard let authURL = URL(string: "https://crun.click/ios-signin?pollId=\(pollId)") else {
             call.reject("Invalid auth URL")
             return
         }

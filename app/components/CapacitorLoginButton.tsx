@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { registerPlugin } from "@capacitor/core";
 
-const IOSAuth = registerPlugin<{ startGoogleAuth: () => Promise<void> }>("IOSAuthPlugin");
+const IOSAuth = registerPlugin<{ startGoogleAuth: (opts: { pollId: string }) => Promise<void> }>("IOSAuthPlugin");
 
 export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -29,7 +29,7 @@ export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
     try {
       // ASWebAuthenticationSession でOAuth（ブラウザUI無し、ダイアログ無し）
       // 完了・キャンセル問わずpollが制御する
-      await IOSAuth.startGoogleAuth();
+      await IOSAuth.startGoogleAuth({ pollId });
     } catch {
       // キャンセル時はpollをクリア
       clearInterval(pollRef.current!);
