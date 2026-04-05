@@ -11,6 +11,7 @@ function IOSSignInInner() {
 
   useEffect(() => {
     async function startSignIn() {
+      const pollId = searchParams.get("pollId") || "";
       const sessionRes = await fetch("/api/auth/session");
       const session = await sessionRes.json();
       if (session?.user) {
@@ -19,8 +20,6 @@ function IOSSignInInner() {
         window.location.replace("/ios-complete");
         return;
       }
-
-      const pollId = searchParams.get("pollId") || "";
       const res = await fetch("/api/auth/csrf");
       const { csrfToken } = await res.json();
 
