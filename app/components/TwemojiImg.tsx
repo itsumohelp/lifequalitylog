@@ -2,6 +2,7 @@
 function emojiToUrl(emoji: string): string {
   const codepoints = [...emoji]
     .map((c) => c.codePointAt(0)!.toString(16).toLowerCase())
+    .filter((cp) => cp !== "fe0f")
     .join("-");
   return `https://cdn.jsdelivr.net/npm/twemoji@14.0.2/assets/svg/${codepoints}.svg`;
 }
