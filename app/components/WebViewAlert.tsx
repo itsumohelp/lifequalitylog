@@ -10,8 +10,8 @@ function isInAppBrowser(): { isWebView: boolean; appName: string | null } {
 
   const ua = navigator.userAgent || navigator.vendor || "";
 
-  // CircleRun iOSネイティブアプリは除外（AppDelegateでUA末尾にCircleRun-iOSを付与）
-  if (/CircleRun-iOS/i.test(ua)) {
+  // CircleRun iOSネイティブアプリは除外（Capacitorブリッジが存在する場合）
+  if (typeof (window as any).Capacitor !== "undefined") {
     return { isWebView: false, appName: null };
   }
 
