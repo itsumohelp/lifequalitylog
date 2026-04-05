@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.17] - 2026-04-05
+
+### Fixed
+- **ASWebAuthenticationSession registration**: Replaced the Capacitor plugin approach (`IOSAuthPlugin.swift` + `IOSAuthPlugin.m`) with `WKScriptMessageHandler` via `MainViewController.swift`. Capacitor plugin registration via `.m` file is unreliable with Swift Package Manager, causing `UNIMPLEMENTED` errors. The new approach subclasses `CAPBridgeViewController` as `MainViewController`, injects a `startAuth` message handler, and launches `ASWebAuthenticationSession` directly when called from JavaScript via `window.webkit.messageHandlers.startAuth.postMessage({})`.
+
+---
+
+### 修正
+- **ASWebAuthenticationSession登録方式変更**: Capacitorプラグイン（`IOSAuthPlugin.swift` + `IOSAuthPlugin.m`）をやめ、`MainViewController.swift`の`WKScriptMessageHandler`に切り替え。SPM環境では`.m`ファイルによるCapacitorプラグイン登録が`UNIMPLEMENTED`エラーになる問題を回避。`CAPBridgeViewController`を継承した`MainViewController`に`startAuth`メッセージハンドラを追加し、JavaScriptから`window.webkit.messageHandlers.startAuth.postMessage({})`で呼び出す。
+
 ## [0.0.16] - 2026-04-05
 
 ### Changed
