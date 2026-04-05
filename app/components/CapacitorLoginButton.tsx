@@ -21,7 +21,7 @@ export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
     return false;
   };
 
-  const handleLogin = async () => {
+  const handleLogin = () => {
     const pollId = crypto.randomUUID();
 
     // Swift OAuth完了時に即時チェック
@@ -32,15 +32,14 @@ export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
       }
     };
 
+    const handler = (window as any).webkit?.messageHandlers?.startAuth;
+    if (!handler) {
+      return;
+    }
+
     // フォールバック用poll
     pollRef.current = setInterval(() => checkPoll(pollId), 2000);
-
-    try {
-      await (window as any).Capacitor?.Plugins?.IOSAuthPlugin?.startGoogleAuth({ pollId });
-    } catch {
-      clearInterval(pollRef.current!);
-      delete (window as any).__authSessionCompleted;
-    }
+    handler.postMessage({ pollId });
   };
 
   useEffect(() => {
