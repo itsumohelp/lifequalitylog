@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
-function iOSSignInInner() {
+function IOSSignInInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -51,10 +51,10 @@ function iOSSignInInner() {
   );
 }
 
-export default function iOSSignInPage() {
+export default function IOSSignInPage() {
   return (
     <Suspense>
-      <iOSSignInInner />
+      <IOSSignInInner />
     </Suspense>
   );
 }
