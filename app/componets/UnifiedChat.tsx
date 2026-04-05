@@ -1534,7 +1534,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                               const count = reactionData?.counts[type] || 0;
                               const hasReacted = reactionData?.userReactions.includes(type);
                               const isToggling = togglingReaction === `${item.id}:${type}`;
-                              const emoji = type === "CHECK" ? "✅" : type === "GOOD" ? "👍" : type === "BAD" ? "👎" : "🙇";
+                              const emoji = type === "CHECK" ? "✅" : type === "GOOD" ? "👍" : type === "BAD" ? "👎" : "🙏";
 
                               return (
                                 <button
@@ -1551,7 +1551,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                                   } ${(reactionsLoading || isToggling) ? "opacity-50" : ""}`}
                                 >
-                                  <span className="text-[11px]">{emoji}</span>
+                                  <span className="text-base leading-none" style={{fontFamily: "Apple Color Emoji, Segoe UI Emoji, sans-serif"}}>{emoji}</span>
                                   {count > 0 && (
                                     <span className="text-[10px] min-w-[12px] text-center">{count}</span>
                                   )}
