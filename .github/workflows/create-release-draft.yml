@@ -1,0 +1,35 @@
+name: Create Draft Release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  draft-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version and changelog from CHANGELOG.md
+        id: changelog
+        run: |
+          # 最初の ## [x.x.x] からバージョン番号を取得
+          VERSION=$(grep -m1 '## \[' CHANGELOG.md | sed 's/## \[\(.*\)\].*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          # 最初のバージョンブロックの本文を取得（ヘッダー行の次から次の##まで）
+          CONTENT=$(awk '/^## \[/{count++; if(count==1){next} if(count==2){exit}} count==1{print}' CHANGELOG.md)
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          echo "$CONTENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create or update draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.changelog.outputs.version }}
+          name: v${{ steps.changelog.outputs.version }}
+          body: ${{ steps.changelog.outputs.content }}
+          draft: true

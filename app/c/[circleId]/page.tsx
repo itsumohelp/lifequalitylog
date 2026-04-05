@@ -29,7 +29,8 @@ export async function generateMetadata({
   const title = `${circle.name}の支出管理 | CircleRun`;
   const description = `残高: ¥${formatYen(circle.currentBalance)} - ${circle.name}のお金の流れをリアルタイムで共有`;
 
-  const ogImageUrl = `/c/${circleId}/opengraph-image`;
+  const cacheKey = `${circle.currentBalance}-${new Date().toISOString().slice(0, 10)}`;
+  const ogImageUrl = `/c/${circleId}/opengraph-image?v=${cacheKey}`;
 
   return {
     title,

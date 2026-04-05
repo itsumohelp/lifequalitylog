@@ -2,6 +2,47 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
 
+// タグを更新
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const body = await request.json();
+  const { tags } = body;
+
+  if (!Array.isArray(tags)) {
+    return NextResponse.json({ error: "tags must be an array" }, { status: 400 });
+  }
+
+  const expense = await prisma.expense.findUnique({ where: { id } });
+  if (!expense) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const member = await prisma.circleMember.findUnique({
+    where: {
+      circleId_userId: { circleId: expense.circleId, userId: session.user.id },
+    },
+  });
+
+  if (!member || (member.role !== "ADMIN" && member.role !== "EDITOR")) {
+    return NextResponse.json({ error: "Permission denied" }, { status: 403 });
+  }
+
+  const updated = await prisma.expense.update({
+    where: { id },
+    data: { tags },
+  });
+
+  return NextResponse.json({ expense: updated });
+}
+
 // 支出を削除
 export async function DELETE(
   request: NextRequest,

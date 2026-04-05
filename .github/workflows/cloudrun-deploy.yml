@@ -1,7 +1,7 @@
 name: Build and Deploy to Cloud Run
 on:
-  push:
-    branches: [ master ]
+  release:
+    types: [published]
 env:
   SERVICE_NAME: web
   REGION: asia-northeast1
@@ -25,11 +25,11 @@ jobs:
       run: gcloud auth configure-docker asia-northeast1-docker.pkg.dev
     - name: Build Docker image
       run: |
-        docker build -t $REGISTRY/${{ secrets.GCP_PROJECT_ID }}/$REPOSITORY/$SERVICE_NAME:$GITHUB_SHA .
-        docker tag $REGISTRY/${{ secrets.GCP_PROJECT_ID }}/$REPOSITORY/$SERVICE_NAME:$GITHUB_SHA $REGISTRY/${{ secrets.GCP_PROJECT_ID }}/$REPOSITORY/$SERVICE_NAME:latest
+        docker build -t $REGISTRY/${{ secrets.GCP_PROJECT_ID }}/$REPOSITORY/$SERVICE_NAME:${{ github.event.release.tag_name }} .
+        docker tag $REGISTRY/${{ secrets.GCP_PROJECT_ID }}/$REPOSITORY/$SERVICE_NAME:${{ github.event.release.tag_name }} $REGISTRY/${{ secrets.GCP_PROJECT_ID }}/$REPOSITORY/$SERVICE_NAME:latest
     - name: Push Docker image
       run: |
-        docker push $REGISTRY/${{ secrets.GCP_PROJECT_ID }}/$REPOSITORY/$SERVICE_NAME:$GITHUB_SHA
+        docker push $REGISTRY/${{ secrets.GCP_PROJECT_ID }}/$REPOSITORY/$SERVICE_NAME:${{ github.event.release.tag_name }}
         docker push $REGISTRY/${{ secrets.GCP_PROJECT_ID }}/$REPOSITORY/$SERVICE_NAME:latest
     - name: Deploy to Cloud Run
       run: |

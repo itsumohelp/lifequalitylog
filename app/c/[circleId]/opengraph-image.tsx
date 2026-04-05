@@ -2,6 +2,7 @@ import { ImageResponse } from "next/og";
 import prisma from "@/lib/prisma";
 
 export const runtime = "nodejs";
+export const revalidate = 0; // 常に最新データを使用
 export const alt = "CircleRun - サークル支出管理";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
