@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.18] - 2026-04-05
+
+### Fixed
+- **iOS auth token handoff**: Replaced ASWebAuthenticationSession with a token exchange approach. After Google OAuth in SFSafariVC, `/api/auth/ios-callback` generates a one-time token and redirects to `click.crun.circlerun://auth?token=xxx`. SFSafariVC auto-closes (cannot handle URL schemes). `AppDelegate` receives the URL scheme and loads `/api/auth/ios-session` in WKWebView, which sets the session cookie and redirects to `/dashboard`.
+- **Reaction emoji font**: Added explicit `Apple Color Emoji` font family and `-webkit-text-size-adjust: none` to prevent WKWebView from failing to render emoji glyphs.
+
+---
+
+### 修正
+- **iOSログイントークン交換方式**: ASWebAuthenticationSessionをやめ、トークン交換方式に変更。SFSafariVC内でGoogle OAuthが完了後、`/api/auth/ios-callback`が一時トークンを生成して`click.crun.circlerun://auth?token=xxx`にリダイレクト。SFSafariVCはURLスキームを処理できず自動クローズ。AppDelegateがURLスキームを受け取り、WKWebViewで`/api/auth/ios-session`を読み込み、セッションCookieをセットして`/dashboard`にリダイレクト。
+- **リアクション絵文字フォント**: WKWebViewで絵文字グリフが`?`になる問題に対し、`Apple Color Emoji`フォントファミリーを明示指定し`-webkit-text-size-adjust: none`を追加。
+
 ## [0.0.17] - 2026-04-05
 
 ### Fixed

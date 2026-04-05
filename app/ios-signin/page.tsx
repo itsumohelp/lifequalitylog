@@ -37,7 +37,7 @@ export default function iOSSignInPage() {
       const callbackInput = document.createElement("input");
       callbackInput.type = "hidden";
       callbackInput.name = "callbackUrl";
-      callbackInput.value = "/dashboard?iosCallback=1";
+      callbackInput.value = "/api/auth/ios-callback";
       form.appendChild(callbackInput);
 
       document.body.appendChild(form);

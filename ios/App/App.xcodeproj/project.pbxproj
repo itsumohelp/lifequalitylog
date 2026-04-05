@@ -17,6 +17,7 @@
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
 		64855CEE2F827A3500DB239F /* IOSAuthPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64855CED2F827A3500DB239F /* IOSAuthPlugin.swift */; };
 		64855CEF2F827A3500DB239F /* IOSAuthPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 64855CEC2F827A3500DB239F /* IOSAuthPlugin.m */; };
+		64855CF12F827D1B00DB239F /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64855CF02F827D1B00DB239F /* MainViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +33,7 @@
 		64855CE32F82791600DB239F /* App-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "App-Bridging-Header.h"; sourceTree = "<group>"; };
 		64855CEC2F827A3500DB239F /* IOSAuthPlugin.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = IOSAuthPlugin.m; sourceTree = "<group>"; };
 		64855CED2F827A3500DB239F /* IOSAuthPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSAuthPlugin.swift; sourceTree = "<group>"; };
+		64855CF02F827D1B00DB239F /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
@@ -50,6 +52,7 @@
 		504EC2FB1FED79650016851F = {
 			isa = PBXGroup;
 			children = (
+				64855CF02F827D1B00DB239F /* MainViewController.swift */,
 				64855CEC2F827A3500DB239F /* IOSAuthPlugin.m */,
 				64855CED2F827A3500DB239F /* IOSAuthPlugin.swift */,
 				958DCC722DB07C7200EA8C5F /* debug.xcconfig */,
@@ -165,6 +168,7 @@
 				64855CEE2F827A3500DB239F /* IOSAuthPlugin.swift in Sources */,
 				64855CEF2F827A3500DB239F /* IOSAuthPlugin.m in Sources */,
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
+				64855CF12F827D1B00DB239F /* MainViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

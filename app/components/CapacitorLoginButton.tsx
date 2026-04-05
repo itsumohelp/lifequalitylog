@@ -3,18 +3,23 @@
 import { useEffect, useState } from "react";
 
 export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
-  const [isCapacitor, setIsCapacitor] = useState(false);
+  const [Browser, setBrowser] = useState<any>(null);
 
   useEffect(() => {
-    setIsCapacitor(typeof window !== "undefined" && !!(window as any).Capacitor);
+    if (typeof window === "undefined" || !(window as any).Capacitor) return;
+    import("@capacitor/browser").then(({ Browser: B }) => {
+      setBrowser(B);
+    });
   }, []);
 
-  const handleLogin = () => {
-    // Trigger ASWebAuthenticationSession via WKScriptMessageHandler in MainViewController.swift
-    (window as any).webkit?.messageHandlers?.startAuth?.postMessage({});
+  const handleLogin = async () => {
+    if (!Browser) return;
+    await Browser.open({ url: "https://crun.click/ios-signin" });
   };
 
-  if (!isCapacitor) return null;
+  if (!Browser && typeof window !== "undefined" && !(window as any).Capacitor) {
+    return null;
+  }
 
   return (
     <button

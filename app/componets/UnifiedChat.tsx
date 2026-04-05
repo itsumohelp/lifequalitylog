@@ -1555,7 +1555,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                                   } ${(reactionsLoading || isToggling) ? "opacity-50" : ""}`}
                                 >
-                                  <span className="text-base leading-none">{emoji}</span>
+                                  <span style={{fontSize: "14px", lineHeight: 1, fontFamily: "'Apple Color Emoji', 'Segoe UI Emoji', sans-serif", WebkitTextSizeAdjust: "none"}}>{emoji}</span>
                                   {count > 0 && (
                                     <span className="text-[10px] min-w-[12px] text-center">{count}</span>
                                   )}
