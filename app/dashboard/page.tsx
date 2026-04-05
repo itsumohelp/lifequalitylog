@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import UnifiedChat from "../componets/UnifiedChat";
 import Link from "next/link";
+import { Suspense } from "react";
+import IOSAuthCallback from "../components/IOSAuthCallback";
 
 type FeedItem = {
   id: string;
@@ -353,6 +355,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex-1 bg-white flex flex-col min-h-0 overflow-hidden">
+      <Suspense fallback={null}><IOSAuthCallback /></Suspense>
       <div className="mx-auto max-w-md flex flex-col flex-1 w-full min-h-0">
         {/* メインコンテンツ */}
         {!hasCircles ? (

@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'CircleRun',
   webDir: 'out',
   server: {
-    url: 'https://web-7omyj5aulq-an.a.run.app',
+    url: 'https://crun.click',
     cleartext: false,
   },
   ios: {
