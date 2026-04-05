@@ -7,8 +7,9 @@ class MainViewController: CAPBridgeViewController, WKScriptMessageHandler, ASWeb
 
     private var authSession: ASWebAuthenticationSession?
 
-    override func capacitorDidLoad() {
-        bridge?.webView?.configuration.userContentController.add(self, name: "startAuth")
+    override func webView(with frame: CGRect, configuration: WKWebViewConfiguration) -> WKWebView {
+        configuration.userContentController.add(self, name: "startAuth")
+        return super.webView(with: frame, configuration: configuration)
     }
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
