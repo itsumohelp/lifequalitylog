@@ -2,11 +2,18 @@
 import "./globals.css";
 import type { ReactNode } from "react";
 import type { Viewport, Metadata } from "next";
+import { Noto_Sans_JP } from "next/font/google";
 import { auth } from "@/auth";
 import Header from "@/app/componets/Header";
 import { GoogleAnalytics } from "@next/third-parties/google";
 
-// OGP画像の絶対URL生成に必要
+const notoSansJP = Noto_Sans_JP({
+  weight: ["400", "500", "700"],
+  subsets: ["latin"],
+  display: "swap",
+  preload: false,
+});
+
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://crun.click";
 
 export const metadata: Metadata = {
@@ -34,12 +41,7 @@ export default async function RootLayout({
   const session = await auth();
 
   return (
-    <html lang="ja">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
-      </head>
+    <html lang="ja" className={notoSansJP.className}>
       <body className="text-slate-50 bg-slate-50">
         <div className="h-dvh flex flex-col bg-slate-50 overflow-hidden">
           <Header session={session} />

@@ -1,51 +1,42 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRef } from "react";
+import { registerPlugin } from "@capacitor/core";
+
+const IOSAuth = registerPlugin<{ startGoogleAuth: () => Promise<void> }>("IOSAuthPlugin");
 
 export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
-  const [Browser, setBrowser] = useState<any>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const router = useRouter();
-
-  useEffect(() => {
-    if (typeof window === "undefined" || !(window as any).Capacitor) return;
-    import("@capacitor/browser").then(({ Browser: B }) => {
-      setBrowser(B);
-    });
-  }, []);
 
   const handleLogin = async () => {
-    if (!Browser) return;
     const pollId = crypto.randomUUID();
-    await Browser.open({ url: `https://crun.click/ios-signin?pollId=${pollId}` });
 
-    // Poll for auth completion
+    // Poll開始（ASWebAuthenticationSession中もバックグラウンドで動く）
     pollRef.current = setInterval(async () => {
       try {
         const res = await fetch(`https://crun.click/api/auth/ios-poll?pollId=${pollId}`);
         const data = await res.json();
         if (data.token) {
           clearInterval(pollRef.current!);
-          // Set session cookie via fetch (credentials:include applies Set-Cookie header)
           await fetch(`https://crun.click/api/auth/ios-session?token=${encodeURIComponent(data.token)}`, {
             credentials: "include",
           });
-          // Navigate to dashboard without adding to history (avoids flash of home page)
-          // sessionStorageにフラグを立てた後、Swiftにdashboard遷移を依頼
-          // dashboard側がロード完了後にBrowser.close()を呼ぶことで
-          // 「ブラウザが閉じた瞬間にdashboardが表示済み」を保証する
-          sessionStorage.setItem("pendingBrowserClose", "true");
-          (window as any).webkit?.messageHandlers?.navigateToDashboard?.postMessage({});
+          window.location.replace("https://crun.click/dashboard");
         }
       } catch {}
     }, 2000);
+
+    try {
+      // ASWebAuthenticationSession でOAuth（ブラウザUI無し、ダイアログ無し）
+      // 完了・キャンセル問わずpollが制御する
+      await IOSAuth.startGoogleAuth();
+    } catch {
+      // キャンセル時はpollをクリア
+      clearInterval(pollRef.current!);
+    }
   };
 
-  // Clear poll on unmount
-  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
-
-  if (!Browser && typeof window !== "undefined" && !(window as any).Capacitor) {
+  if (typeof window !== "undefined" && !(window as any).Capacitor) {
     return null;
   }
 
