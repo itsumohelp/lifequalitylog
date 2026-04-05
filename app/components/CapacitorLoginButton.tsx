@@ -1,11 +1,6 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { registerPlugin } from "@capacitor/core";
-
-const IOSAuth = registerPlugin<{
-  startGoogleAuth: (opts: { pollId: string }) => Promise<void>;
-}>("IOSAuthPlugin");
 
 export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -41,9 +36,8 @@ export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
     pollRef.current = setInterval(() => checkPoll(pollId), 2000);
 
     try {
-      await IOSAuth.startGoogleAuth({ pollId });
+      await (window as any).Capacitor?.Plugins?.IOSAuthPlugin?.startGoogleAuth({ pollId });
     } catch {
-      // キャンセル時はpollをクリア
       clearInterval(pollRef.current!);
       delete (window as any).__authSessionCompleted;
     }
