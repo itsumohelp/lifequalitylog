@@ -8,34 +8,30 @@ export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
   const [Browser, setBrowser] = useState<any>(null);
 
   useEffect(() => {
-    // Dynamically import @capacitor/browser only in Capacitor environment
     if (typeof window !== "undefined" && (window as any).Capacitor) {
-      import("@capacitor/browser").then((mod) => setBrowser(mod.Browser));
+      import("@capacitor/browser").then((mod) => {
+        const B = mod.Browser;
+        setBrowser(B);
+        // Set up listener once on mount
+        B.addListener("browserFinished", async () => {
+          try {
+            const res = await fetch(`${SERVER_URL}/api/auth/session`);
+            const data = await res.json();
+            if (data?.user) {
+              window.location.href = "/dashboard";
+            }
+          } catch {
+            // ignore
+          }
+        });
+      });
     }
   }, []);
 
   const handleLogin = async () => {
     if (!Browser) return;
-
-    const signinUrl = `${SERVER_URL}/ios-signin`;
-
-    await Browser.open({ url: signinUrl, windowName: "_self" });
-
-    // When the SFSafariViewController closes, cookies are shared with WKWebView.
-    // Listen for the browser finish event and navigate to dashboard.
-    const { Browser: B } = await import("@capacitor/browser");
-    await B.addListener("browserFinished", async () => {
-      // Check if session is now available by hitting the session endpoint
-      try {
-        const res = await fetch(`${SERVER_URL}/api/auth/session`);
-        const data = await res.json();
-        if (data?.user) {
-          window.location.href = "/dashboard";
-        }
-      } catch {
-        // ignore
-      }
-    });
+    // Open in SFSafariViewController (no windowName = default behavior)
+    await Browser.open({ url: `${SERVER_URL}/ios-signin` });
   };
 
   if (!Browser && typeof window !== "undefined" && !(window as any).Capacitor) {
