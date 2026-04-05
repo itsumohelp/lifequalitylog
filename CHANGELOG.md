@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.11] - 2026-04-05
+
+### Fixed
+- **iOS Google Login (simplified approach)**: Removed all custom sign-in pages and URL scheme redirects. `CapacitorLoginButton` now opens the existing top page in `SFSafariViewController`. After the user completes Google OAuth, `browserPageLoaded` detects a valid session and automatically closes the browser via `Browser.close()`, then navigates to `/dashboard`.
+
+---
+
+### 修正
+- **iOSでのGoogleログイン（シンプル化）**: カスタムサインインページとURLスキームリダイレクトをすべて廃止。`CapacitorLoginButton`がSFSafariViewControllerでトップページを開き、Google OAuth完了後に`browserPageLoaded`でセッションを検知して`Browser.close()`でブラウザを自動クローズ、`/dashboard`に遷移する。
+
 ## [0.0.10] - 2026-04-05
 
 ### Fixed
