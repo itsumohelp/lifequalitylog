@@ -7,6 +7,7 @@ import { getCategoryEmoji } from "@/lib/expenseParser";
 import { getAvatarColor, getAvatarInitial } from "@/lib/avatar";
 import type { ExpenseCategory, ReactionType } from "@/app/generated/prisma/enums";
 import MiniBalanceChart, { type BalanceDataPoint } from "@/app/componets/MiniBalanceChart";
+import { CheckCircle, ThumbsUp, ThumbsDown, Heart } from "lucide-react";
 
 type ReactionData = {
   counts: Record<ReactionType, number>;
@@ -1534,7 +1535,11 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                               const count = reactionData?.counts[type] || 0;
                               const hasReacted = reactionData?.userReactions.includes(type);
                               const isToggling = togglingReaction === `${item.id}:${type}`;
-                              const emoji = type === "CHECK" ? "✅" : type === "GOOD" ? "👍" : type === "BAD" ? "👎" : "🙏";
+                              const ReactionIcon =
+                                type === "CHECK" ? CheckCircle :
+                                type === "GOOD"  ? ThumbsUp :
+                                type === "BAD"   ? ThumbsDown :
+                                                   Heart;
 
                               return (
                                 <button
@@ -1551,7 +1556,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                                   } ${(reactionsLoading || isToggling) ? "opacity-50" : ""}`}
                                 >
-                                  <span className="text-base leading-none" style={{fontFamily: "Apple Color Emoji, Segoe UI Emoji, sans-serif"}}>{emoji}</span>
+                                  <ReactionIcon size={14} />
                                   {count > 0 && (
                                     <span className="text-[10px] min-w-[12px] text-center">{count}</span>
                                   )}

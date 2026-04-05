@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.15] - 2026-04-05
+
+### Fixed
+- **Reaction icons not rendering on iOS**: Replaced emoji characters (✅👍👎🙇) with lucide-react SVG icons (`CheckCircle`, `ThumbsUp`, `ThumbsDown`, `Heart`). SVG icons are font/encoding independent and render reliably in WKWebView.
+- **SFSafariViewController not closing after login**: Root cause was `capacitor.config.ts` `server.url` pointing to `web-7omyj5aulq-an.a.run.app` while session cookies are set for `crun.click`. Changed `server.url` to `https://crun.click` so WKWebView and SFSafariVC share the same domain and cookies.
+- **iOS OAuth callback**: Added `IOSAuthCallback` client component to `/dashboard` that detects `?iosCallback=1` and redirects to `click.crun.circlerun://auth-complete` URL scheme, triggering automatic SFSafariVC close.
+
+---
+
+### 修正
+- **iOSでリアクションアイコンが表示されない**: 絵文字（✅👍👎🙇）をlucide-reactのSVGアイコンに置き換え。SVGはフォント・文字コードに依存しないためWKWebViewで確実に表示される。
+- **ログイン後にSFSafariVCが閉じない根本原因**: `capacitor.config.ts`の`server.url`が`web-7omyj5aulq-an.a.run.app`を向いていたが、セッションCookieは`crun.click`ドメインに設定されるためドメイン不一致が発生。`server.url`を`https://crun.click`に変更してWKWebViewとSFSafariVCのドメインを統一。
+- **iOSのOAuthコールバック改善**: `/dashboard`に`IOSAuthCallback`コンポーネントを追加。`?iosCallback=1`を検知してURLスキーム`click.crun.circlerun://auth-complete`にリダイレクトし、SFSafariVCを自動クローズ。
+
 ## [0.0.14] - 2026-04-05
 
 ### Fixed
