@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
-import { randomBytes } from "crypto";
-import { storeIosToken } from "@/lib/iosTokenStore";
+import { SignJWT } from "jose";
 
 // Called by NextAuth as callbackUrl after Google OAuth completes in SFSafariVC.
 // Returns HTML with JS redirect to URL scheme — server-side 302 redirects to custom
@@ -22,10 +21,14 @@ export async function GET() {
     return NextResponse.redirect("https://crun.click/");
   }
 
-  const iosToken = randomBytes(32).toString("hex");
-  storeIosToken(iosToken, dbSession.sessionToken);
+  const secret = new TextEncoder().encode(process.env.AUTH_SECRET);
+  const iosToken = await new SignJWT({ st: dbSession.sessionToken })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("5m")
+    .sign(secret);
 
-  const scheme = `click.crun.circlerun://auth?token=${iosToken}`;
+  const encoded = encodeURIComponent(iosToken);
+  const scheme = `click.crun.circlerun://auth?token=${encoded}`;
 
   // JS redirect triggers iOS URL scheme handling and closes SFSafariVC
   return new NextResponse(

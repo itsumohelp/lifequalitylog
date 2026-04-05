@@ -1268,7 +1268,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                             <>
                               {/* カテゴリ絵文字 + 金額 + 累計 + タグバッジ */}
                               <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className="text-sm">
+                                <span className="emoji-icon text-sm">
                                   {getCategoryEmoji((item.category || "OTHER") as ExpenseCategory)}
                                 </span>
                                 <span
@@ -1555,7 +1555,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                                   } ${(reactionsLoading || isToggling) ? "opacity-50" : ""}`}
                                 >
-                                  <span>{emoji}</span>
+                                  <span className="emoji-icon">{emoji}</span>
                                   {count > 0 && (
                                     <span className="text-[10px] min-w-[12px] text-center">{count}</span>
                                   )}
