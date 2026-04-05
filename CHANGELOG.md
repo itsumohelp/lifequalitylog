@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.12] - 2026-04-05
+
+### Fixed
+- **iOS Google Login PKCE error**: Root cause identified from Cloud Run logs: `InvalidCheck: pkceCodeVerifier value could not be parsed`. The PKCE cookie was set for the `web-7omyj5aulq-an.a.run.app` domain but the OAuth callback came to `crun.click`, causing a domain mismatch. Fixed by: (1) changing `SERVER_URL` to `https://crun.click` in `CapacitorLoginButton`, and (2) setting `checks: ["state"]` on the Google provider to disable PKCE and use state-only CSRF protection (sufficient for server-side apps with a client secret).
+
+---
+
+### 修正
+- **iOSでのGoogleログインPKCEエラー修正**: Cloud Runログで原因を特定：`InvalidCheck: pkceCodeVerifier value could not be parsed`。PKCEのCookieが`web-7omyj5aulq-an.a.run.app`ドメインに設定されたが、OAuthコールバックが`crun.click`に来るためドメイン不一致が発生。修正内容：(1) `CapacitorLoginButton`の`SERVER_URL`を`https://crun.click`に変更、(2) Googleプロバイダーに`checks: ["state"]`を設定してPKCEを無効化しstateのみのCSRF保護に変更（クライアントシークレットを持つサーバーサイドアプリでは十分）。
+
 ## [0.0.11] - 2026-04-05
 
 ### Fixed

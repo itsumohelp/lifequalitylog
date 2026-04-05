@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const SERVER_URL = "https://web-7omyj5aulq-an.a.run.app";
+const SERVER_URL = "https://crun.click";
 
 export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
   const [Browser, setBrowser] = useState<any>(null);
