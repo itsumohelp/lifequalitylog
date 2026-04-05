@@ -26,6 +26,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+        // Handle iOS auth token exchange: click.crun.circlerun://auth?token=xxx
+        if url.scheme == "click.crun.circlerun",
+           let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+           let token = components.queryItems?.first(where: { $0.name == "token" })?.value,
+           let sessionURL = URL(string: "https://crun.click/api/auth/ios-session?token=\(token)") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                if let vc = self.window?.rootViewController as? CAPBridgeViewController {
+                    vc.webView?.load(URLRequest(url: sessionURL))
+                }
+            }
+            return true
+        }
         return ApplicationDelegateProxy.shared.application(app, open: url, options: options)
     }
 
