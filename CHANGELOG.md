@@ -5,7 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.19] - 2026-04-05
+## [0.0.20] - 2026-04-05
+
+### Fixed
+- **Emoji display in WKWebView (proper fix)**: Reverted body `font-family` to `Arial, Helvetica, sans-serif` (adding Apple Color Emoji to body broke all Japanese text). Added `.emoji-icon` CSS class with `"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji"` font stack. Applied `emoji-icon` class to reaction buttons and category emoji spans in `UnifiedChat.tsx`.
+- **iOS auth token exchange: multi-instance safe**: Replaced in-memory `iosTokenStore` with JWT (signed by `AUTH_SECRET` via `jose`). The one-time token is now a signed JWT with 5-minute expiry — stateless and verifiable on any Cloud Run instance without shared state.
+
+---
+
+### 修正
+- **WKWebViewでの絵文字表示（正式修正）**: bodyの`font-family`に`Apple Color Emoji`を追加すると日本語テキストが全て`?`になる問題を修正。bodyフォントを元の`Arial, Helvetica, sans-serif`に戻し、絵文字専用の`.emoji-icon` CSSクラス（`"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji"`）を追加。`UnifiedChat.tsx`のリアクションボタンとカテゴリ絵文字に`emoji-icon`クラスを適用。
+- **iOSトークン交換方式のマルチインスタンス対応**: インメモリの`iosTokenStore`をJWT署名方式（`AUTH_SECRET`を鍵に`jose`で署名）に変更。一時トークンが5分有効期限付きの署名済みJWTになり、Cloud Runのインスタンスが複数になっても共有状態不要でどのインスタンスでも検証可能。
+
+
 
 ### Fixed
 - **Emoji not rendering in WKWebView (root cause)**: `globals.css` body `font-family` was `Arial, Helvetica, sans-serif` which has no emoji fallback in WKWebView. Safari auto-fallbacks to Apple Color Emoji but WKWebView does not. Added `"Apple Color Emoji", "Segoe UI Emoji"` to the font stack. This also fixes category emoji (🍽️🛒🚃 etc.) in feed items.
