@@ -288,3 +288,10 @@ model Reaction {
   @@index([targetType, targetId]) // 投稿ごとのリアクション取得用（高速化）
   @@map("reactions")
 }
+
+model IosAuthToken {
+  pollId    String   @id
+  token     String   @db.Text
+  expiresAt DateTime
+  @@map("ios_auth_tokens")
+}

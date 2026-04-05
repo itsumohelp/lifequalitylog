@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { consumePollToken } from "@/lib/iosTokenStore";
+import prisma from "@/lib/prisma";
 
-// Polled by WKWebView every 2s after opening SFSafariVC.
-// Returns {token} when OAuth completes, or {pending:true} while waiting.
 export async function GET(req: NextRequest) {
   const pollId = req.nextUrl.searchParams.get("pollId");
   if (!pollId) return NextResponse.json({ error: "missing pollId" }, { status: 400 });
 
-  const token = consumePollToken(pollId);
-  if (!token) return NextResponse.json({ pending: true });
+  const entry = await prisma.iosAuthToken.findUnique({ where: { pollId } });
+  if (!entry || entry.expiresAt < new Date()) {
+    return NextResponse.json({ pending: true });
+  }
 
-  return NextResponse.json({ token });
+  await prisma.iosAuthToken.delete({ where: { pollId } });
+  return NextResponse.json({ token: entry.token });
 }

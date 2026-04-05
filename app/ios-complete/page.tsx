@@ -3,10 +3,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import prisma from "@/lib/prisma";
 import { SignJWT } from "jose";
-import { storePollToken } from "@/lib/iosTokenStore";
 
-// NextAuth redirects here after Google OAuth (callbackUrl=/ios-complete).
-// Reads pollId from cookie, stores signed JWT so WKWebView poll can retrieve it.
 export default async function IOSCompletePage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/");
@@ -26,7 +23,12 @@ export default async function IOSCompletePage() {
         .setProtectedHeader({ alg: "HS256" })
         .setExpirationTime("5m")
         .sign(secret);
-      storePollToken(pollId, token);
+
+      await prisma.iosAuthToken.upsert({
+        where: { pollId },
+        update: { token, expiresAt: new Date(Date.now() + 5 * 60 * 1000) },
+        create: { pollId, token, expiresAt: new Date(Date.now() + 5 * 60 * 1000) },
+      });
     }
   }
 
