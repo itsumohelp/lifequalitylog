@@ -11,11 +11,18 @@ class MainViewController: CAPBridgeViewController, WKScriptMessageHandler, ASWeb
         super.viewDidLoad()
         // Register JS message handler so JS can call window.webkit.messageHandlers.startAuth.postMessage({})
         webView?.configuration.userContentController.add(self, name: "startAuth")
+        webView?.configuration.userContentController.add(self, name: "navigateToDashboard")
     }
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         if message.name == "startAuth" {
             startASWebAuth()
+        } else if message.name == "navigateToDashboard" {
+            DispatchQueue.main.async { [weak self] in
+                if let url = URL(string: "https://crun.click/dashboard") {
+                    self?.webView?.load(URLRequest(url: url))
+                }
+            }
         }
     }
 
