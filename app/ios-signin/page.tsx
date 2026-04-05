@@ -14,7 +14,9 @@ function IOSSignInInner() {
       const sessionRes = await fetch("/api/auth/session");
       const session = await sessionRes.json();
       if (session?.user) {
-        router.replace("/dashboard");
+        // すでにログイン済みの場合はトークンを保存してブラウザを閉じる
+        document.cookie = `ios-poll-id=${pollId}; path=/; max-age=300; samesite=lax; secure`;
+        window.location.replace("/ios-complete");
         return;
       }
 

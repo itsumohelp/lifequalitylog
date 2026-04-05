@@ -32,8 +32,8 @@ export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
             credentials: "include",
           });
           // Navigate to dashboard without adding to history (avoids flash of home page)
-          window.location.replace("https://crun.click/dashboard");
           await Browser.close();
+          window.location.replace("https://crun.click/dashboard");
         }
       } catch {}
     }, 2000);
