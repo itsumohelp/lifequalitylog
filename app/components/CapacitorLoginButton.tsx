@@ -32,6 +32,19 @@ export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
           checking = false;
         }
       });
+
+      // If user manually closes SFSafariVC, reload to reflect login state
+      B.addListener("browserFinished", async () => {
+        try {
+          const res = await fetch(`${SERVER_URL}/api/auth/session`);
+          const data = await res.json();
+          if (data?.user) {
+            window.location.href = "/dashboard";
+          }
+        } catch {
+          // ignore
+        }
+      });
     });
   }, []);
 
