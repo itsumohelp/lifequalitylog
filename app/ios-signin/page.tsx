@@ -22,6 +22,9 @@ function IOSSignInInner() {
       const res = await fetch("/api/auth/csrf");
       const { csrfToken } = await res.json();
 
+      // Store pollId in cookie so /ios-complete can read it server-side
+      document.cookie = `ios-poll-id=${pollId}; path=/; max-age=300; samesite=lax; secure`;
+
       const form = document.createElement("form");
       form.method = "POST";
       form.action = "/api/auth/signin/google";
@@ -35,7 +38,7 @@ function IOSSignInInner() {
       const callbackInput = document.createElement("input");
       callbackInput.type = "hidden";
       callbackInput.name = "callbackUrl";
-      callbackInput.value = `/api/auth/ios-callback?pollId=${pollId}`;
+      callbackInput.value = "/ios-complete";
       form.appendChild(callbackInput);
 
       document.body.appendChild(form);
