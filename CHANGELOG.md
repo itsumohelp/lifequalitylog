@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.19] - 2026-04-05
+
+### Fixed
+- **Emoji not rendering in WKWebView (root cause)**: `globals.css` body `font-family` was `Arial, Helvetica, sans-serif` which has no emoji fallback in WKWebView. Safari auto-fallbacks to Apple Color Emoji but WKWebView does not. Added `"Apple Color Emoji", "Segoe UI Emoji"` to the font stack. This also fixes category emoji (🍽️🛒🚃 etc.) in feed items.
+- **SFSafariVC not closing after OAuth**: Server-side 302 redirects to custom URL schemes (`click.crun.circlerun://`) are not intercepted by SFSafariVC. Changed `/api/auth/ios-callback` to return an HTML page with a JavaScript redirect (`window.location.href = scheme`), which correctly triggers iOS URL scheme handling and closes SFSafariVC.
+
+---
+
+### 修正
+- **WKWebViewで絵文字が表示されない根本原因**: `globals.css`のbodyフォントが`Arial, Helvetica, sans-serif`でWKWebViewでの絵文字フォールバックがなかった。Safariは自動的にApple Color EmojiにフォールバックするがwkWebViewはしない。`"Apple Color Emoji", "Segoe UI Emoji"`をフォントスタックに追加。フィードのカテゴリ絵文字（🍽️🛒🚃等）も同時修正。
+- **OAuth後にSFSafariVCが閉じない**: サーバーサイドの302リダイレクトはSFSafariVC内でカスタムURLスキームをトリガーしない。`/api/auth/ios-callback`をJavaScriptリダイレクト（`window.location.href = scheme`）を返すHTMLレスポンスに変更し、iOSのURLスキーム処理を正常にトリガー。
+
 ## [0.0.18] - 2026-04-05
 
 ### Fixed
