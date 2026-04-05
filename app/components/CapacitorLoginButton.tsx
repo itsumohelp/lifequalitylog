@@ -30,8 +30,10 @@ export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
 
   const handleLogin = async () => {
     if (!Browser) return;
-    // Open in SFSafariViewController (no windowName = default behavior)
-    await Browser.open({ url: `${SERVER_URL}/ios-signin` });
+    // Open the normal sign-in page with callbackUrl pointing to /ios-auth-complete.
+    // This reuses the exact same working web auth flow; only the post-login redirect differs.
+    const url = `${SERVER_URL}/?callbackUrl=${encodeURIComponent("/ios-auth-complete")}`;
+    await Browser.open({ url });
   };
 
   if (!Browser && typeof window !== "undefined" && !(window as any).Capacitor) {

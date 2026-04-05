@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.10] - 2026-04-05
+
+### Fixed
+- **iOS Google Login (working fix)**: Abandoned the custom `/ios-signin` page approach. Instead, `CapacitorLoginButton` now opens the existing top page (`/?callbackUrl=/ios-auth-complete`) in SFSafariViewController. This reuses the exact same Server Action sign-in flow that already works on web, eliminating NextAuth configuration errors.
+
+---
+
+### 修正
+- **iOSでのGoogleログイン（動作確認済み修正）**: 独自の`/ios-signin`ページアプローチを廃止。`CapacitorLoginButton`がSFSafariViewControllerでトップページ（`/?callbackUrl=/ios-auth-complete`）を開くように変更。Webで動作確認済みの既存Server Actionサインインフローをそのまま再利用し、NextAuthの設定エラーを解消。
+
 ## [0.0.9] - 2026-04-05
 
 ### Fixed
