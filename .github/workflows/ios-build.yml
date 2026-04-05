@@ -1,0 +1,108 @@
+name: iOS Build (App Store Archive)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Build version (e.g. 1.0.0)'
+        required: true
+        default: '1.0.0'
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync Capacitor
+        run: npx cap sync ios
+
+      - name: Install Distribution Certificate
+        env:
+          CERT_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERT_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERT_PASSWORD }}
+        run: |
+          CERT_PATH=$RUNNER_TEMP/distribution.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          echo -n "$CERT_BASE64" | base64 --decode -o $CERT_PATH
+          security create-keychain -p "temp-password" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "temp-password" $KEYCHAIN_PATH
+          security import $CERT_PATH -P "$CERT_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+      - name: Install Provisioning Profile
+        env:
+          PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          PROFILE_PATH="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILE_PATH"
+          echo -n "$PROFILE_BASE64" | base64 --decode -o "$PROFILE_PATH/CircleRun_AppStore.mobileprovision"
+
+      - name: Build Archive
+        run: |
+          xcodebuild archive \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -archivePath $RUNNER_TEMP/CircleRun.xcarchive \
+            -destination "generic/platform=iOS" \
+            CODE_SIGN_STYLE=Manual \
+            PROVISIONING_PROFILE_SPECIFIER="CircleRun AppStore" \
+            CODE_SIGN_IDENTITY="iPhone Distribution" \
+            MARKETING_VERSION=${{ github.event.inputs.version }} \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }}
+
+      - name: Export IPA
+        run: |
+          cat > $RUNNER_TEMP/ExportOptions.plist << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store</string>
+            <key>teamID</key>
+            <string>${{ secrets.APPLE_TEAM_ID }}</string>
+            <key>uploadSymbols</key>
+            <true/>
+            <key>compileBitcode</key>
+            <false/>
+          </dict>
+          </plist>
+          EOF
+
+          xcodebuild -exportArchive \
+            -archivePath $RUNNER_TEMP/CircleRun.xcarchive \
+            -exportOptionsPlist $RUNNER_TEMP/ExportOptions.plist \
+            -exportPath $RUNNER_TEMP/ipa
+
+      - name: Create GitHub Release and Upload IPA
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ios-v${{ github.event.inputs.version }}-${{ github.run_number }}
+          name: iOS v${{ github.event.inputs.version }} (build ${{ github.run_number }})
+          body: |
+            ## iOS App Store Build
+
+            - Version: ${{ github.event.inputs.version }}
+            - Build: ${{ github.run_number }}
+
+            ### アップロード手順
+            1. IPAをダウンロード
+            2. **Transporter**（Mac App Store）でApp Store Connectにアップロード
+          draft: false
+          prerelease: true
+          files: ${{ runner.temp }}/ipa/*.ipa
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
