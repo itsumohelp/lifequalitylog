@@ -8,10 +8,7 @@ public class IOSAuthPlugin: CAPPlugin, ASWebAuthenticationPresentationContextPro
     private var authSession: ASWebAuthenticationSession?
 
     @objc func startGoogleAuth(_ call: CAPPluginCall) {
-        let authURLString = "https://crun.click/ios-signin"
-        let callbackScheme = "click.crun.circlerun"
-
-        guard let authURL = URL(string: authURLString) else {
+        guard let authURL = URL(string: "https://crun.click/ios-signin") else {
             call.reject("Invalid auth URL")
             return
         }
@@ -21,33 +18,20 @@ public class IOSAuthPlugin: CAPPlugin, ASWebAuthenticationPresentationContextPro
 
             let session = ASWebAuthenticationSession(
                 url: authURL,
-                callbackURLScheme: callbackScheme
-            ) { [weak self] callbackURL, error in
-                guard let self = self else { return }
-
+                callbackURLScheme: "click.crun.circlerun"
+            ) { _, error in
                 if let error = error as? ASWebAuthenticationSessionError,
                    error.code == .canceledLogin {
                     call.reject("Cancelled")
                     return
                 }
-
-                if let error = error {
-                    call.reject(error.localizedDescription)
-                    return
-                }
-
-                // OAuth completed — navigate WKWebView to dashboard
-                DispatchQueue.main.async {
-                    if let webView = self.bridge?.webView,
-                       let dashboardURL = URL(string: "https://crun.click/dashboard") {
-                        webView.load(URLRequest(url: dashboardURL))
-                    }
-                }
-                call.resolve(["url": callbackURL?.absoluteString ?? ""])
+                // 完了: pollがセッション設定とdashboard遷移を制御する
+                call.resolve()
             }
 
+            // ダイアログ無し・ブラウザUI無し
+            session.prefersEphemeralWebBrowserSession = true
             session.presentationContextProvider = self
-            session.prefersEphemeralWebBrowserSession = false
             self.authSession = session
             session.start()
         }
