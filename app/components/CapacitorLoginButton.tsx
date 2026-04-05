@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 
 export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
   const [Browser, setBrowser] = useState<any>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (typeof window === "undefined" || !(window as any).Capacitor) return;
@@ -14,8 +17,26 @@ export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
 
   const handleLogin = async () => {
     if (!Browser) return;
-    await Browser.open({ url: "https://crun.click/ios-signin" });
+    const pollId = crypto.randomUUID();
+    await Browser.open({ url: `https://crun.click/ios-signin?pollId=${pollId}` });
+
+    // Poll for auth completion
+    pollRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`https://crun.click/api/auth/ios-poll?pollId=${pollId}`);
+        const data = await res.json();
+        if (data.token) {
+          clearInterval(pollRef.current!);
+          await Browser.close();
+          // Load ios-session in WKWebView to set cookie then go to dashboard
+          window.location.href = `https://crun.click/api/auth/ios-session?token=${encodeURIComponent(data.token)}`;
+        }
+      } catch {}
+    }, 2000);
   };
+
+  // Clear poll on unmount
+  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
 
   if (!Browser && typeof window !== "undefined" && !(window as any).Capacitor) {
     return null;
@@ -42,5 +63,3 @@ export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
     </button>
   );
 }
-
-

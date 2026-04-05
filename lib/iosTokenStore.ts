@@ -1,17 +1,17 @@
-// In-memory one-time token store for iOS auth handoff.
-// Token maps to the NextAuth session token, valid for 5 minutes.
-const store = new Map<string, { sessionToken: string; expires: Date }>();
+// In-memory poll token store for iOS auth handoff via WKWebView polling.
+// pollId is generated in WKWebView before opening SFSafariVC.
+// When OAuth completes, ios-callback stores a signed JWT keyed by pollId.
+// WKWebView polls ios-poll endpoint until the JWT is available.
+const store = new Map<string, { token: string; expiresAt: number }>();
 
-export function storeIosToken(iosToken: string, sessionToken: string) {
-  store.set(iosToken, {
-    sessionToken,
-    expires: new Date(Date.now() + 5 * 60 * 1000),
-  });
+export function storePollToken(pollId: string, token: string) {
+  store.set(pollId, { token, expiresAt: Date.now() + 5 * 60 * 1000 });
 }
 
-export function consumeIosToken(iosToken: string): string | null {
-  const entry = store.get(iosToken);
-  store.delete(iosToken);
-  if (!entry || entry.expires < new Date()) return null;
-  return entry.sessionToken;
+export function consumePollToken(pollId: string): string | null {
+  const entry = store.get(pollId);
+  store.delete(pollId);
+  if (!entry || Date.now() > entry.expiresAt) return null;
+  return entry.token;
 }
+

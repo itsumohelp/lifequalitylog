@@ -2,11 +2,14 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
 import { SignJWT } from "jose";
+import { storePollToken } from "@/lib/iosTokenStore";
 
 // Called by NextAuth as callbackUrl after Google OAuth completes in SFSafariVC.
-// Returns HTML with JS redirect to URL scheme — server-side 302 redirects to custom
-// schemes are not intercepted by SFSafariVC, but JS redirects are.
-export async function GET() {
+// Signs a JWT and stores it keyed by pollId so WKWebView can poll for it.
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const pollId = url.searchParams.get("pollId");
+
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.redirect("https://crun.click/");
@@ -22,19 +25,18 @@ export async function GET() {
   }
 
   const secret = new TextEncoder().encode(process.env.AUTH_SECRET);
-  const iosToken = await new SignJWT({ st: dbSession.sessionToken })
+  const token = await new SignJWT({ st: dbSession.sessionToken })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("5m")
     .sign(secret);
 
-  const encoded = encodeURIComponent(iosToken);
-  const scheme = `click.crun.circlerun://auth?token=${encoded}`;
+  if (pollId) {
+    storePollToken(pollId, token);
+  }
 
-  // JS redirect triggers iOS URL scheme handling and closes SFSafariVC
+  // Show a completion page — WKWebView polling will detect the token and close SFSafariVC
   return new NextResponse(
-    `<!DOCTYPE html><html><body><script>window.location.href="${scheme}";</script></body></html>`,
-    {
-      headers: { "Content-Type": "text/html" },
-    }
+    `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="font-family:-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f8fafc"><p style="color:#64748b;font-size:15px">ログイン完了。アプリに戻っています...</p></body></html>`,
+    { headers: { "Content-Type": "text/html" } }
   );
 }
