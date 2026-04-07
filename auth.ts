@@ -12,23 +12,4 @@ export const {
 } = NextAuth({
   adapter: PrismaAdapter(prisma),
   ...authConfig,
-  events: {
-    // 新規ユーザー作成時にデフォルトサークルを自動作成
-    async createUser({ user }) {
-      if (user.id) {
-        await prisma.circle.create({
-          data: {
-            name: "おはじめ",
-            currency: "JPY",
-            members: {
-              create: {
-                userId: user.id,
-                role: "ADMIN",
-              },
-            },
-          },
-        });
-      }
-    },
-  },
 });
