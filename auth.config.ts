@@ -8,6 +8,9 @@ export const authConfig: NextAuthConfig = {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       checks: ["state"],
+      authorization: {
+        params: { prompt: "select_account" },
+      },
       profile(profile) {
         return {
           id: profile.sub,

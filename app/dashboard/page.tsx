@@ -2,7 +2,6 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import UnifiedChat from "../componets/UnifiedChat";
-import Link from "next/link";
 import { Suspense } from "react";
 import IOSAuthCallback from "../components/IOSAuthCallback";
 
@@ -47,6 +46,17 @@ export default async function DashboardPage() {
     where: { userId },
     select: { circleId: true, role: true },
   });
+
+  // 初回ユーザー：「おはじめ」サークルを自動作成
+  if (memberships.length === 0) {
+    await prisma.circle.create({
+      data: {
+        name: "おはじめ",
+        members: { create: { userId, role: "ADMIN" } },
+      },
+    });
+    redirect("/dashboard");
+  }
 
   const circleIds = memberships.map((m) => m.circleId);
   const adminCircleIds = memberships
@@ -358,25 +368,7 @@ export default async function DashboardPage() {
       <Suspense fallback={null}><IOSAuthCallback /></Suspense>
       <div className="mx-auto max-w-md flex flex-col flex-1 w-full min-h-0">
         {/* メインコンテンツ */}
-        {!hasCircles ? (
-          <div className="flex-1 flex items-center justify-center text-center px-6">
-            <div>
-              <p className="text-slate-700 mb-2">
-                まだサークルに参加していません
-              </p>
-              <p className="text-sm text-slate-500 mb-4">
-                サークルを作成するか、招待リンクから参加してください
-              </p>
-              <Link
-                href="/circles/new"
-                className="inline-block bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium"
-              >
-                サークルを作成
-              </Link>
-            </div>
-          </div>
-        ) : (
-          <UnifiedChat
+        <UnifiedChat
             initialFeed={feed}
             circles={circles}
             circleBalances={circleBalances}
@@ -388,7 +380,6 @@ export default async function DashboardPage() {
             initialDailyExpense={dailyExpense}
             adminCircleIds={adminCircleIds}
           />
-        )}
       </div>
     </div>
   );

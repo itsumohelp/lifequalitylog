@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.40] - 2026-04-07
+
+### Added
+- **Sign in with Apple (iOS)**: Added native Apple authentication for App Store review compliance. Uses `ASAuthorizationAppleIDProvider` in `MainViewController.swift`. New `/api/auth/apple-ios` endpoint verifies Apple identity token (JWT) via Apple's JWKS and issues a session. Google and Apple accounts are distinguished by `(provider, providerAccountId)` composite key.
+- **Auto-create "おはじめ" circle**: First-time users automatically get a default circle named "おはじめ" created on login. Removed the circle creation screen (`/circles/new` now redirects to `/dashboard`).
+
+### Fixed
+- **Twemoji CDN path**: Changed from `npm` to `gh` (GitHub) path — the npm package does not include SVG assets (`1f37d.svg` etc. returned 404).
+- **Twemoji variation selector**: Filtered out `U+FE0F` from codepoints when generating SVG URLs. Emoji like `🍽️` were generating `1f37d-fe0f.svg` (non-existent) instead of `1f37d.svg`.
+- **Emoji font override**: Added `!important` to `html, body` font-family in `globals.css`. The `next/font/google` class selector (higher specificity) was overriding the emoji font stack.
+- **`MainViewController` not instantiated**: `Main.storyboard` was referencing `CAPBridgeViewController` directly instead of `MainViewController`, meaning all Swift overrides were dead code. Fixed by updating `customClass` and `customModule` in the storyboard.
+- **`WKScriptMessageHandler` registration**: Moved handler registration from `capacitorDidLoad` to `webView(with:configuration:)` override so handlers are available before the page loads.
+
+---
+
+### 追加
+- **Sign in with Apple（iOS）**: App Store審査要件を満たすためネイティブApple認証を追加。`MainViewController.swift`に`ASAuthorizationAppleIDProvider`を実装。`/api/auth/apple-ios`エンドポイントでApple identity token（JWT）をAppleのJWKSで検証してセッションを発行。GoogleとAppleは`(provider, providerAccountId)`複合キーで区別。
+- **「おはじめ」サークル自動作成**: 初回ログイン時にサークルが存在しない場合、「おはじめ」サークルをADMINで自動作成してダッシュボードへ遷移。サークル登録画面（`/circles/new`）を廃止しダッシュボードにリダイレクト。
+
+### 修正
+- **TwemojiのCDNパス修正**: `npm`パスを`gh`（GitHub）に変更。`npm`パッケージにはSVGアセットが含まれておらず404が返っていた。
+- **Twemojiのvariation selector除去**: SVG URL生成時に`U+FE0F`をコードポイントから除外。`🍽️`が`1f37d-fe0f.svg`（存在しない）を参照していた問題を修正。
+- **絵文字フォント上書き問題**: `globals.css`の`html, body`フォントに`!important`を追加。`next/font/google`のクラスセレクタ（詳細度が高い）が絵文字フォントスタックを上書きしていた。
+- **`MainViewController`が使われていなかった問題**: `Main.storyboard`が`CAPBridgeViewController`を直接参照しており、`MainViewController`のSwiftコードが一切実行されていなかった。`customClass`と`customModule`を修正。
+- **`WKScriptMessageHandler`登録タイミング**: ハンドラ登録を`capacitorDidLoad`から`webView(with:configuration:)`オーバーライドに移動し、ページロード前から利用可能にした。
+
 ## [0.0.39] - 2026-04-05
 
 ### Fixed

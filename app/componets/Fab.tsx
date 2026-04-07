@@ -19,13 +19,6 @@ export default function Fab({
         <div className="mb-3 rounded-2xl bg-slate-900/95 border border-slate-700 shadow-lg px-3 py-2 text-[12px] text-slate-100">
           <div className="flex flex-col gap-1">
             <Link
-              href="/circles/new"
-              className="px-1 py-1 rounded hover:bg-slate-800/80"
-              onClick={() => setOpen(false)}
-            >
-              サークルを作成
-            </Link>
-            <Link
               href="/circles"
               className="px-1 py-1 rounded hover:bg-slate-800/80"
               onClick={() => setOpen(false)}
