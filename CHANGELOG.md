@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.41] - 2026-04-08
+
+### Fixed
+- **iOS session not persisting across app kills**: Session cookie was set without `maxAge`, making it a session-only cookie (memory only). Added `maxAge: 30 * 24 * 60 * 60` (30 days) to persist the cookie to disk in WKWebView.
+- **Share sheet icon not showing**: `app/apple-icon.png` was served at a hashed URL by Next.js which iOS could not reliably find. Added `public/apple-touch-icon.png` (180×180, resized from app icon) — iOS fetches this conventional path directly.
+
+---
+
+### 修正
+- **iOSアプリ再起動時にログインが切れる問題**: セッションCookieに`maxAge`を指定していなかったためセッションCookie（メモリのみ）になっていた。`maxAge: 30 * 24 * 60 * 60`（30日）を追加しWKWebViewがCookieをディスクに永続化するよう修正。
+- **シェアシートにアイコンが表示されない問題**: `app/apple-icon.png`はNext.jsがハッシュ付きURLで配信するためiOSが認識できなかった。`public/apple-touch-icon.png`（180×180、アプリアイコンをリサイズ）を追加し、iOSが標準パスとして直接取得できるよう修正。
+
 ## [0.0.40] - 2026-04-07
 
 ### Added
