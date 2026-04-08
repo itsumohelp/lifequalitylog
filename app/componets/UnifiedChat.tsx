@@ -6,8 +6,13 @@ import Link from "next/link";
 import { getCategoryEmoji } from "@/lib/expenseParser";
 import TwemojiImg from "@/app/components/TwemojiImg";
 import { getAvatarColor, getAvatarInitial } from "@/lib/avatar";
-import type { ExpenseCategory, ReactionType } from "@/app/generated/prisma/enums";
-import MiniBalanceChart, { type BalanceDataPoint } from "@/app/componets/MiniBalanceChart";
+import type {
+  ExpenseCategory,
+  ReactionType,
+} from "@/app/generated/prisma/enums";
+import MiniBalanceChart, {
+  type BalanceDataPoint,
+} from "@/app/componets/MiniBalanceChart";
 
 type ReactionData = {
   counts: Record<ReactionType, number>;
@@ -173,13 +178,28 @@ function addToRecentTags(newTags: string[]) {
   return trimmed;
 }
 
-export default function UnifiedChat({ initialFeed, circles, circleBalances, currentUserId, userRoles, tagSummary, initialTotalBalance, initialMonthlyExpense, initialDailyExpense, adminCircleIds }: Props) {
+export default function UnifiedChat({
+  initialFeed,
+  circles,
+  circleBalances,
+  currentUserId,
+  userRoles,
+  tagSummary,
+  initialTotalBalance,
+  initialMonthlyExpense,
+  initialDailyExpense,
+  adminCircleIds,
+}: Props) {
   const [feed, setFeed] = useState<FeedItem[]>(initialFeed);
   const [balances, setBalances] = useState<CircleBalance[]>(circleBalances);
   const [totalBalance, setTotalBalance] = useState<number>(initialTotalBalance);
-  const [monthlyExpense, setMonthlyExpense] = useState<number>(initialMonthlyExpense);
+  const [monthlyExpense, setMonthlyExpense] = useState<number>(
+    initialMonthlyExpense,
+  );
   const [dailyExpense, setDailyExpense] = useState<number>(initialDailyExpense);
-  const [selectedCircleId, setSelectedCircleId] = useState<string>(circles[0]?.id || "");
+  const [selectedCircleId, setSelectedCircleId] = useState<string>(
+    circles[0]?.id || "",
+  );
   const [isBreakdownOpen, setIsBreakdownOpen] = useState(false);
   const [filterCircleId, setFilterCircleId] = useState<string>(""); // "" = すべて表示
   const [inputMode, setInputMode] = useState<InputMode>("expense");
@@ -198,14 +218,19 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
   const [reactions, setReactions] = useState<Record<string, ReactionData>>({});
   const [reactionsLoading, setReactionsLoading] = useState(false);
   const [togglingReaction, setTogglingReaction] = useState<string | null>(null); // "itemId:type"
-  const [hasMoreHistory, setHasMoreHistory] = useState<Record<string, boolean>>({}); // circleId -> hasMore
+  const [hasMoreHistory, setHasMoreHistory] = useState<Record<string, boolean>>(
+    {},
+  ); // circleId -> hasMore
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-  const [showShareNotEnabledDialog, setShowShareNotEnabledDialog] = useState(false);
+  const [showShareNotEnabledDialog, setShowShareNotEnabledDialog] =
+    useState(false);
   const [showMiniChart, setShowMiniChart] = useState(false);
+  const [circlesState, setCirclesState] = useState<Circle[]>(circles);
+  const [togglingPublic, setTogglingPublic] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const selectedCircle = circles.find((c) => c.id === selectedCircleId);
+  const selectedCircle = circlesState.find((c) => c.id === selectedCircleId);
 
   // シェアボタン処理
   const handleShare = () => {
@@ -233,7 +258,10 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
   const fetchReactions = useCallback(async (items: FeedItem[]) => {
     // expense, income, snapshot のみ対象
     const targetItems = items.filter(
-      (item) => item.kind === "expense" || item.kind === "income" || item.kind === "snapshot"
+      (item) =>
+        item.kind === "expense" ||
+        item.kind === "income" ||
+        item.kind === "snapshot",
     );
     if (targetItems.length === 0) return;
 
@@ -243,7 +271,9 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
 
     setReactionsLoading(true);
     try {
-      const res = await fetch(`/api/reactions?targets=${encodeURIComponent(targets)}`);
+      const res = await fetch(
+        `/api/reactions?targets=${encodeURIComponent(targets)}`,
+      );
       if (res.ok) {
         const data = await res.json();
         setReactions(data.reactions || {});
@@ -256,51 +286,63 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
   }, []);
 
   // 過去の実績を取得
-  const loadHistory = useCallback(async (circleId: string) => {
-    if (isLoadingHistory) return;
+  const loadHistory = useCallback(
+    async (circleId: string) => {
+      if (isLoadingHistory) return;
 
-    // そのサークルの現在の最古のアイテムを取得
-    const circleItems = feed.filter((item) => item.circleId === circleId);
-    const oldestItem = circleItems.length > 0
-      ? circleItems.reduce((oldest, item) =>
-          new Date(item.createdAt) < new Date(oldest.createdAt) ? item : oldest
-        )
-      : null;
+      // そのサークルの現在の最古のアイテムを取得
+      const circleItems = feed.filter((item) => item.circleId === circleId);
+      const oldestItem =
+        circleItems.length > 0
+          ? circleItems.reduce((oldest, item) =>
+              new Date(item.createdAt) < new Date(oldest.createdAt)
+                ? item
+                : oldest,
+            )
+          : null;
 
-    setIsLoadingHistory(true);
-    try {
-      const params = new URLSearchParams({ circleId });
-      if (oldestItem) {
-        params.set("before", oldestItem.createdAt);
-      }
-
-      const res = await fetch(`/api/feed/history?${params}`);
-      if (res.ok) {
-        const data = await res.json();
-        // 重複を避けて古いアイテムを先頭に追加
-        const existingIds = new Set(feed.map((item) => item.id));
-        const newItems = data.feed.filter((item: FeedItem) => !existingIds.has(item.id));
-
-        if (newItems.length > 0) {
-          setFeed((prev) => [...newItems, ...prev].sort(
-            (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-          ));
-          // 新しいアイテムのリアクションを取得
-          fetchReactions(newItems);
+      setIsLoadingHistory(true);
+      try {
+        const params = new URLSearchParams({ circleId });
+        if (oldestItem) {
+          params.set("before", oldestItem.createdAt);
         }
 
-        // hasMoreを更新
-        setHasMoreHistory((prev) => ({
-          ...prev,
-          [circleId]: data.hasMore,
-        }));
+        const res = await fetch(`/api/feed/history?${params}`);
+        if (res.ok) {
+          const data = await res.json();
+          // 重複を避けて古いアイテムを先頭に追加
+          const existingIds = new Set(feed.map((item) => item.id));
+          const newItems = data.feed.filter(
+            (item: FeedItem) => !existingIds.has(item.id),
+          );
+
+          if (newItems.length > 0) {
+            setFeed((prev) =>
+              [...newItems, ...prev].sort(
+                (a, b) =>
+                  new Date(a.createdAt).getTime() -
+                  new Date(b.createdAt).getTime(),
+              ),
+            );
+            // 新しいアイテムのリアクションを取得
+            fetchReactions(newItems);
+          }
+
+          // hasMoreを更新
+          setHasMoreHistory((prev) => ({
+            ...prev,
+            [circleId]: data.hasMore,
+          }));
+        }
+      } catch (err) {
+        console.error("Failed to load history:", err);
+      } finally {
+        setIsLoadingHistory(false);
       }
-    } catch (err) {
-      console.error("Failed to load history:", err);
-    } finally {
-      setIsLoadingHistory(false);
-    }
-  }, [feed, isLoadingHistory, fetchReactions]);
+    },
+    [feed, isLoadingHistory, fetchReactions],
+  );
 
   // リアクションをトグル
   const toggleReaction = async (item: FeedItem, reactionType: ReactionType) => {
@@ -332,9 +374,14 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
               updated[itemKey] = {
                 counts: {
                   ...updated[itemKey].counts,
-                  [reactionType]: Math.max(0, updated[itemKey].counts[reactionType] - 1),
+                  [reactionType]: Math.max(
+                    0,
+                    updated[itemKey].counts[reactionType] - 1,
+                  ),
                 },
-                userReactions: updated[itemKey].userReactions.filter((r) => r !== reactionType),
+                userReactions: updated[itemKey].userReactions.filter(
+                  (r) => r !== reactionType,
+                ),
               };
             }
             return updated;
@@ -407,8 +454,8 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                     balance: cb.balance + expenseAmount,
                     monthlyExpense: cb.monthlyExpense - expenseAmount,
                   }
-                : cb
-            )
+                : cb,
+            ),
           );
           // ADMINサークルの場合、合計残高と当月支出も更新
           if (adminCircleIds.includes(item.circleId)) {
@@ -431,8 +478,8 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
             prev.map((cb) =>
               cb.circleId === item.circleId
                 ? { ...cb, balance: cb.balance - item.amount }
-                : cb
-            )
+                : cb,
+            ),
           );
           // ADMINサークルの場合、合計残高も更新
           if (adminCircleIds.includes(item.circleId)) {
@@ -474,12 +521,10 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
 
       if (res.ok) {
         setFeed((prev) =>
-          prev.map((f) =>
-            f.id === item.id ? { ...f, tags: updatedTags } : f
-          )
+          prev.map((f) => (f.id === item.id ? { ...f, tags: updatedTags } : f)),
         );
         setSelectedItem((prev) =>
-          prev && prev.id === item.id ? { ...prev, tags: updatedTags } : prev
+          prev && prev.id === item.id ? { ...prev, tags: updatedTags } : prev,
         );
         setTagInput("");
       } else {
@@ -510,12 +555,10 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
 
       if (res.ok) {
         setFeed((prev) =>
-          prev.map((f) =>
-            f.id === item.id ? { ...f, tags: updatedTags } : f
-          )
+          prev.map((f) => (f.id === item.id ? { ...f, tags: updatedTags } : f)),
         );
         setSelectedItem((prev) =>
-          prev && prev.id === item.id ? { ...prev, tags: updatedTags } : prev
+          prev && prev.id === item.id ? { ...prev, tags: updatedTags } : prev,
         );
       } else {
         const data = await res.json();
@@ -542,9 +585,14 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
   // サークル切り替え時に一番下にスクロール + 一時的なアイテムを削除
   useEffect(() => {
     // 集計・ヘルプ・招待などの一時的なアイテムを削除
-    setFeed((prev) => prev.filter((item) =>
-      item.kind !== "summary" && item.kind !== "help" && item.kind !== "invite"
-    ));
+    setFeed((prev) =>
+      prev.filter(
+        (item) =>
+          item.kind !== "summary" &&
+          item.kind !== "help" &&
+          item.kind !== "invite",
+      ),
+    );
     // 少し遅延してスクロール（フィルタリング後のレンダリングを待つ）
     setTimeout(() => {
       if (scrollRef.current) {
@@ -561,7 +609,11 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
   // 招待コマンドかどうかをチェック
   const isInviteCommand = (text: string) => {
     const normalized = text.trim().toLowerCase();
-    return normalized === "招待" || normalized === "しょうたい" || normalized === "invite";
+    return (
+      normalized === "招待" ||
+      normalized === "しょうたい" ||
+      normalized === "invite"
+    );
   };
 
   // サークル追加コマンドかどうかをチェック
@@ -700,7 +752,9 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
       setInput("");
       setIsLoading(true);
       try {
-        const res = await fetch(`/api/summary?circleId=${encodeURIComponent(selectedCircleId)}`);
+        const res = await fetch(
+          `/api/summary?circleId=${encodeURIComponent(selectedCircleId)}`,
+        );
         if (res.ok) {
           const data = await res.json();
           const summaryItem: FeedItem = {
@@ -754,7 +808,10 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
         const res = await fetch("/api/expense", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ circleId: selectedCircleId, text: input.trim() }),
+          body: JSON.stringify({
+            circleId: selectedCircleId,
+            text: input.trim(),
+          }),
         });
 
         const data = await res.json();
@@ -765,7 +822,8 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
         }
 
         // 支出後のサークル残高を計算
-        const currentCircleBalance = balances.find((cb) => cb.circleId === selectedCircleId)?.balance || 0;
+        const currentCircleBalance =
+          balances.find((cb) => cb.circleId === selectedCircleId)?.balance || 0;
         const newCircleBalance = currentCircleBalance - data.expense.amount;
 
         const newItem: FeedItem = {
@@ -796,8 +854,11 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
 
         // 一時的なアイテム（集計・ヘルプ・招待）を削除して新しいアイテムを追加
         setFeed((prev) => [
-          ...prev.filter((item) =>
-            item.kind !== "summary" && item.kind !== "help" && item.kind !== "invite"
+          ...prev.filter(
+            (item) =>
+              item.kind !== "summary" &&
+              item.kind !== "help" &&
+              item.kind !== "invite",
           ),
           newItem,
         ]);
@@ -811,8 +872,8 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                   balance: cb.balance - data.expense.amount,
                   monthlyExpense: cb.monthlyExpense + data.expense.amount,
                 }
-              : cb
-          )
+              : cb,
+          ),
         );
 
         // ADMINサークルの場合、合計残高と当月支出・当日支出も更新
@@ -826,7 +887,10 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
         const res = await fetch("/api/income", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ circleId: selectedCircleId, text: input.trim() }),
+          body: JSON.stringify({
+            circleId: selectedCircleId,
+            text: input.trim(),
+          }),
         });
 
         const data = await res.json();
@@ -854,8 +918,11 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
 
         // 一時的なアイテム（集計・ヘルプ・招待）を削除して新しいアイテムを追加
         setFeed((prev) => [
-          ...prev.filter((item) =>
-            item.kind !== "summary" && item.kind !== "help" && item.kind !== "invite"
+          ...prev.filter(
+            (item) =>
+              item.kind !== "summary" &&
+              item.kind !== "help" &&
+              item.kind !== "invite",
           ),
           newItem,
         ]);
@@ -865,8 +932,8 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
           prev.map((cb) =>
             cb.circleId === selectedCircleId
               ? { ...cb, balance: cb.balance + data.income.amount }
-              : cb
-          )
+              : cb,
+          ),
         );
 
         // ADMINサークルの場合、合計残高も更新
@@ -914,23 +981,25 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
 
         // 一時的なアイテム（集計・ヘルプ・招待）を削除して新しいアイテムを追加
         setFeed((prev) => [
-          ...prev.filter((item) =>
-            item.kind !== "summary" && item.kind !== "help" && item.kind !== "invite"
+          ...prev.filter(
+            (item) =>
+              item.kind !== "summary" &&
+              item.kind !== "help" &&
+              item.kind !== "invite",
           ),
           newSnapshotItem,
         ]);
 
         // 旧残高を取得
-        const oldBalance = balances.find((cb) => cb.circleId === selectedCircleId)?.balance || 0;
+        const oldBalance =
+          balances.find((cb) => cb.circleId === selectedCircleId)?.balance || 0;
         const balanceDiff = amount - oldBalance;
 
         // サークル残高を新しい残高に更新
         setBalances((prev) =>
           prev.map((cb) =>
-            cb.circleId === selectedCircleId
-              ? { ...cb, balance: amount }
-              : cb
-          )
+            cb.circleId === selectedCircleId ? { ...cb, balance: amount } : cb,
+          ),
         );
 
         // ADMINサークルの場合、合計残高も更新
@@ -966,13 +1035,21 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
         if (item.circleId !== selectedCircleId) return false;
         if (new Date(item.createdAt) < thirtyDaysAgo) return false;
         if (item.kind === "snapshot") return true;
-        if ((item.kind === "expense" || item.kind === "income") && item.circleBalanceAfter !== undefined) return true;
+        if (
+          (item.kind === "expense" || item.kind === "income") &&
+          item.circleBalanceAfter !== undefined
+        )
+          return true;
         return false;
       })
-      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+      .sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      )
       .map((item) => ({
         date: item.createdAt,
-        balance: item.kind === "snapshot" ? item.amount : item.circleBalanceAfter!,
+        balance:
+          item.kind === "snapshot" ? item.amount : item.circleBalanceAfter!,
       }));
 
     return points;
@@ -998,51 +1075,57 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
       acc[dateKey].push(item);
       return acc;
     },
-    {} as Record<string, FeedItem[]>
+    {} as Record<string, FeedItem[]>,
   );
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* 合計残高ヘッダー */}
       <div className="flex-shrink-0 bg-sky-100 px-3 py-1.5 border-b border-sky-200">
-          <div className="flex items-center justify-between gap-2">
-            {/* 残高 */}
-            <div className="flex flex-col items-center flex-1">
-              <span className="text-[10px] text-slate-500">残高</span>
-              <span className="font-semibold text-slate-900 text-lg">
-                ¥{formatYen(totalBalance)}
-              </span>
-            </div>
-            {/* 当月支出 */}
-            <div className="flex flex-col items-center flex-1">
-              <span className="text-[10px] text-slate-500">当月支出</span>
-              <span className="font-semibold text-red-500 text-lg">
-                ¥{formatYen(monthlyExpense)}
-              </span>
-            </div>
-            {/* 当日支出 */}
-            <div className="flex flex-col items-center flex-1">
-              <span className="text-[10px] text-slate-500">当日支出</span>
-              <span className="font-semibold text-red-500 text-lg">
-                ¥{formatYen(dailyExpense)}
-              </span>
-            </div>
-            {/* 内訳ボタン */}
-            {balances.length > 0 && (
-              <button
-                type="button"
-                onClick={() => setIsBreakdownOpen(!isBreakdownOpen)}
-                className="text-[10px] text-slate-500 hover:text-slate-700 px-2 py-0.5 rounded border border-slate-300 hover:border-slate-400 transition"
-              >
-                内訳
-              </button>
-            )}
+        <div className="flex items-center justify-between gap-2">
+          {/* 残高 */}
+          <div className="flex flex-col items-center flex-1">
+            <span className="text-[10px] text-slate-500">残高</span>
+            <span className="font-semibold text-slate-900 text-lg">
+              ¥{formatYen(totalBalance)}
+            </span>
           </div>
+          {/* 当月支出 */}
+          <div className="flex flex-col items-center flex-1">
+            <span className="text-[10px] text-slate-500">当月支出</span>
+            <span className="font-semibold text-red-500 text-lg">
+              ¥{formatYen(monthlyExpense)}
+            </span>
+          </div>
+          {/* 当日支出 */}
+          <div className="flex flex-col items-center flex-1">
+            <span className="text-[10px] text-slate-500">当日支出</span>
+            <span className="font-semibold text-red-500 text-lg">
+              ¥{formatYen(dailyExpense)}
+            </span>
+          </div>
+          {/* 内訳ボタン */}
+          {balances.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setIsBreakdownOpen(!isBreakdownOpen)}
+              className="text-[10px] text-slate-500 hover:text-slate-700 px-2 py-0.5 rounded border border-slate-300 hover:border-slate-400 transition"
+            >
+              内訳
+            </button>
+          )}
+        </div>
 
-          {/* サークル別残高（内訳） */}
-          {isBreakdownOpen && balances.length > 0 && (() => {
-            const adminBalances = balances.filter((cb) => adminCircleIds.includes(cb.circleId));
-            const invitedBalances = balances.filter((cb) => !adminCircleIds.includes(cb.circleId));
+        {/* サークル別残高（内訳） */}
+        {isBreakdownOpen &&
+          balances.length > 0 &&
+          (() => {
+            const adminBalances = balances.filter((cb) =>
+              adminCircleIds.includes(cb.circleId),
+            );
+            const invitedBalances = balances.filter(
+              (cb) => !adminCircleIds.includes(cb.circleId),
+            );
 
             return (
               <div className="mt-2 bg-slate-100 rounded-lg p-2 relative">
@@ -1074,8 +1157,12 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                   <div className="flex items-center text-[10px] text-slate-500 gap-2 pb-1 border-b border-slate-300">
                     <span className="flex-1"></span>
                     <span className="whitespace-nowrap">残高</span>
-                    <span className="whitespace-nowrap w-16 text-right">全期間</span>
-                    <span className="whitespace-nowrap w-16 text-right">今月</span>
+                    <span className="whitespace-nowrap w-16 text-right">
+                      全期間
+                    </span>
+                    <span className="whitespace-nowrap w-16 text-right">
+                      今月
+                    </span>
                   </div>
 
                   {/* ADMINサークル（合計に含まれる） */}
@@ -1191,7 +1278,8 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                 {items.map((item, idx) => {
                   const isOwnMessage = item.userId === currentUserId;
                   const prevItem = idx > 0 ? items[idx - 1] : null;
-                  const isSameUserAsPrev = prevItem && prevItem.userId === item.userId;
+                  const isSameUserAsPrev =
+                    prevItem && prevItem.userId === item.userId;
 
                   return (
                     <div
@@ -1216,7 +1304,9 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                           ) : (
                             <div
                               className="w-8 h-8 flex items-center justify-center text-xs text-white font-medium"
-                              style={{ backgroundColor: getAvatarColor(item.userId) }}
+                              style={{
+                                backgroundColor: getAvatarColor(item.userId),
+                              }}
                             >
                               {getAvatarInitial(item.userName)}
                             </div>
@@ -1225,7 +1315,9 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                       )}
 
                       {/* メッセージ部分 */}
-                      <div className={`max-w-[70%] ${isOwnMessage ? "items-end" : ""}`}>
+                      <div
+                        className={`max-w-[70%] ${isOwnMessage ? "items-end" : ""}`}
+                      >
                         {/* 投稿者名（バブルの上、連続投稿時は非表示） */}
                         {!isSameUserAsPrev && (
                           <div
@@ -1251,14 +1343,18 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                           <div className="flex items-center gap-2 mb-1">
                             <span
                               className={`text-xs font-medium ${
-                                isOwnMessage ? "text-slate-300" : "text-slate-700"
+                                isOwnMessage
+                                  ? "text-slate-300"
+                                  : "text-slate-700"
                               }`}
                             >
                               {item.circleName || "（名前なし）"}
                             </span>
                             <span
                               className={`text-[10px] ${
-                                isOwnMessage ? "text-slate-500" : "text-slate-400"
+                                isOwnMessage
+                                  ? "text-slate-500"
+                                  : "text-slate-400"
                               }`}
                             >
                               {formatTime(item.createdAt)}
@@ -1269,10 +1365,18 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                             <>
                               {/* カテゴリ絵文字 + 金額 + 累計 + タグバッジ */}
                               <div className="flex items-center gap-1.5 flex-wrap">
-                                <TwemojiImg emoji={getCategoryEmoji((item.category || "OTHER") as ExpenseCategory)} size={16} />
+                                <TwemojiImg
+                                  emoji={getCategoryEmoji(
+                                    (item.category ||
+                                      "OTHER") as ExpenseCategory,
+                                  )}
+                                  size={16}
+                                />
                                 <span
                                   className={`font-semibold text-sm ${
-                                    isOwnMessage ? "text-red-300" : "text-red-600"
+                                    isOwnMessage
+                                      ? "text-red-300"
+                                      : "text-red-600"
                                   }`}
                                 >
                                   ¥{formatYen(item.amount)}
@@ -1280,7 +1384,9 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                                 {item.circleBalanceAfter !== undefined && (
                                   <span
                                     className={`text-xs ${
-                                      isOwnMessage ? "text-slate-400" : "text-slate-500"
+                                      isOwnMessage
+                                        ? "text-slate-400"
+                                        : "text-slate-500"
                                     }`}
                                   >
                                     (¥{formatYen(item.circleBalanceAfter)})
@@ -1311,7 +1417,9 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                                 <span className="text-sm">💰</span>
                                 <span
                                   className={`font-semibold text-sm ${
-                                    isOwnMessage ? "text-emerald-300" : "text-emerald-600"
+                                    isOwnMessage
+                                      ? "text-emerald-300"
+                                      : "text-emerald-600"
                                   }`}
                                 >
                                   +¥{formatYen(item.amount)}
@@ -1342,7 +1450,9 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                               </div>
                               <div
                                 className={`text-[10px] break-all ${
-                                  isOwnMessage ? "text-slate-400" : "text-slate-500"
+                                  isOwnMessage
+                                    ? "text-slate-400"
+                                    : "text-slate-500"
                                 }`}
                               >
                                 {item.inviteUrl}
@@ -1354,13 +1464,16 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                               <div className="text-xs font-medium mb-2">
                                 📊 全期間のタグ別集計
                               </div>
-                              {item.allTimeSummaryData && item.allTimeSummaryData.length > 0 ? (
+                              {item.allTimeSummaryData &&
+                              item.allTimeSummaryData.length > 0 ? (
                                 <div className="space-y-1.5 mb-4">
                                   {item.allTimeSummaryData.map((s, idx) => (
                                     <div
                                       key={idx}
                                       className={`flex items-center justify-between text-xs ${
-                                        isOwnMessage ? "text-slate-200" : "text-slate-700"
+                                        isOwnMessage
+                                          ? "text-slate-200"
+                                          : "text-slate-700"
                                       }`}
                                     >
                                       <span
@@ -1374,7 +1487,9 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                                       </span>
                                       <span
                                         className={`font-medium ${
-                                          isOwnMessage ? "text-red-300" : "text-red-600"
+                                          isOwnMessage
+                                            ? "text-red-300"
+                                            : "text-red-600"
                                         }`}
                                       >
                                         -¥{formatYen(s.total)}
@@ -1385,7 +1500,9 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                               ) : (
                                 <div
                                   className={`text-[10px] mb-4 ${
-                                    isOwnMessage ? "text-slate-400" : "text-slate-500"
+                                    isOwnMessage
+                                      ? "text-slate-400"
+                                      : "text-slate-500"
                                   }`}
                                 >
                                   タグ付き支出がありません
@@ -1396,13 +1513,16 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                               <div className="text-xs font-medium mb-2">
                                 📅 今月のタグ別集計
                               </div>
-                              {item.monthlySummaryData && item.monthlySummaryData.length > 0 ? (
+                              {item.monthlySummaryData &&
+                              item.monthlySummaryData.length > 0 ? (
                                 <div className="space-y-1.5">
                                   {item.monthlySummaryData.map((s, idx) => (
                                     <div
                                       key={idx}
                                       className={`flex items-center justify-between text-xs ${
-                                        isOwnMessage ? "text-slate-200" : "text-slate-700"
+                                        isOwnMessage
+                                          ? "text-slate-200"
+                                          : "text-slate-700"
                                       }`}
                                     >
                                       <span
@@ -1416,7 +1536,9 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                                       </span>
                                       <span
                                         className={`font-medium ${
-                                          isOwnMessage ? "text-red-300" : "text-red-600"
+                                          isOwnMessage
+                                            ? "text-red-300"
+                                            : "text-red-600"
                                         }`}
                                       >
                                         -¥{formatYen(s.total)}
@@ -1427,7 +1549,9 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                               ) : (
                                 <div
                                   className={`text-[10px] ${
-                                    isOwnMessage ? "text-slate-400" : "text-slate-500"
+                                    isOwnMessage
+                                      ? "text-slate-400"
+                                      : "text-slate-500"
                                   }`}
                                 >
                                   今月のタグ付き支出がありません
@@ -1446,7 +1570,9 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                                     <div
                                       key={idx}
                                       className={`text-xs ${
-                                        isOwnMessage ? "text-slate-200" : "text-slate-700"
+                                        isOwnMessage
+                                          ? "text-slate-200"
+                                          : "text-slate-700"
                                       }`}
                                     >
                                       <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
@@ -1459,20 +1585,26 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                                         >
                                           {shortcut.command}
                                         </span>
-                                        {shortcut.aliases.slice(0, 2).map((alias, aliasIdx) => (
-                                          <span
-                                            key={aliasIdx}
-                                            className={`text-[10px] ${
-                                              isOwnMessage ? "text-slate-400" : "text-slate-500"
-                                            }`}
-                                          >
-                                            {alias}
-                                          </span>
-                                        ))}
+                                        {shortcut.aliases
+                                          .slice(0, 2)
+                                          .map((alias, aliasIdx) => (
+                                            <span
+                                              key={aliasIdx}
+                                              className={`text-[10px] ${
+                                                isOwnMessage
+                                                  ? "text-slate-400"
+                                                  : "text-slate-500"
+                                              }`}
+                                            >
+                                              {alias}
+                                            </span>
+                                          ))}
                                       </div>
                                       <div
                                         className={`text-[10px] ${
-                                          isOwnMessage ? "text-slate-400" : "text-slate-500"
+                                          isOwnMessage
+                                            ? "text-slate-400"
+                                            : "text-slate-500"
                                         }`}
                                       >
                                         {shortcut.description}
@@ -1488,7 +1620,9 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                               <div className="flex items-center gap-1.5 flex-wrap">
                                 <span
                                   className={`font-semibold text-sm ${
-                                    isOwnMessage ? "text-white" : "text-slate-900"
+                                    isOwnMessage
+                                      ? "text-white"
+                                      : "text-slate-900"
                                   }`}
                                 >
                                   ¥{formatYen(item.amount)}
@@ -1496,7 +1630,9 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                                 {item.snapshotDiff !== undefined && (
                                   <span
                                     className={`text-xs ${
-                                      isOwnMessage ? "text-slate-400" : "text-slate-500"
+                                      isOwnMessage
+                                        ? "text-slate-400"
+                                        : "text-slate-500"
                                     }`}
                                   >
                                     {item.snapshotDiff === null
@@ -1510,7 +1646,9 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                               {item.note && (
                                 <p
                                   className={`text-[10px] mt-0.5 ${
-                                    isOwnMessage ? "text-slate-300" : "text-slate-600"
+                                    isOwnMessage
+                                      ? "text-slate-300"
+                                      : "text-slate-600"
                                   }`}
                                 >
                                   {item.note}
@@ -1521,23 +1659,37 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                         </button>
 
                         {/* リアクションボタン（expense, income, snapshot のみ） */}
-                        {(item.kind === "expense" || item.kind === "income" || item.kind === "snapshot") && (
+                        {(item.kind === "expense" ||
+                          item.kind === "income" ||
+                          item.kind === "snapshot") && (
                           <div
                             className={`flex items-center gap-1 mt-1 ${
                               isOwnMessage ? "justify-end" : "justify-start"
                             }`}
                           >
-                            {(["CHECK", "GOOD", "BAD", "DOGEZA"] as ReactionType[]).map((type) => {
+                            {(
+                              [
+                                "CHECK",
+                                "GOOD",
+                                "BAD",
+                                "DOGEZA",
+                              ] as ReactionType[]
+                            ).map((type) => {
                               const itemKey = `${item.kind}:${item.id.replace(`${item.kind}-`, "")}`;
                               const reactionData = reactions[itemKey];
                               const count = reactionData?.counts[type] || 0;
-                              const hasReacted = reactionData?.userReactions.includes(type);
-                              const isToggling = togglingReaction === `${item.id}:${type}`;
+                              const hasReacted =
+                                reactionData?.userReactions.includes(type);
+                              const isToggling =
+                                togglingReaction === `${item.id}:${type}`;
                               const emoji =
-                                type === "CHECK"  ? "✅" :
-                                type === "GOOD"   ? "👍" :
-                                type === "BAD"    ? "👎" :
-                                                    "🙇";
+                                type === "CHECK"
+                                  ? "✅"
+                                  : type === "GOOD"
+                                    ? "👍"
+                                    : type === "BAD"
+                                      ? "👎"
+                                      : "🙇";
 
                               return (
                                 <button
@@ -1547,16 +1699,20 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                                     e.stopPropagation();
                                     toggleReaction(item, type);
                                   }}
-                                  disabled={reactionsLoading || !!togglingReaction}
+                                  disabled={
+                                    reactionsLoading || !!togglingReaction
+                                  }
                                   className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs transition ${
                                     hasReacted
                                       ? "bg-slate-700 text-white"
                                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                                  } ${(reactionsLoading || isToggling) ? "opacity-50" : ""}`}
+                                  } ${reactionsLoading || isToggling ? "opacity-50" : ""}`}
                                 >
                                   <TwemojiImg emoji={emoji} size={18} />
                                   {count > 0 && (
-                                    <span className="text-[10px] min-w-[12px] text-center">{count}</span>
+                                    <span className="text-[10px] min-w-[12px] text-center">
+                                      {count}
+                                    </span>
                                   )}
                                 </button>
                               );
@@ -1583,25 +1739,27 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
         )}
 
         {/* 直近タグ（フォーカス時は非表示） */}
-        {!isInputFocused && recentTags.length > 0 && inputMode === "expense" && (
-          <div className="px-3 pt-2 pb-1 overflow-x-auto">
-            <div className="flex gap-1.5 whitespace-nowrap">
-              {recentTags.map((tag, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => {
-                    setInput(tag + "　");
-                    inputRef.current?.focus();
-                  }}
-                  className="text-[10px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 hover:bg-sky-200 active:bg-sky-300 transition"
-                >
-                  {tag}
-                </button>
-              ))}
+        {!isInputFocused &&
+          recentTags.length > 0 &&
+          inputMode === "expense" && (
+            <div className="px-3 pt-2 pb-1 overflow-x-auto">
+              <div className="flex gap-1.5 whitespace-nowrap">
+                {recentTags.map((tag, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      setInput(tag + "　");
+                      inputRef.current?.focus();
+                    }}
+                    className="text-[10px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 hover:bg-sky-200 active:bg-sky-300 transition"
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* サークル選択 + アクションボタン */}
         <div className="px-3 py-1.5 flex items-center gap-2">
@@ -1614,7 +1772,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
             }}
             className="flex-1 min-w-0 bg-slate-100 border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-900 focus:outline-none focus:border-slate-400"
           >
-            {circles.map((circle) => (
+            {circlesState.map((circle) => (
               <option key={circle.id} value={circle.id}>
                 {circle.name || "（名前なし）"}　{circle.adminName}
               </option>
@@ -1627,7 +1785,17 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
             className="flex-shrink-0 p-2.5 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 active:bg-slate-300 active:scale-95 transition"
             title="集計"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M3 3v18h18" />
               <path d="M18 17V9" />
               <path d="M13 17V5" />
@@ -1642,7 +1810,17 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
             className="flex-shrink-0 p-2.5 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 active:bg-slate-300 active:scale-95 transition"
             title="シェア"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <circle cx="18" cy="5" r="3" />
               <circle cx="6" cy="12" r="3" />
               <circle cx="18" cy="19" r="3" />
@@ -1657,7 +1835,17 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
             className="flex-shrink-0 p-2.5 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 active:bg-slate-300 active:scale-95 transition"
             title="設定"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
               <circle cx="12" cy="12" r="3" />
             </svg>
@@ -1665,10 +1853,7 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
         </div>
 
         {/* 入力フォーム：モード切替 + 入力 + 送信 */}
-        <form
-          onSubmit={handleSubmit}
-          className="px-3 pb-3 pt-1"
-        >
+        <form onSubmit={handleSubmit} className="px-3 pb-3 pt-1">
           <div className="flex items-center gap-2">
             {/* モード切替トグル */}
             <div className="flex-shrink-0 flex bg-slate-100 rounded-lg p-0.5">
@@ -1739,43 +1924,104 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
         </form>
 
         {/* iPhoneセーフエリア用スペース */}
-        <div className="h-2" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} />
+        <div
+          className="h-2"
+          style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+        />
       </div>
 
       {/* サークル追加モーダル */}
       {/* シェア未許可ダイアログ */}
       {showShareNotEnabledDialog && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-sm p-5">
-            <h3 className="text-base font-semibold text-slate-900 mb-2">
-              シェアが許可されていません
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowShareNotEnabledDialog(false)}
+        >
+          <div
+            className="bg-white rounded-xl w-full max-w-sm p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-base font-semibold text-slate-900 mb-3">
+              フィードの公開設定
             </h3>
-            <p className="text-sm text-slate-600 mb-4">
-              設定画面からシェアをONにしてください。
-            </p>
-            <div className="flex gap-2">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-sm text-slate-700">フィードを公開する</span>
               <button
                 type="button"
-                onClick={() => setShowShareNotEnabledDialog(false)}
-                className="flex-1 bg-slate-100 text-slate-700 rounded-lg px-4 py-2 text-sm font-medium"
+                disabled={togglingPublic}
+                onClick={async () => {
+                  if (!selectedCircle) return;
+                  const newVal = !selectedCircle.isPublic;
+                  setTogglingPublic(true);
+                  try {
+                    const res = await fetch(
+                      `/api/circles/${selectedCircle.id}`,
+                      {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ isPublic: newVal }),
+                      },
+                    );
+                    if (res.ok) {
+                      setCirclesState((prev) =>
+                        prev.map((c) =>
+                          c.id === selectedCircle.id
+                            ? { ...c, isPublic: newVal }
+                            : c,
+                        ),
+                      );
+                      if (newVal) {
+                        setShowShareNotEnabledDialog(false);
+                        const t = Math.floor(Date.now() / 1000);
+                        const url = `${window.location.origin}/c/${selectedCircle.id}?t=${t}`;
+                        if (navigator.share) {
+                          navigator.share({ url });
+                        } else {
+                          window.open(
+                            `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}`,
+                            "_blank",
+                            "noopener,noreferrer",
+                          );
+                        }
+                      }
+                    }
+                  } finally {
+                    setTogglingPublic(false);
+                  }
+                }}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${selectedCircle?.isPublic ? "bg-emerald-500" : "bg-slate-300"} ${togglingPublic ? "opacity-50" : ""}`}
               >
-                閉じる
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${selectedCircle?.isPublic ? "translate-x-6" : "translate-x-1"}`}
+                />
               </button>
-              <a
-                href="/dashboard/settings"
-                className="flex-1 bg-slate-900 text-white rounded-lg px-4 py-2 text-sm font-medium text-center"
-                onClick={() => setShowShareNotEnabledDialog(false)}
-              >
-                設定へ
-              </a>
             </div>
+            <p className="text-[11px] text-slate-400 mb-4">
+              非公開への変更は設定画面のサークル詳細から可能です
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowShareNotEnabledDialog(false)}
+              className="w-full bg-slate-100 text-slate-700 rounded-lg px-4 py-2 text-sm font-medium"
+            >
+              閉じる
+            </button>
           </div>
         </div>
       )}
 
       {isCircleModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-sm p-4">
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => {
+            setIsCircleModalOpen(false);
+            setNewCircleName("");
+          }}
+        >
+          <div
+            className="bg-white rounded-xl w-full max-w-sm p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="text-lg font-semibold text-slate-900 mb-4">
               新しいサークルを作成
             </h3>
@@ -1813,8 +2059,14 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
 
       {/* 詳細モーダル */}
       {selectedItem && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-sm p-4">
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => setSelectedItem(null)}
+        >
+          <div
+            className="bg-white rounded-xl w-full max-w-sm p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="text-lg font-semibold text-slate-900 mb-4">
               {selectedItem.kind === "expense"
                 ? "支出詳細"
@@ -1836,7 +2088,11 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                         : "text-slate-900"
                   }`}
                 >
-                  {selectedItem.kind === "expense" ? "-" : selectedItem.kind === "income" ? "+" : ""}
+                  {selectedItem.kind === "expense"
+                    ? "-"
+                    : selectedItem.kind === "income"
+                      ? "+"
+                      : ""}
                   ¥{formatYen(Math.abs(selectedItem.amount))}
                 </span>
               </div>
@@ -1845,7 +2101,11 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-500">サークル残高</span>
                 <span className="text-sm font-medium text-slate-900">
-                  ¥{formatYen(balances.find((b) => b.circleId === selectedItem.circleId)?.balance || 0)}
+                  ¥
+                  {formatYen(
+                    balances.find((b) => b.circleId === selectedItem.circleId)
+                      ?.balance || 0,
+                  )}
                 </span>
               </div>
 
@@ -1861,7 +2121,9 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
               {selectedItem.description && (
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-slate-500">内容</span>
-                  <span className="text-sm text-slate-700">{selectedItem.description}</span>
+                  <span className="text-sm text-slate-700">
+                    {selectedItem.description}
+                  </span>
                 </div>
               )}
 
@@ -1869,12 +2131,15 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
               {selectedItem.source && (
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-slate-500">収入源</span>
-                  <span className="text-sm text-slate-700">{selectedItem.source}</span>
+                  <span className="text-sm text-slate-700">
+                    {selectedItem.source}
+                  </span>
                 </div>
               )}
 
               {/* タグ（支出の場合はタグ編集UI） */}
-              {selectedItem.kind === "expense" && canEditCircle(selectedItem.circleId) ? (
+              {selectedItem.kind === "expense" &&
+              canEditCircle(selectedItem.circleId) ? (
                 <div className="space-y-2">
                   <span className="text-sm text-slate-500">タグ</span>
 
@@ -1904,9 +2169,13 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
                   </div>
 
                   {/* 既存タグから選択 */}
-                  {existingCircleTags.filter((t) => !(selectedItem.tags || []).includes(t)).length > 0 && (
+                  {existingCircleTags.filter(
+                    (t) => !(selectedItem.tags || []).includes(t),
+                  ).length > 0 && (
                     <div>
-                      <div className="text-[11px] text-slate-400 mb-1">既存のタグから選択</div>
+                      <div className="text-[11px] text-slate-400 mb-1">
+                        既存のタグから選択
+                      </div>
                       <div className="flex flex-wrap gap-1.5">
                         {existingCircleTags
                           .filter((t) => !(selectedItem.tags || []).includes(t))
@@ -1971,14 +2240,18 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
               {selectedItem.note && (
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-slate-500">メモ</span>
-                  <span className="text-sm text-slate-700">{selectedItem.note}</span>
+                  <span className="text-sm text-slate-700">
+                    {selectedItem.note}
+                  </span>
                 </div>
               )}
 
               {/* 投稿者 */}
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-500">投稿者</span>
-                <span className="text-sm text-slate-700">{selectedItem.userName}</span>
+                <span className="text-sm text-slate-700">
+                  {selectedItem.userName}
+                </span>
               </div>
 
               {/* 日時 */}
@@ -1994,7 +2267,10 @@ export default function UnifiedChat({ initialFeed, circles, circleBalances, curr
             <div className="flex gap-2 mt-6">
               <button
                 type="button"
-                onClick={() => { setSelectedItem(null); setTagInput(""); }}
+                onClick={() => {
+                  setSelectedItem(null);
+                  setTagInput("");
+                }}
                 className="flex-1 bg-slate-100 text-slate-700 rounded-lg px-4 py-2 text-sm font-medium"
               >
                 戻る
