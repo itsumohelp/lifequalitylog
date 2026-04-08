@@ -489,18 +489,7 @@ export default function SettingsPage() {
 
   return (
     <div className="flex-1 bg-white overflow-y-auto">
-      <div className="mx-auto max-w-md px-4 py-4">
-        {/* ヘッダー */}
-        <div className="flex items-center justify-between mb-6">
-          <Link
-            href="/dashboard"
-            className="text-sm text-slate-500 hover:text-slate-700"
-          >
-            ← 戻る
-          </Link>
-          <h1 className="text-lg font-semibold text-slate-900">設定</h1>
-          <div className="w-12" />
-        </div>
+      <div className="mx-auto max-w-md px-4 pt-4 pb-20">
 
         {/* メッセージ */}
         {message && (
@@ -727,8 +716,8 @@ export default function SettingsPage() {
 
         {/* サークル離脱モーダル（EDITOR/VIEWER用） */}
         {selectedCircle && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl w-full max-w-sm p-4">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedCircle(null)}>
+            <div className="bg-white rounded-xl w-full max-w-sm p-4" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-lg font-semibold text-slate-900 mb-2">
                 サークルから離脱
               </h3>
@@ -770,8 +759,8 @@ export default function SettingsPage() {
 
         {/* サークル管理モーダル（ADMIN用） */}
         {selectedAdminCircle && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl w-full max-w-sm p-4 max-h-[80vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedAdminCircle(null)}>
+            <div className="bg-white rounded-xl w-full max-w-sm p-4 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-lg font-semibold text-slate-900 mb-4">
                 サークル管理
               </h3>
@@ -1171,8 +1160,8 @@ export default function SettingsPage() {
 
         {/* サークル追加モーダル */}
         {isCircleModalOpen && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl w-full max-w-sm p-4">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setIsCircleModalOpen(false)}>
+            <div className="bg-white rounded-xl w-full max-w-sm p-4" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-lg font-semibold text-slate-900 mb-4">
                 新しいサークルを作成
               </h3>
@@ -1208,6 +1197,13 @@ export default function SettingsPage() {
           </div>
         )}
       </div>
+      {/* 固定戻るボタン */}
+      <Link
+        href="/dashboard"
+        className="fixed bottom-6 left-6 z-40 flex items-center gap-1.5 rounded-full bg-slate-900/80 backdrop-blur-sm px-4 py-2.5 text-sm font-medium text-white shadow-lg active:scale-95 transition"
+      >
+        ← 戻る
+      </Link>
     </div>
   );
 }

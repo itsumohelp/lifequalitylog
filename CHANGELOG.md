@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.42] - 2026-04-08
+
+### Changed
+- **Analytics & Settings: header removed, back button moved to bottom-left**: Removed the top header bar (title + back link) from analytics (`/dashboard/analytics`) and settings (`/dashboard/settings`) pages. Content now starts at the top. A floating pill-shaped back button is fixed to the bottom-left corner (`fixed bottom-6 left-6`) with a semi-transparent dark background.
+- **All dialogs close on outside tap**: Added `onClick` on the backdrop overlay and `stopPropagation` on the dialog content for all 6 dialogs — UnifiedChat (share settings, circle creation, item detail) and settings page (leave circle, manage circle, add circle).
+- **Share dialog: inline public toggle**: The "share not enabled" dialog no longer shows a "Go to settings" button. Instead, it shows a toggle switch to enable/disable public feed directly. Flipping to public immediately shares. A note reads "非公開への変更は設定画面のサークル詳細から可能です".
+
+---
+
+### 変更
+- **集計・設定画面: 上部ヘッダー削除・左下固定戻るボタン**: 集計（`/dashboard/analytics`）と設定（`/dashboard/settings`）の上部ヘッダー（タイトル + 戻るリンク）を削除。コンテンツを上詰め。画面左下に半透明の丸い「← 戻る」固定ボタンを追加。
+- **全ダイアログ: 外側タップで閉じる**: 全6ダイアログ（UnifiedChat: シェア設定・サークル作成・詳細、設定: 離脱・管理・追加）にオーバーレイクリックで閉じる処理を追加。
+- **シェアダイアログ: インライン公開トグル**: 「設定へ」ボタンを削除し、公開/非公開のトグルスイッチをダイアログ内に直接表示。公開ONにした瞬間シェアシートを起動。「非公開への変更は設定画面のサークル詳細から可能です」の注釈を追加。
+
 ## [0.0.41] - 2026-04-08
 
 ### Fixed

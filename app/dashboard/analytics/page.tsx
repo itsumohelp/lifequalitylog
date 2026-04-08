@@ -140,19 +140,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="min-h-dvh bg-white">
-      <div className="mx-auto max-w-2xl px-4 py-4">
-        {/* ヘッダー */}
-        <div className="flex items-center justify-between mb-4">
-          <Link
-            href="/dashboard"
-            className="text-sm text-slate-500 hover:text-slate-700"
-          >
-            ← 戻る
-          </Link>
-          <h1 className="text-lg font-semibold text-slate-900">集計</h1>
-          <div className="w-12" />
-        </div>
-
+      <div className="mx-auto max-w-2xl px-4 pt-4 pb-20">
         {/* フィルター */}
         <div className="space-y-3 mb-6">
           {/* 表示タイプ選択 */}
@@ -414,6 +402,13 @@ export default function AnalyticsPage() {
           </div>
         )}
       </div>
+      {/* 固定戻るボタン */}
+      <Link
+        href="/dashboard"
+        className="fixed bottom-6 left-6 z-40 flex items-center gap-1.5 rounded-full bg-slate-900/80 backdrop-blur-sm px-4 py-2.5 text-sm font-medium text-white shadow-lg active:scale-95 transition"
+      >
+        ← 戻る
+      </Link>
     </div>
   );
 }
