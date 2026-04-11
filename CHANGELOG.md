@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.43] - 2026-04-11
+
+### Fixed
+- **iOS app display name**: `CFBundleDisplayName` in `ios/App/App/Info.plist` was set to `lifequalitylog` (the project directory name). Updated to `CircleRun` so the correct name appears on the home screen after App Store installation.
+
+---
+
+### 修正
+- **iOSアプリ表示名**: `Info.plist`の`CFBundleDisplayName`が`lifequalitylog`（プロジェクトディレクトリ名）のままになっていた。`CircleRun`に修正し、App Storeからインストールした際にホーム画面に正しい名前が表示されるよう対応。
+
 ## [0.0.42] - 2026-04-08
 
 ### Changed

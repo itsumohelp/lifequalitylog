@@ -89,7 +89,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!["expense", "income", "snapshot"].includes(targetType)) {
+    if (!["expense", "income", "snapshot", "notice"].includes(targetType)) {
       return NextResponse.json(
         { error: "Invalid targetType" },
         { status: 400 }

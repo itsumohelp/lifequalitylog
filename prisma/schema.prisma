@@ -295,3 +295,16 @@ model IosAuthToken {
   expiresAt DateTime
   @@map("ios_auth_tokens")
 }
+
+// 運営からのお知らせ
+model Notice {
+  id        String   @id @default(cuid())
+  title     String   @db.Text
+  body      String?  @db.Text
+  link      String?  @db.Text // タップ時のリンクURL（任意）
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  @@index([isActive, createdAt])
+  @@map("notices")
+}

@@ -38,14 +38,15 @@ export default async function Image({ params }: Props) {
             width: "100%",
             height: "100%",
             display: "flex",
+            flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
             backgroundColor: "#e2e8f0",
-            color: "#0f172a",
-            fontSize: 48,
+            lineHeight: 1,
           }}
         >
-          CircleRun
+          <span style={{ fontSize: 80, fontWeight: 800, color: "#0f172a" }}>Circle</span>
+          <span style={{ fontSize: 80, fontWeight: 800, color: "#0f172a" }}>run</span>
         </div>
       ),
       { ...size }
@@ -223,52 +224,17 @@ export default async function Image({ params }: Props) {
           )}
         </div>
 
-        {/* フッター: ロゴとサービス名 */}
+        {/* フッター: ロゴ */}
         <div
           style={{
             display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-end",
-            gap: 12,
+            flexDirection: "column",
+            alignItems: "flex-end",
+            lineHeight: 1,
           }}
         >
-          {/* ロゴ（Cの形の円とRの文字） */}
-          <svg
-            width="48"
-            height="48"
-            viewBox="0 0 32 32"
-            fill="none"
-          >
-            {/* 外側の円（C） */}
-            <circle
-              cx="16"
-              cy="16"
-              r="12"
-              stroke="#0ea5e9"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeDasharray="56 20"
-              transform="rotate(-45 16 16)"
-            />
-            {/* 内側のR */}
-            <path
-              d="M13 10h4a3 3 0 0 1 0 6h-4v6M17 16l4 6"
-              stroke="#0f172a"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          <div
-            style={{
-              display: "flex",
-              fontSize: 32,
-              fontWeight: 600,
-              color: "#0f172a",
-            }}
-          >
-            CircleRun
-          </div>
+          <span style={{ fontSize: 28, fontWeight: 800, color: "#0f172a" }}>Circle</span>
+          <span style={{ fontSize: 28, fontWeight: 800, color: "#0f172a" }}>run</span>
         </div>
       </div>
     ),

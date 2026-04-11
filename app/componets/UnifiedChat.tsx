@@ -34,7 +34,7 @@ type ShortcutItem = {
 
 type FeedItem = {
   id: string;
-  kind: "snapshot" | "expense" | "income" | "summary" | "invite" | "help";
+  kind: "snapshot" | "expense" | "income" | "summary" | "invite" | "help" | "notice";
   circleId: string;
   circleName?: string;
   userId: string;
@@ -54,6 +54,9 @@ type FeedItem = {
   monthlySummaryData?: TagSummaryData[];
   inviteUrl?: string;
   shortcuts?: ShortcutItem[];
+  noticeTitle?: string;
+  noticeBody?: string | null;
+  noticeLink?: string | null;
   createdAt: string;
 };
 
@@ -77,21 +80,12 @@ type UserRole = {
   role: string;
 };
 
-type TagSummaryItem = {
-  circleId: string;
-  circleName: string;
-  tag: string;
-  total: number;
-  count: number;
-};
-
 type Props = {
   initialFeed: FeedItem[];
   circles: Circle[];
   circleBalances: CircleBalance[];
   currentUserId: string;
   userRoles: UserRole[];
-  tagSummary: TagSummaryItem[];
   initialTotalBalance: number;
   initialMonthlyExpense: number;
   initialDailyExpense: number;
@@ -122,6 +116,8 @@ function formatDate(dateStr: string) {
 
 const RECENT_TAGS_KEY = "recentTags";
 const MAX_RECENT_TAGS = 10;
+const LAST_CIRCLE_KEY = "lastCircleId";
+const TIMELINE_VALUE = "__timeline__";
 
 // localStorageが利用可能かテスト（Safariプライベートモード対策）
 function isLocalStorageAvailable(): boolean {
@@ -184,13 +180,13 @@ export default function UnifiedChat({
   circleBalances,
   currentUserId,
   userRoles,
-  tagSummary,
   initialTotalBalance,
   initialMonthlyExpense,
   initialDailyExpense,
   adminCircleIds,
 }: Props) {
   const [feed, setFeed] = useState<FeedItem[]>(initialFeed);
+  const [filterNoticesOnly, setFilterNoticesOnly] = useState(false);
   const [balances, setBalances] = useState<CircleBalance[]>(circleBalances);
   const [totalBalance, setTotalBalance] = useState<number>(initialTotalBalance);
   const [monthlyExpense, setMonthlyExpense] = useState<number>(
@@ -201,7 +197,9 @@ export default function UnifiedChat({
     circles[0]?.id || "",
   );
   const [isBreakdownOpen, setIsBreakdownOpen] = useState(false);
-  const [filterCircleId, setFilterCircleId] = useState<string>(""); // "" = すべて表示
+  const [filterCircleId, setFilterCircleId] = useState<string>(
+    circles[0]?.id || "",
+  );
   const [inputMode, setInputMode] = useState<InputMode>("expense");
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -230,6 +228,7 @@ export default function UnifiedChat({
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const isTimeline = selectedCircleId === TIMELINE_VALUE;
   const selectedCircle = circlesState.find((c) => c.id === selectedCircleId);
 
   // シェアボタン処理
@@ -261,7 +260,8 @@ export default function UnifiedChat({
       (item) =>
         item.kind === "expense" ||
         item.kind === "income" ||
-        item.kind === "snapshot",
+        item.kind === "snapshot" ||
+        item.kind === "notice",
     );
     if (targetItems.length === 0) return;
 
@@ -571,9 +571,46 @@ export default function UnifiedChat({
     }
   };
 
-  // 初期読み込み時に直近タグを取得
+  // 初期読み込み時に直近タグ・最後に開いたサークル・お知らせを復元
   useEffect(() => {
     setRecentTags(getRecentTags());
+    if (isLocalStorageAvailable()) {
+      const savedCircleId = localStorage.getItem(LAST_CIRCLE_KEY);
+      if (savedCircleId === TIMELINE_VALUE) {
+        setSelectedCircleId(TIMELINE_VALUE);
+        setFilterCircleId("");
+      } else if (savedCircleId && circles.find((c) => c.id === savedCircleId)) {
+        setSelectedCircleId(savedCircleId);
+        setFilterCircleId(savedCircleId);
+      }
+    }
+
+    // お知らせを取得してfeedに追加
+    fetch("/api/notices")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!data?.notices?.length) return;
+        const items: FeedItem[] = (data.notices as { id: string; title: string; body: string | null; link: string | null; createdAt: string }[]).map((n) => ({
+          id: `notice-${n.id}`,
+          kind: "notice" as const,
+          circleId: "",
+          circleName: "",
+          userId: "system",
+          userName: "CircleRun",
+          userImage: null,
+          amount: 0,
+          noticeTitle: n.title,
+          noticeBody: n.body,
+          noticeLink: n.link,
+          createdAt: n.createdAt,
+        }));
+        setFeed((prev) => [
+          ...prev.filter((i) => i.kind !== "notice"),
+          ...items,
+        ]);
+      })
+      .catch((e) => console.error("Failed to fetch notices:", e));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -584,7 +621,7 @@ export default function UnifiedChat({
 
   // サークル切り替え時に一番下にスクロール + 一時的なアイテムを削除
   useEffect(() => {
-    // 集計・ヘルプ・招待などの一時的なアイテムを削除
+    // 集計・ヘルプ・招待などの一時的なアイテムを削除（お知らせは残す）
     setFeed((prev) =>
       prev.filter(
         (item) =>
@@ -1020,10 +1057,12 @@ export default function UnifiedChat({
     }
   };
 
-  // フィルタリング（filterCircleIdが空の場合はすべて表示）
-  const filteredFeed = filterCircleId
-    ? feed.filter((item) => item.circleId === filterCircleId)
-    : feed;
+  // フィルタリング（タイムライン時はお知らせ＋全サークル、それ以外は選択サークルのみ）
+  const filteredFeed = isTimeline
+    ? filterNoticesOnly
+      ? feed.filter((item) => item.kind === "notice").sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+      : [...feed].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    : feed.filter((item) => item.kind !== "notice" && item.circleId === filterCircleId);
 
   // 選択中サークルの直近30日間の残高推移データ（チャート用）
   const miniChartData = useMemo((): BalanceDataPoint[] => {
@@ -1240,9 +1279,28 @@ export default function UnifiedChat({
       )}
 
       {/* フィード表示 */}
+      <div className="flex-1 relative min-h-0 overflow-hidden">
+      {/* タイムライン時：お知らせフィルタ ベルアイコン（左下） */}
+      {isTimeline && (
+        <button
+          type="button"
+          onClick={() => setFilterNoticesOnly((v) => !v)}
+          title={filterNoticesOnly ? "全て表示" : "お知らせのみ表示"}
+          className={`absolute bottom-3 left-3 z-10 w-10 h-10 rounded-full flex items-center justify-center transition ${
+            filterNoticesOnly
+              ? "bg-sky-500/80 text-white"
+              : "bg-black/20 text-slate-600"
+          }`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+        </button>
+      )}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto px-3 py-1 space-y-1 bg-slate-50 min-h-0"
+        className="absolute inset-0 overflow-y-auto px-3 py-1 space-y-1 bg-slate-50"
       >
         {/* 以前の実績を取得ボタン（特定ウォレット表示時のみ） */}
         {filterCircleId && hasMoreHistory[filterCircleId] !== false && (
@@ -1260,7 +1318,7 @@ export default function UnifiedChat({
 
         {filteredFeed.length === 0 ? (
           <div className="text-center text-slate-500 mt-8">
-            <p className="mb-2">まだ記録がありません</p>
+            <p className="mb-2">最近の記録がありません</p>
             <p className="text-sm">支出や残高を入力してください</p>
           </div>
         ) : (
@@ -1342,13 +1400,15 @@ export default function UnifiedChat({
                           {/* サークル名 + 時刻（バブル内上部） */}
                           <div className="flex items-center gap-2 mb-1">
                             <span
-                              className={`text-xs font-medium ${
+                              className={`text-xs ${item.kind === "notice" ? "font-bold" : "font-medium"} ${
                                 isOwnMessage
                                   ? "text-slate-300"
                                   : "text-slate-700"
                               }`}
                             >
-                              {item.circleName || "（名前なし）"}
+                              {item.kind === "notice"
+                                ? `📣 ${item.noticeTitle}`
+                                : item.circleName || "（名前なし）"}
                             </span>
                             <span
                               className={`text-[10px] ${
@@ -1558,6 +1618,26 @@ export default function UnifiedChat({
                                 </div>
                               )}
                             </>
+                          ) : item.kind === "notice" ? (
+                            <>
+                              {/* 運営からのお知らせ（タイトルはヘッダー行に表示済み） */}
+                              {item.noticeBody && (
+                                <p className="text-[11px] text-slate-500 whitespace-pre-wrap leading-relaxed">
+                                  {item.noticeBody}
+                                </p>
+                              )}
+                              {item.noticeLink && (
+                                <a
+                                  href={item.noticeLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="inline-flex items-center gap-1 mt-1.5 text-[11px] text-sky-500 underline"
+                                >
+                                  🔗 詳細を見る
+                                </a>
+                              )}
+                            </>
                           ) : item.kind === "help" ? (
                             <>
                               {/* ショートカット一覧 */}
@@ -1658,10 +1738,11 @@ export default function UnifiedChat({
                           )}
                         </button>
 
-                        {/* リアクションボタン（expense, income, snapshot のみ） */}
+                        {/* リアクションボタン（expense, income, snapshot, notice） */}
                         {(item.kind === "expense" ||
                           item.kind === "income" ||
-                          item.kind === "snapshot") && (
+                          item.kind === "snapshot" ||
+                          item.kind === "notice") && (
                           <div
                             className={`flex items-center gap-1 mt-1 ${
                               isOwnMessage ? "justify-end" : "justify-start"
@@ -1708,7 +1789,7 @@ export default function UnifiedChat({
                                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                                   } ${reactionsLoading || isToggling ? "opacity-50" : ""}`}
                                 >
-                                  <TwemojiImg emoji={emoji} size={18} />
+                                  <TwemojiImg emoji={emoji} size={14} />
                                   {count > 0 && (
                                     <span className="text-[10px] min-w-[12px] text-center">
                                       {count}
@@ -1728,18 +1809,20 @@ export default function UnifiedChat({
           ))
         )}
       </div>
+      </div>
 
       {/* 入力エリア（画面下部に固定） */}
       <div className="flex-shrink-0 bg-white border-t border-slate-200">
         {/* エラー表示 */}
-        {error && (
+        {!isTimeline && error && (
           <div className="mx-3 mt-2 px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
             {error}
           </div>
         )}
 
         {/* 直近タグ（フォーカス時は非表示） */}
-        {!isInputFocused &&
+        {!isTimeline &&
+          !isInputFocused &&
           recentTags.length > 0 &&
           inputMode === "expense" && (
             <div className="px-3 pt-2 pb-1 overflow-x-auto">
@@ -1768,7 +1851,14 @@ export default function UnifiedChat({
             onChange={(e) => {
               const value = e.target.value;
               setSelectedCircleId(value);
-              setFilterCircleId(value); // 選択したらフィルタリングを有効化
+              if (value === TIMELINE_VALUE) {
+                setFilterCircleId("");
+              } else {
+                setFilterCircleId(value);
+              }
+              if (isLocalStorageAvailable()) {
+                localStorage.setItem(LAST_CIRCLE_KEY, value);
+              }
             }}
             className="flex-1 min-w-0 bg-slate-100 border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-900 focus:outline-none focus:border-slate-400"
           >
@@ -1777,6 +1867,7 @@ export default function UnifiedChat({
                 {circle.name || "（名前なし）"}　{circle.adminName}
               </option>
             ))}
+            <option value={TIMELINE_VALUE}>── タイムライン ──</option>
           </select>
 
           {/* 集計ボタン */}
@@ -1852,76 +1943,78 @@ export default function UnifiedChat({
           </Link>
         </div>
 
-        {/* 入力フォーム：モード切替 + 入力 + 送信 */}
-        <form onSubmit={handleSubmit} className="px-3 pb-3 pt-1">
-          <div className="flex items-center gap-2">
-            {/* モード切替トグル */}
-            <div className="flex-shrink-0 flex bg-slate-100 rounded-lg p-0.5">
-              <button
-                type="button"
-                onClick={() => setInputMode("expense")}
-                className={`px-2 py-1.5 text-[10px] font-medium rounded-md transition ${
+        {/* 入力フォーム：モード切替 + 入力 + 送信（タイムライン時は非表示） */}
+        {!isTimeline && (
+          <form onSubmit={handleSubmit} className="px-3 pb-3 pt-1">
+            <div className="flex items-center gap-2">
+              {/* モード切替トグル */}
+              <div className="flex-shrink-0 flex bg-slate-100 rounded-lg p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setInputMode("expense")}
+                  className={`px-2 py-1.5 text-[10px] font-medium rounded-md transition ${
+                    inputMode === "expense"
+                      ? "bg-white text-slate-900 shadow-sm"
+                      : "text-slate-500"
+                  }`}
+                >
+                  支出
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInputMode("income")}
+                  className={`px-2 py-1.5 text-[10px] font-medium rounded-md transition ${
+                    inputMode === "income"
+                      ? "bg-white text-slate-900 shadow-sm"
+                      : "text-slate-500"
+                  }`}
+                >
+                  収入
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInputMode("snapshot")}
+                  className={`px-2 py-1.5 text-[10px] font-medium rounded-md transition ${
+                    inputMode === "snapshot"
+                      ? "bg-white text-slate-900 shadow-sm"
+                      : "text-slate-500"
+                  }`}
+                >
+                  残高
+                </button>
+              </div>
+
+              {/* 入力欄 */}
+              <input
+                ref={inputRef}
+                type={inputMode === "snapshot" ? "number" : "text"}
+                inputMode={inputMode === "snapshot" ? "numeric" : "text"}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onFocus={() => setIsInputFocused(true)}
+                onBlur={() => setIsInputFocused(false)}
+                placeholder={
                   inputMode === "expense"
-                    ? "bg-white text-slate-900 shadow-sm"
-                    : "text-slate-500"
-                }`}
-              >
-                支出
-              </button>
+                    ? "〇〇 △△円"
+                    : inputMode === "income"
+                      ? "給与 〇〇円"
+                      : "残高を入力"
+                }
+                disabled={isLoading || !selectedCircleId}
+                className="flex-1 min-w-0 bg-slate-100 border border-slate-200 rounded-full px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 disabled:opacity-50"
+              />
+
+              {/* 送信ボタン */}
               <button
-                type="button"
-                onClick={() => setInputMode("income")}
-                className={`px-2 py-1.5 text-[10px] font-medium rounded-md transition ${
-                  inputMode === "income"
-                    ? "bg-white text-slate-900 shadow-sm"
-                    : "text-slate-500"
-                }`}
+                type="submit"
+                disabled={isLoading || !input.trim() || !selectedCircleId}
+                className="flex-shrink-0 bg-slate-900 text-white rounded-full px-3 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-transform"
               >
-                収入
-              </button>
-              <button
-                type="button"
-                onClick={() => setInputMode("snapshot")}
-                className={`px-2 py-1.5 text-[10px] font-medium rounded-md transition ${
-                  inputMode === "snapshot"
-                    ? "bg-white text-slate-900 shadow-sm"
-                    : "text-slate-500"
-                }`}
-              >
-                残高
+                {isLoading ? "..." : "送信"}
               </button>
             </div>
-
-            {/* 入力欄 */}
-            <input
-              ref={inputRef}
-              type={inputMode === "snapshot" ? "number" : "text"}
-              inputMode={inputMode === "snapshot" ? "numeric" : "text"}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onFocus={() => setIsInputFocused(true)}
-              onBlur={() => setIsInputFocused(false)}
-              placeholder={
-                inputMode === "expense"
-                  ? "〇〇 △△円"
-                  : inputMode === "income"
-                    ? "給与 〇〇円"
-                    : "残高を入力"
-              }
-              disabled={isLoading || !selectedCircleId}
-              className="flex-1 min-w-0 bg-slate-100 border border-slate-200 rounded-full px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 disabled:opacity-50"
-            />
-
-            {/* 送信ボタン */}
-            <button
-              type="submit"
-              disabled={isLoading || !input.trim() || !selectedCircleId}
-              className="flex-shrink-0 bg-slate-900 text-white rounded-full px-3 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-transform"
-            >
-              {isLoading ? "..." : "送信"}
-            </button>
-          </div>
-        </form>
+          </form>
+        )}
 
         {/* iPhoneセーフエリア用スペース */}
         <div
