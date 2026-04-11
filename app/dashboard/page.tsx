@@ -7,30 +7,25 @@ import IOSAuthCallback from "../components/IOSAuthCallback";
 
 type FeedItem = {
   id: string;
-  kind: "snapshot" | "expense" | "income";
+  kind: "snapshot" | "expense" | "income" | "notice";
   circleId: string;
   circleName: string;
   userId: string;
   userName: string;
   userImage: string | null;
   amount: number;
-  circleBalanceAfter?: number; // この操作後のサークル残高
-  snapshotDiff?: number | null; // 前回残高との差分（null = 初回）
+  circleBalanceAfter?: number;
+  snapshotDiff?: number | null;
   description?: string;
   place?: string | null;
   source?: string | null;
   category?: string;
   tags?: string[];
   note?: string | null;
+  noticeTitle?: string;
+  noticeBody?: string | null;
+  noticeLink?: string | null;
   createdAt: string;
-};
-
-type TagSummaryItem = {
-  circleId: string;
-  circleName: string;
-  tag: string;
-  total: number;
-  count: number;
 };
 
 export default async function DashboardPage() {
@@ -70,7 +65,6 @@ export default async function DashboardPage() {
   let totalBalance = 0;
   let monthlyExpense = 0;
   let dailyExpense = 0;
-  let tagSummary: TagSummaryItem[] = [];
 
   if (hasCircles) {
     // サークル情報を取得（ADMIN名、currentBalanceも含む）
@@ -321,46 +315,6 @@ export default async function DashboardPage() {
     ]
       .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
-    // サークル×タグ別集計を計算（全期間）
-    // 全期間の支出を取得
-    const allExpenses = await prisma.expense.findMany({
-      where: { circleId: { in: circleIds } },
-      select: {
-        circleId: true,
-        amount: true,
-        tags: true,
-      },
-    });
-
-    const tagMap = new Map<string, { circleId: string; circleName: string; total: number; count: number }>();
-
-    for (const e of allExpenses) {
-      if (e.tags && e.tags.length > 0) {
-        const circle = circles.find((c) => c.id === e.circleId);
-        for (const tag of e.tags) {
-          const key = `${e.circleId}:${tag}`;
-          const existing = tagMap.get(key) || {
-            circleId: e.circleId,
-            circleName: circle?.name || "未設定",
-            total: 0,
-            count: 0,
-          };
-          tagMap.set(key, {
-            ...existing,
-            total: existing.total + e.amount,
-            count: existing.count + 1,
-          });
-        }
-      }
-    }
-
-    tagSummary = Array.from(tagMap.entries())
-      .map(([key, data]) => ({
-        tag: key.split(":").slice(1).join(":"),
-        ...data,
-      }))
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 10);
   }
 
   return (
@@ -374,7 +328,6 @@ export default async function DashboardPage() {
             circleBalances={circleBalances}
             currentUserId={userId}
             userRoles={memberships.map((m) => ({ circleId: m.circleId, role: m.role }))}
-            tagSummary={tagSummary}
             initialTotalBalance={totalBalance}
             initialMonthlyExpense={monthlyExpense}
             initialDailyExpense={dailyExpense}

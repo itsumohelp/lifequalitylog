@@ -66,7 +66,9 @@ export const ModelName = {
   Expense: 'Expense',
   Income: 'Income',
   BalanceTransaction: 'BalanceTransaction',
-  Reaction: 'Reaction'
+  Reaction: 'Reaction',
+  IosAuthToken: 'IosAuthToken',
+  Notice: 'Notice'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -300,6 +302,28 @@ export const ReactionScalarFieldEnum = {
 } as const
 
 export type ReactionScalarFieldEnum = (typeof ReactionScalarFieldEnum)[keyof typeof ReactionScalarFieldEnum]
+
+
+export const IosAuthTokenScalarFieldEnum = {
+  pollId: 'pollId',
+  token: 'token',
+  expiresAt: 'expiresAt'
+} as const
+
+export type IosAuthTokenScalarFieldEnum = (typeof IosAuthTokenScalarFieldEnum)[keyof typeof IosAuthTokenScalarFieldEnum]
+
+
+export const NoticeScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  body: 'body',
+  link: 'link',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type NoticeScalarFieldEnum = (typeof NoticeScalarFieldEnum)[keyof typeof NoticeScalarFieldEnum]
 
 
 export const SortOrder = {

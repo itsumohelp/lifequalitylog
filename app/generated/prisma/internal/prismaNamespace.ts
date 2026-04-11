@@ -399,7 +399,9 @@ export const ModelName = {
   Expense: 'Expense',
   Income: 'Income',
   BalanceTransaction: 'BalanceTransaction',
-  Reaction: 'Reaction'
+  Reaction: 'Reaction',
+  IosAuthToken: 'IosAuthToken',
+  Notice: 'Notice'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -415,7 +417,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "appLog" | "todo" | "record" | "account" | "session" | "user" | "verificationToken" | "circle" | "circleMember" | "snapshot" | "circleSnapshot" | "monthlySnapshot" | "expense" | "income" | "balanceTransaction" | "reaction"
+    modelProps: "appLog" | "todo" | "record" | "account" | "session" | "user" | "verificationToken" | "circle" | "circleMember" | "snapshot" | "circleSnapshot" | "monthlySnapshot" | "expense" | "income" | "balanceTransaction" | "reaction" | "iosAuthToken" | "notice"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1603,6 +1605,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    IosAuthToken: {
+      payload: Prisma.$IosAuthTokenPayload<ExtArgs>
+      fields: Prisma.IosAuthTokenFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.IosAuthTokenFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IosAuthTokenPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.IosAuthTokenFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IosAuthTokenPayload>
+        }
+        findFirst: {
+          args: Prisma.IosAuthTokenFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IosAuthTokenPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.IosAuthTokenFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IosAuthTokenPayload>
+        }
+        findMany: {
+          args: Prisma.IosAuthTokenFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IosAuthTokenPayload>[]
+        }
+        create: {
+          args: Prisma.IosAuthTokenCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IosAuthTokenPayload>
+        }
+        createMany: {
+          args: Prisma.IosAuthTokenCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.IosAuthTokenCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IosAuthTokenPayload>[]
+        }
+        delete: {
+          args: Prisma.IosAuthTokenDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IosAuthTokenPayload>
+        }
+        update: {
+          args: Prisma.IosAuthTokenUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IosAuthTokenPayload>
+        }
+        deleteMany: {
+          args: Prisma.IosAuthTokenDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.IosAuthTokenUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.IosAuthTokenUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IosAuthTokenPayload>[]
+        }
+        upsert: {
+          args: Prisma.IosAuthTokenUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$IosAuthTokenPayload>
+        }
+        aggregate: {
+          args: Prisma.IosAuthTokenAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateIosAuthToken>
+        }
+        groupBy: {
+          args: Prisma.IosAuthTokenGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IosAuthTokenGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.IosAuthTokenCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.IosAuthTokenCountAggregateOutputType> | number
+        }
+      }
+    }
+    Notice: {
+      payload: Prisma.$NoticePayload<ExtArgs>
+      fields: Prisma.NoticeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.NoticeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.NoticeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticePayload>
+        }
+        findFirst: {
+          args: Prisma.NoticeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.NoticeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticePayload>
+        }
+        findMany: {
+          args: Prisma.NoticeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticePayload>[]
+        }
+        create: {
+          args: Prisma.NoticeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticePayload>
+        }
+        createMany: {
+          args: Prisma.NoticeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.NoticeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticePayload>[]
+        }
+        delete: {
+          args: Prisma.NoticeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticePayload>
+        }
+        update: {
+          args: Prisma.NoticeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticePayload>
+        }
+        deleteMany: {
+          args: Prisma.NoticeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.NoticeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.NoticeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticePayload>[]
+        }
+        upsert: {
+          args: Prisma.NoticeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NoticePayload>
+        }
+        aggregate: {
+          args: Prisma.NoticeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateNotice>
+        }
+        groupBy: {
+          args: Prisma.NoticeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NoticeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.NoticeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NoticeCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1857,6 +2007,28 @@ export const ReactionScalarFieldEnum = {
 } as const
 
 export type ReactionScalarFieldEnum = (typeof ReactionScalarFieldEnum)[keyof typeof ReactionScalarFieldEnum]
+
+
+export const IosAuthTokenScalarFieldEnum = {
+  pollId: 'pollId',
+  token: 'token',
+  expiresAt: 'expiresAt'
+} as const
+
+export type IosAuthTokenScalarFieldEnum = (typeof IosAuthTokenScalarFieldEnum)[keyof typeof IosAuthTokenScalarFieldEnum]
+
+
+export const NoticeScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  body: 'body',
+  link: 'link',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type NoticeScalarFieldEnum = (typeof NoticeScalarFieldEnum)[keyof typeof NoticeScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2147,6 +2319,8 @@ export type GlobalOmitConfig = {
   income?: Prisma.IncomeOmit
   balanceTransaction?: Prisma.BalanceTransactionOmit
   reaction?: Prisma.ReactionOmit
+  iosAuthToken?: Prisma.IosAuthTokenOmit
+  notice?: Prisma.NoticeOmit
 }
 
 /* Types for Logging */

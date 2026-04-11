@@ -119,3 +119,13 @@ export type BalanceTransaction = Prisma.BalanceTransactionModel
  * 
  */
 export type Reaction = Prisma.ReactionModel
+/**
+ * Model IosAuthToken
+ * 
+ */
+export type IosAuthToken = Prisma.IosAuthTokenModel
+/**
+ * Model Notice
+ * 
+ */
+export type Notice = Prisma.NoticeModel

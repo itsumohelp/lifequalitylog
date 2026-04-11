@@ -610,7 +610,7 @@ export default function PublicFeed({
 
         {localFeed.length === 0 && (
           <div className="text-center text-slate-500 mt-8">
-            <p className="mb-2">まだ記録がありません</p>
+            <p className="mb-2">最近の記録がありません</p>
           </div>
         )}
       </div>

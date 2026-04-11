@@ -66,6 +66,7 @@ export default function SettingsPage() {
   const [newCircleName, setNewCircleName] = useState("");
   const [isCreatingCircle, setIsCreatingCircle] = useState(false);
   const [isSavingImageOptOut, setIsSavingImageOptOut] = useState(false);
+  const [isNativeApp, setIsNativeApp] = useState(true); // SSR安全のためtrueで初期化
 
   const handleImageOptOut = async () => {
     if (!user?.image || isSavingImageOptOut) return;
@@ -94,6 +95,11 @@ export default function SettingsPage() {
       setIsSavingImageOptOut(false);
     }
   };
+
+  useEffect(() => {
+    type CapacitorWindow = Window & { Capacitor?: { isNativePlatform?: () => boolean } };
+    setIsNativeApp(!!(window as CapacitorWindow).Capacitor?.isNativePlatform?.());
+  }, []);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -703,6 +709,25 @@ export default function SettingsPage() {
                 </div>
               )}
             </div>
+
+            {/* アプリで開く（ネイティブアプリ以外でのみ表示） */}
+            {!isNativeApp && (
+              <button
+                type="button"
+                onClick={() => {
+                  const appScheme = "circlerun://";
+                  const appStoreUrl = "https://apps.apple.com/jp/app/circlerun/id6743771829";
+                  const timeout = setTimeout(() => {
+                    window.location.href = appStoreUrl;
+                  }, 1500);
+                  window.addEventListener("blur", () => clearTimeout(timeout), { once: true });
+                  window.location.href = appScheme;
+                }}
+                className="w-full bg-sky-500 text-white rounded-lg px-4 py-2 text-sm font-medium"
+              >
+                アプリで開く
+              </button>
+            )}
 
             {/* ログアウト */}
             <button
