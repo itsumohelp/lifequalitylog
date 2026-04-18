@@ -92,10 +92,25 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // プロジェクトIDを取得（env変数 → Cloud Runメタデータサーバーの順）
+  let projectId = process.env.GOOGLE_CLOUD_PROJECT;
+  if (!projectId) {
+    try {
+      const metaRes = await fetch(
+        "http://metadata.google.internal/computeMetadata/v1/project/project-id",
+        { headers: { "Metadata-Flavor": "Google" } }
+      );
+      if (metaRes.ok) projectId = await metaRes.text();
+    } catch {}
+  }
+  if (!projectId) {
+    return NextResponse.json({ error: "GOOGLE_CLOUD_PROJECT is not configured" }, { status: 500 });
+  }
+
   // Google Gen AI SDK (Vertex AI バックエンド)
   const ai = new GoogleGenAI({
     vertexai: true,
-    project: process.env.GOOGLE_CLOUD_PROJECT!,
+    project: projectId,
     location: "asia-northeast1",
   });
 

@@ -37,6 +37,11 @@ export async function DELETE(
     return NextResponse.json({ error: "Permission denied" }, { status: 403 });
   }
 
+  // EDITORは自分の投稿のみ削除可
+  if (member.role === "EDITOR" && income.userId !== session.user.id) {
+    return NextResponse.json({ error: "Permission denied" }, { status: 403 });
+  }
+
   // サークルのcurrentBalanceを更新（収入削除なので減らす）
   const circleBeforeDelete = await prisma.circle.findUnique({
     where: { id: income.circleId },

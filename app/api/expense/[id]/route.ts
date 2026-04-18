@@ -35,6 +35,11 @@ export async function PATCH(
     return NextResponse.json({ error: "Permission denied" }, { status: 403 });
   }
 
+  // EDITORは自分の投稿のみ操作可
+  if (member.role === "EDITOR" && expense.userId !== session.user.id) {
+    return NextResponse.json({ error: "Permission denied" }, { status: 403 });
+  }
+
   const updated = await prisma.expense.update({
     where: { id },
     data: { tags },
@@ -75,6 +80,11 @@ export async function DELETE(
   });
 
   if (!member || (member.role !== "ADMIN" && member.role !== "EDITOR")) {
+    return NextResponse.json({ error: "Permission denied" }, { status: 403 });
+  }
+
+  // EDITORは自分の投稿のみ削除可
+  if (member.role === "EDITOR" && expense.userId !== session.user.id) {
     return NextResponse.json({ error: "Permission denied" }, { status: 403 });
   }
 

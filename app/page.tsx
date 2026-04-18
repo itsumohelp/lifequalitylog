@@ -66,7 +66,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
         {/* カード */}
         <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-sm">
-          <LoginForm action={handleGoogleLogin} />
+          <LoginForm action={handleGoogleLogin} callbackUrl={callbackUrl} />
         </div>
 
         {/* 利用イメージ */}

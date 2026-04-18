@@ -223,7 +223,11 @@ export default function PublicFeed({
 
   // リアクションをトグル（ログイン時のみ）
   const toggleReaction = async (item: FeedItem, reactionType: ReactionType) => {
-    if (!isLoggedIn) return;
+    if (!isLoggedIn) {
+      const callbackUrl = encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.href = `/?callbackUrl=${callbackUrl}`;
+      return;
+    }
 
     const itemKey = `${item.kind}:${item.id.replace(`${item.kind}-`, "")}`;
     const toggleKey = `${item.id}:${reactionType}`;
@@ -578,17 +582,13 @@ export default function PublicFeed({
                               type="button"
                               onClick={() => toggleReaction(item, type)}
                               disabled={
-                                !isLoggedIn ||
-                                reactionsLoading ||
-                                !!togglingReaction
+                                (isLoggedIn && (reactionsLoading || !!togglingReaction))
                               }
                               className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs transition ${
                                 hasReacted
                                   ? "bg-slate-700 text-white"
                                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                              } ${reactionsLoading || isToggling ? "opacity-50" : ""} ${
-                                !isLoggedIn ? "cursor-default" : ""
-                              }`}
+                              } ${reactionsLoading || isToggling ? "opacity-50" : ""}`}
                             >
                               <span className="text-[11px]">{emoji}</span>
                               {count > 0 && (

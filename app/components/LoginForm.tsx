@@ -6,9 +6,10 @@ import CapacitorLoginButton from "@/app/components/CapacitorLoginButton";
 
 type Props = {
   action: () => Promise<void>;
+  callbackUrl?: string;
 };
 
-export default function LoginForm({ action }: Props) {
+export default function LoginForm({ action, callbackUrl }: Props) {
   const [agreed, setAgreed] = useState(false);
   const [isCapacitor, setIsCapacitor] = useState(false);
 
@@ -50,7 +51,7 @@ export default function LoginForm({ action }: Props) {
 
       {/* ログインボタン */}
       {isCapacitor ? (
-        <CapacitorLoginButton agreed={agreed} />
+        <CapacitorLoginButton agreed={agreed} callbackUrl={callbackUrl} />
       ) : (
         <form action={action}>
           <button

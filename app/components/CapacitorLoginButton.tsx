@@ -2,7 +2,7 @@
 
 import { useRef, useEffect } from "react";
 
-export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
+export default function CapacitorLoginButton({ agreed, callbackUrl }: { agreed: boolean; callbackUrl?: string }) {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const checkPoll = async (pollId: string) => {
@@ -14,7 +14,8 @@ export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
         await fetch(`https://crun.click/api/auth/ios-session?token=${encodeURIComponent(data.token)}`, {
           credentials: "include",
         });
-        window.location.replace("https://crun.click/dashboard");
+        const redirectTo = callbackUrl ? decodeURIComponent(callbackUrl) : "/dashboard";
+        window.location.replace("https://crun.click" + redirectTo);
         return true;
       }
     } catch {}
@@ -36,7 +37,8 @@ export default function CapacitorLoginButton({ agreed }: { agreed: boolean }) {
           await fetch(`https://crun.click/api/auth/ios-session?token=${encodeURIComponent(token)}`, {
             credentials: "include",
           });
-          window.location.replace("https://crun.click/dashboard");
+          const redirectTo = callbackUrl ? decodeURIComponent(callbackUrl) : "/dashboard";
+          window.location.replace("https://crun.click" + redirectTo);
         }
       } catch {}
     };

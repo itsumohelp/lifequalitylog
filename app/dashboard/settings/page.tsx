@@ -52,6 +52,7 @@ export default function SettingsPage() {
   const [isLoadingMembers, setIsLoadingMembers] = useState(false);
   const [isRemovingMember, setIsRemovingMember] = useState<string | null>(null);
   const [isDeletingCircle, setIsDeletingCircle] = useState(false);
+  const [showDeleteCircleConfirm, setShowDeleteCircleConfirm] = useState(false);
   const [isEditingCircleName, setIsEditingCircleName] = useState(false);
   const [editingCircleName, setEditingCircleName] = useState("");
   const [isSavingCircleName, setIsSavingCircleName] = useState(false);
@@ -784,7 +785,7 @@ export default function SettingsPage() {
 
         {/* サークル管理モーダル（ADMIN用） */}
         {selectedAdminCircle && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedAdminCircle(null)}>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => { setSelectedAdminCircle(null); setShowDeleteCircleConfirm(false); }}>
             <div className="bg-white rounded-xl w-full max-w-sm p-4 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-lg font-semibold text-slate-900 mb-4">
                 サークル管理
@@ -1043,14 +1044,39 @@ export default function SettingsPage() {
                     <p className="text-xs text-red-600 mb-3">
                       サークルを削除すると、すべてのデータが完全に削除され、復元できません。
                     </p>
-                    <button
-                      type="button"
-                      onClick={handleDeleteCircle}
-                      disabled={isDeletingCircle}
-                      className="w-full bg-red-600 text-white rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50"
-                    >
-                      {isDeletingCircle ? "削除中..." : "サークルを削除"}
-                    </button>
+                    {showDeleteCircleConfirm ? (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                        <p className="text-xs text-red-700 font-medium mb-3">
+                          本当に「{selectedAdminCircle.name}」を削除しますか？
+                          <br />この操作は取り消せません。
+                        </p>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setShowDeleteCircleConfirm(false)}
+                            className="flex-1 bg-slate-100 text-slate-700 rounded-lg px-3 py-2 text-sm font-medium"
+                          >
+                            キャンセル
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleDeleteCircle}
+                            disabled={isDeletingCircle}
+                            className="flex-1 bg-red-600 text-white rounded-lg px-3 py-2 text-sm font-medium disabled:opacity-50"
+                          >
+                            {isDeletingCircle ? "削除中..." : "削除する"}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setShowDeleteCircleConfirm(true)}
+                        className="w-full bg-red-600 text-white rounded-lg px-4 py-2 text-sm font-medium"
+                      >
+                        サークルを削除
+                      </button>
+                    )}
                   </>
                 )}
               </div>
@@ -1067,6 +1093,7 @@ export default function SettingsPage() {
                   setAllowNewMembers(true);
                   setCopied(false);
                   setCopiedInvite(false);
+                  setShowDeleteCircleConfirm(false);
                 }}
                 className="w-full bg-slate-100 text-slate-700 rounded-lg px-4 py-2 text-sm font-medium"
               >
