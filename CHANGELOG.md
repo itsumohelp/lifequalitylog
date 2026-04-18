@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.47] - 2026-04-19
+
+### Fixed
+- **Analytics page TypeScript error**: `filterExp` function used a non-generic type `{ amount: number; tags: string[] }[]`, causing `date` property to be lost after filtering. Changed to a generic function `<T extends { amount: number; tags: string[] }>(expenses: T[]): T[]` so the full type (including `date`) is preserved.
+
+---
+
+### 修正
+- **集計ページのTypeScriptエラー**: `filterExp`関数の引数型が`{ amount: number; tags: string[] }[]`の非ジェネリック型だったため、フィルタ後に`date`プロパティが失われビルドエラーが発生。ジェネリック関数`<T extends { amount: number; tags: string[] }>(expenses: T[]): T[]`に変更し、`date`を含む完全な型が保持されるよう修正。
+
 ## [0.0.46] - 2026-04-18
 
 ### Added
