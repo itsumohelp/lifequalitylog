@@ -296,6 +296,17 @@ model IosAuthToken {
   @@map("ios_auth_tokens")
 }
 
+// AIインサイト（サークルごとの日次フィードバック）
+model UserInsight {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  circleId    String?  @map("circle_id")
+  insight     String   @db.Text
+  generatedAt DateTime @default(now()) @map("generated_at")
+  @@index([userId, circleId, generatedAt])
+  @@map("user_insights")
+}
+
 // 運営からのお知らせ
 model Notice {
   id        String   @id @default(cuid())

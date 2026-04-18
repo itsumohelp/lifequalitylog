@@ -401,6 +401,7 @@ export const ModelName = {
   BalanceTransaction: 'BalanceTransaction',
   Reaction: 'Reaction',
   IosAuthToken: 'IosAuthToken',
+  UserInsight: 'UserInsight',
   Notice: 'Notice'
 } as const
 
@@ -417,7 +418,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "appLog" | "todo" | "record" | "account" | "session" | "user" | "verificationToken" | "circle" | "circleMember" | "snapshot" | "circleSnapshot" | "monthlySnapshot" | "expense" | "income" | "balanceTransaction" | "reaction" | "iosAuthToken" | "notice"
+    modelProps: "appLog" | "todo" | "record" | "account" | "session" | "user" | "verificationToken" | "circle" | "circleMember" | "snapshot" | "circleSnapshot" | "monthlySnapshot" | "expense" | "income" | "balanceTransaction" | "reaction" | "iosAuthToken" | "userInsight" | "notice"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1679,6 +1680,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    UserInsight: {
+      payload: Prisma.$UserInsightPayload<ExtArgs>
+      fields: Prisma.UserInsightFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.UserInsightFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserInsightPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.UserInsightFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserInsightPayload>
+        }
+        findFirst: {
+          args: Prisma.UserInsightFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserInsightPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.UserInsightFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserInsightPayload>
+        }
+        findMany: {
+          args: Prisma.UserInsightFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserInsightPayload>[]
+        }
+        create: {
+          args: Prisma.UserInsightCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserInsightPayload>
+        }
+        createMany: {
+          args: Prisma.UserInsightCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.UserInsightCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserInsightPayload>[]
+        }
+        delete: {
+          args: Prisma.UserInsightDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserInsightPayload>
+        }
+        update: {
+          args: Prisma.UserInsightUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserInsightPayload>
+        }
+        deleteMany: {
+          args: Prisma.UserInsightDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.UserInsightUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.UserInsightUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserInsightPayload>[]
+        }
+        upsert: {
+          args: Prisma.UserInsightUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserInsightPayload>
+        }
+        aggregate: {
+          args: Prisma.UserInsightAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateUserInsight>
+        }
+        groupBy: {
+          args: Prisma.UserInsightGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserInsightGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.UserInsightCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserInsightCountAggregateOutputType> | number
+        }
+      }
+    }
     Notice: {
       payload: Prisma.$NoticePayload<ExtArgs>
       fields: Prisma.NoticeFieldRefs
@@ -2018,6 +2093,17 @@ export const IosAuthTokenScalarFieldEnum = {
 export type IosAuthTokenScalarFieldEnum = (typeof IosAuthTokenScalarFieldEnum)[keyof typeof IosAuthTokenScalarFieldEnum]
 
 
+export const UserInsightScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  circleId: 'circleId',
+  insight: 'insight',
+  generatedAt: 'generatedAt'
+} as const
+
+export type UserInsightScalarFieldEnum = (typeof UserInsightScalarFieldEnum)[keyof typeof UserInsightScalarFieldEnum]
+
+
 export const NoticeScalarFieldEnum = {
   id: 'id',
   title: 'title',
@@ -2320,6 +2406,7 @@ export type GlobalOmitConfig = {
   balanceTransaction?: Prisma.BalanceTransactionOmit
   reaction?: Prisma.ReactionOmit
   iosAuthToken?: Prisma.IosAuthTokenOmit
+  userInsight?: Prisma.UserInsightOmit
   notice?: Prisma.NoticeOmit
 }
 

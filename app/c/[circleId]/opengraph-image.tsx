@@ -45,7 +45,7 @@ export default async function Image({ params }: Props) {
             lineHeight: 1,
           }}
         >
-          <span style={{ fontSize: 80, fontWeight: 800, color: "#0f172a" }}>Circle</span>
+          <span style={{ fontSize: 80, fontWeight: 800, color: "#0f172a" }}>circle</span>
           <span style={{ fontSize: 80, fontWeight: 800, color: "#0f172a" }}>run</span>
         </div>
       ),
@@ -233,7 +233,7 @@ export default async function Image({ params }: Props) {
             lineHeight: 1,
           }}
         >
-          <span style={{ fontSize: 28, fontWeight: 800, color: "#0f172a" }}>Circle</span>
+          <span style={{ fontSize: 28, fontWeight: 800, color: "#0f172a" }}>circle</span>
           <span style={{ fontSize: 28, fontWeight: 800, color: "#0f172a" }}>run</span>
         </div>
       </div>

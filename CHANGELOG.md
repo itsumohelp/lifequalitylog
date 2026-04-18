@@ -5,6 +5,46 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.44] - 2026-04-18
+
+### Added
+- **AI Insight (circle-level)**: Added "昨日までの傾向をAIに聞いてみる" button to the feed. Pressing it calls Vertex AI (Gemini 2.5 Flash) to generate up to 150-character feedback comparing the previous week and the most recent week. Results are saved to `user_insights` table and displayed as a left-side bubble in the feed. One request per circle per day; button is hidden after use or when no new activity exists since the last insight.
+- **Insight full-text dialog**: Bubble displays up to 50 characters with a "続きを読む" link. Tapping the bubble opens a dialog showing the full insight text.
+- **Feed range extended to 14 days**: Dashboard feed and insight fetch now cover the past 14 days (was 7 days).
+- **Security: GCP project ID moved to env var**: Hardcoded `itsumo-397204` in `insight/route.ts` moved to `GOOGLE_CLOUD_PROJECT` environment variable. `NEXTAUTH_URL` removed from `Dockerfile` and moved to Cloud Run environment variable settings.
+
+### Changed
+- **AI insight scope**: Changed from user-level to circle-level. Each circle has its own insight history and button.
+- **AI insight prompt**: Compares previous week vs. recent week data (expenses, income, snapshots). Asks for warm, advisor-style comment referencing specific amounts. Encourages thanks for recording. Criticism/warnings prohibited.
+- **Bubble width**: All bubbles (personal posts, notices, AI insights) now use `max-w-full` — expanding to content width up to full available width (was `max-w-[70%]`).
+- **Input mode**: Numeric-only keyboard (`inputMode="numeric"`). Recent tags feature removed.
+- **Share button**: Upgraded to a menu with feed share, copy invite link, and QR code options.
+
+### iOS App
+- **Universal Links**: Added `apple-app-site-association` and `Associated Domains` entitlement (`applinks:crun.click`). QR code invite links now open the native app directly.
+- **Deep link routing**: Added `CapacitorDeepLink` component using `@capacitor/app` `appUrlOpen` event to navigate to the correct in-app page on Universal Link open.
+- **App logo**: Updated SVG icons — "Circle" → "circle" (lowercase C). PNG assets regenerated.
+
+---
+
+### 追加
+- **AIインサイト（サークル単位）**: フィードに「昨日までの傾向をAIに聞いてみる」ボタンを追加。押下するとVertex AI（Gemini 2.5 Flash）が前の週と直近1週間を比較した150文字以内のコメントを生成。`user_insights`テーブルに保存し、左バブルとしてフィードに表示。1サークル1日1回まで。AIの最終投稿以降に自分の投稿がない場合はボタン非表示。ADMIN権限のあるサークルのみ表示。
+- **インサイト全文ダイアログ**: バブルは50文字まで表示し「続きを読む」リンクを表示。タップすると全文を表示するダイアログが開く。
+- **フィード表示期間を14日に拡張**: ダッシュボードのフィードおよびインサイト取得範囲を過去14日に変更（従来は7日）。
+- **セキュリティ: GCPプロジェクトIDを環境変数化**: `insight/route.ts`にハードコードされていた`itsumo-397204`を`GOOGLE_CLOUD_PROJECT`環境変数に移動。`NEXTAUTH_URL`を`Dockerfile`からCloud Runの環境変数設定に移動。
+
+### 変更
+- **AIインサイトのスコープ**: ユーザー単位からサークル単位に変更。各サークルが独自のインサイット履歴とボタンを持つ。
+- **AIインサイトのプロンプト**: 前の週と直近1週間のデータ（支出・収入・残高スナップショット）を比較。具体的な金額に触れた温かいアドバイザー視点のコメントを生成。記録への感謝を添える。批判・警告は禁止。
+- **バブル横幅**: 全バブル（個人投稿・お知らせ・AIインサイト）を`max-w-full`に変更。コンテンツ幅に応じて最大全幅まで伸縮（従来は`max-w-[70%]`固定）。
+- **入力モード**: 数値専用キーボード（`inputMode="numeric"`）に変更。最近使ったタグ表示機能を削除。
+- **シェアボタン**: フィード共有・招待リンクコピー・QRコード表示の3機能を持つメニューに拡張。
+
+### iOSアプリ
+- **Universal Links**: `apple-app-site-association`と`Associated Domains`（`applinks:crun.click`）を追加。招待QRコードのリンクがネイティブアプリを直接起動するように。
+- **ディープリンクルーティング**: `@capacitor/app`の`appUrlOpen`イベントを使用する`CapacitorDeepLink`コンポーネントを追加。Universal Link起動時に正しいページへ遷移。
+- **アプリロゴ**: SVGアイコンの頭文字を「Circle」→「circle」（小文字C）に変更。PNGアセットを再生成。
+
 ## [0.0.43] - 2026-04-11
 
 ### Fixed

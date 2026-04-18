@@ -5,6 +5,7 @@ import type { Viewport, Metadata } from "next";
 import { Noto_Sans_JP } from "next/font/google";
 import { auth } from "@/auth";
 import Header from "@/app/componets/Header";
+import CapacitorDeepLink from "@/app/components/CapacitorDeepLink";
 import { GoogleAnalytics } from "@next/third-parties/google";
 
 const notoSansJP = Noto_Sans_JP({
@@ -47,6 +48,7 @@ export default async function RootLayout({
           <Header session={session} />
           <main className="flex-1 bg-slate-50 overflow-auto flex flex-col min-h-0">{children}</main>
         </div>
+        <CapacitorDeepLink />
       </body>
       <GoogleAnalytics gaId="G-64XWZ672CX" />
     </html>

@@ -14,7 +14,7 @@ export default function PrivacyPage() {
         <h1 className="text-2xl font-bold text-slate-900 mt-6 mb-2">
           プライバシーポリシー
         </h1>
-        <p className="text-sm text-slate-500 mb-8">最終更新日: 2026年2月5日</p>
+        <p className="text-sm text-slate-500 mb-8">最終更新日: 2026年4月18日</p>
 
         <div className="prose prose-slate prose-sm max-w-none space-y-6">
           <section>
@@ -122,7 +122,27 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-lg font-semibold text-slate-800 mb-2">
-              8. お問い合わせ
+              8. AIの利用について
+            </h2>
+            <p className="text-slate-700 leading-relaxed mb-2">
+              本サービスでは、ユーザーが明示的に操作した場合に限り、AI（Google Vertex AI / Gemini）を利用した傾向分析機能を提供します。
+            </p>
+            <ul className="list-disc pl-5 text-slate-700 space-y-1">
+              <li>
+                <strong>自動送信は行いません</strong>：サービスがユーザーの同意なしに自動でAIへデータを送信することはありません。AIへの問い合わせは、ユーザーがフィード内の「昨日までの傾向をAIに聞いてみる」ボタンを押した場合にのみ実行されます。
+              </li>
+              <li>
+                <strong>AIへの入力内容</strong>：ユーザーが記録した支出・収入の金額および説明文、ならびに残高スナップショットをAIへの入力として使用します。生成されたコメントはフィード上に表示され、データベースに保存されます。
+              </li>
+              <li>
+                <strong>タグはAI入力対象外</strong>：支出・収入に付与されたタグはセンシティブ情報として扱い、AIへの入力には使用しません。
+              </li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold text-slate-800 mb-2">
+              9. お問い合わせ
             </h2>
             <p className="text-slate-700 leading-relaxed">
               個人情報の取り扱いに関するお問い合わせは、本サービスの管理者までご連絡ください。
@@ -131,7 +151,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-lg font-semibold text-slate-800 mb-2">
-              9. ポリシーの変更
+              10. ポリシーの変更
             </h2>
             <p className="text-slate-700 leading-relaxed">
               本プライバシーポリシーは、必要に応じて変更されることがあります。変更後のポリシーは、本サービス上に掲載された時点で効力を生じます。重要な変更がある場合は、サービス上で通知いたします。

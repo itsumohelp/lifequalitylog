@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { QRCodeSVG } from "qrcode.react";
 import Image from "next/image";
 import Link from "next/link";
 import { getCategoryEmoji } from "@/lib/expenseParser";
@@ -34,7 +35,7 @@ type ShortcutItem = {
 
 type FeedItem = {
   id: string;
-  kind: "snapshot" | "expense" | "income" | "summary" | "invite" | "help" | "notice";
+  kind: "snapshot" | "expense" | "income" | "summary" | "invite" | "help" | "notice" | "insight";
   circleId: string;
   circleName?: string;
   userId: string;
@@ -57,6 +58,7 @@ type FeedItem = {
   noticeTitle?: string;
   noticeBody?: string | null;
   noticeLink?: string | null;
+  insightText?: string;
   createdAt: string;
 };
 
@@ -65,6 +67,7 @@ type Circle = {
   name: string;
   adminName: string;
   isPublic?: boolean;
+  allowNewMembers?: boolean;
 };
 
 type CircleBalance = {
@@ -114,12 +117,8 @@ function formatDate(dateStr: string) {
   });
 }
 
-const RECENT_TAGS_KEY = "recentTags";
-const MAX_RECENT_TAGS = 10;
 const LAST_CIRCLE_KEY = "lastCircleId";
-const TIMELINE_VALUE = "__timeline__";
 
-// localStorageが利用可能かテスト（Safariプライベートモード対策）
 function isLocalStorageAvailable(): boolean {
   if (typeof window === "undefined") return false;
   try {
@@ -131,48 +130,8 @@ function isLocalStorageAvailable(): boolean {
     return false;
   }
 }
+const TIMELINE_VALUE = "__timeline__";
 
-// ローカルストレージから直近タグを取得
-function getRecentTags(): string[] {
-  if (!isLocalStorageAvailable()) return [];
-  try {
-    const stored = localStorage.getItem(RECENT_TAGS_KEY);
-    if (!stored) return [];
-    const parsed = JSON.parse(stored);
-    // 配列でない場合は空配列を返す
-    if (!Array.isArray(parsed)) return [];
-    return parsed;
-  } catch (e) {
-    console.warn("Failed to get recent tags:", e);
-    return [];
-  }
-}
-
-// ローカルストレージに直近タグを保存
-function saveRecentTags(tags: string[]): boolean {
-  if (!isLocalStorageAvailable()) return false;
-  try {
-    localStorage.setItem(RECENT_TAGS_KEY, JSON.stringify(tags));
-    return true;
-  } catch (e) {
-    console.warn("Failed to save recent tags:", e);
-    return false;
-  }
-}
-
-// タグを使用した際に履歴に追加（重複は先頭に移動）
-function addToRecentTags(newTags: string[]) {
-  const current = getRecentTags();
-  const updated = [...newTags];
-  for (const tag of current) {
-    if (!updated.includes(tag)) {
-      updated.push(tag);
-    }
-  }
-  const trimmed = updated.slice(0, MAX_RECENT_TAGS);
-  saveRecentTags(trimmed);
-  return trimmed;
-}
 
 export default function UnifiedChat({
   initialFeed,
@@ -204,7 +163,6 @@ export default function UnifiedChat({
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [recentTags, setRecentTags] = useState<string[]>([]);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isCircleModalOpen, setIsCircleModalOpen] = useState(false);
   const [newCircleName, setNewCircleName] = useState("");
@@ -222,18 +180,29 @@ export default function UnifiedChat({
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [showShareNotEnabledDialog, setShowShareNotEnabledDialog] =
     useState(false);
+  const [showShareMenuDialog, setShowShareMenuDialog] = useState(false);
+  const [showQRDialog, setShowQRDialog] = useState(false);
+  const [copiedInvite, setCopiedInvite] = useState(false);
   const [showMiniChart, setShowMiniChart] = useState(false);
   const [circlesState, setCirclesState] = useState<Circle[]>(circles);
   const [togglingPublic, setTogglingPublic] = useState(false);
+  const [isInsightLoading, setIsInsightLoading] = useState(false);
+  const [insightDialog, setInsightDialog] = useState<{ text: string; circleName: string; createdAt: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const isTimeline = selectedCircleId === TIMELINE_VALUE;
   const selectedCircle = circlesState.find((c) => c.id === selectedCircleId);
 
-  // シェアボタン処理
+  // シェアボタン処理 → メニューを開く
   const handleShare = () => {
+    setShowShareMenuDialog(true);
+  };
+
+  // フィードをシェア
+  const handleShareFeed = () => {
     if (!selectedCircle?.isPublic) {
+      setShowShareMenuDialog(false);
       setShowShareNotEnabledDialog(true);
       return;
     }
@@ -242,9 +211,18 @@ export default function UnifiedChat({
     if (navigator.share) {
       navigator.share({ url });
     } else {
-      const twitterUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}`;
-      window.open(twitterUrl, "_blank", "noopener,noreferrer");
+      window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}`, "_blank", "noopener,noreferrer");
     }
+    setShowShareMenuDialog(false);
+  };
+
+  // 招待リンクをコピー
+  const handleCopyInvite = async () => {
+    if (!selectedCircle) return;
+    const url = `${window.location.origin}/join?circleId=${selectedCircle.id}`;
+    await navigator.clipboard.writeText(url);
+    setCopiedInvite(true);
+    setTimeout(() => setCopiedInvite(false), 2000);
   };
 
   // ユーザーがサークルの編集権限を持っているかチェック
@@ -571,9 +549,8 @@ export default function UnifiedChat({
     }
   };
 
-  // 初期読み込み時に直近タグ・最後に開いたサークル・お知らせを復元
+  // 初期読み込み時に最後に開いたサークルを復元
   useEffect(() => {
-    setRecentTags(getRecentTags());
     if (isLocalStorageAvailable()) {
       const savedCircleId = localStorage.getItem(LAST_CIRCLE_KEY);
       if (savedCircleId === TIMELINE_VALUE) {
@@ -879,12 +856,6 @@ export default function UnifiedChat({
           tags: data.expense.tags || [],
           createdAt: new Date().toISOString(),
         };
-
-        // 使用したタグを直近タグに追加
-        if (data.expense.tags && data.expense.tags.length > 0) {
-          const updated = addToRecentTags(data.expense.tags);
-          setRecentTags(updated);
-        }
 
         // 登録後にミニチャートを表示
         setShowMiniChart(true);
@@ -1334,7 +1305,7 @@ export default function UnifiedChat({
               {/* その日のアイテム */}
               <div className="space-y-0.5">
                 {items.map((item, idx) => {
-                  const isOwnMessage = item.userId === currentUserId;
+                  const isOwnMessage = item.kind !== "insight" && item.userId === currentUserId;
                   const prevItem = idx > 0 ? items[idx - 1] : null;
                   const isSameUserAsPrev =
                     prevItem && prevItem.userId === item.userId;
@@ -1363,10 +1334,10 @@ export default function UnifiedChat({
                             <div
                               className="w-8 h-8 flex items-center justify-center text-xs text-white font-medium"
                               style={{
-                                backgroundColor: getAvatarColor(item.userId),
+                                backgroundColor: item.kind === "insight" ? "#0ea5e9" : getAvatarColor(item.userId),
                               }}
                             >
-                              {getAvatarInitial(item.userName)}
+                              {item.kind === "insight" ? "AI" : getAvatarInitial(item.userName)}
                             </div>
                           )}
                         </div>
@@ -1374,7 +1345,7 @@ export default function UnifiedChat({
 
                       {/* メッセージ部分 */}
                       <div
-                        className={`max-w-[70%] ${isOwnMessage ? "items-end" : ""}`}
+                        className={`max-w-full ${isOwnMessage ? "items-end" : ""}`}
                       >
                         {/* 投稿者名（バブルの上、連続投稿時は非表示） */}
                         {!isSameUserAsPrev && (
@@ -1383,14 +1354,20 @@ export default function UnifiedChat({
                               isOwnMessage ? "text-right" : ""
                             }`}
                           >
-                            {item.userName}
+                            {item.kind === "insight" ? "AI" : item.userName}
                           </div>
                         )}
 
                         {/* メッセージバブル */}
                         <button
                           type="button"
-                          onClick={() => setSelectedItem(item)}
+                          onClick={() => {
+                            if (item.kind === "insight") {
+                              setInsightDialog({ text: item.insightText ?? "", circleName: item.circleName ?? "", createdAt: item.createdAt });
+                            } else {
+                              setSelectedItem(item);
+                            }
+                          }}
                           className={`rounded-2xl px-3 py-1.5 text-left w-full ${
                             isOwnMessage
                               ? "bg-slate-900 text-white rounded-tr-sm"
@@ -1408,6 +1385,8 @@ export default function UnifiedChat({
                             >
                               {item.kind === "notice"
                                 ? `📣 ${item.noticeTitle}`
+                                : item.kind === "insight"
+                                ? (<>{item.circleName && <span className="text-sky-500">{item.circleName}</span>}{item.circleName ? "  " : ""}AI インサイト</>)
                                 : item.circleName || "（名前なし）"}
                             </span>
                             <span
@@ -1694,6 +1673,16 @@ export default function UnifiedChat({
                                 </div>
                               )}
                             </>
+                          ) : item.kind === "insight" ? (
+                            <>
+                              {/* AIインサイト */}
+                              <p className="text-sm text-slate-800 font-medium leading-snug">
+                                {(item.insightText ?? "").length > 50
+                                  ? <>{(item.insightText ?? "").slice(0, 50)}<span className="text-sky-500 text-xs ml-1">続きを読む</span></>
+                                  : item.insightText}
+                              </p>
+                              <p className="text-[10px] text-slate-400 mt-1">AI による直近2週間の傾向分析</p>
+                            </>
                           ) : (
                             <>
                               {/* 残高スナップショット */}
@@ -1811,6 +1800,79 @@ export default function UnifiedChat({
       </div>
       </div>
 
+      {/* AIインサイトボタン（管理者サークルのみ、条件付き表示） */}
+      {!isTimeline && adminCircleIds.includes(selectedCircleId) && (() => {
+        const todayJST = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+        // 今日のインサイトがあれば非表示
+        const lastInsight = feed
+          .filter((item) => item.kind === "insight" && item.circleId === selectedCircleId)
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+        const hasTodayInsight = lastInsight &&
+          new Date(new Date(lastInsight.createdAt).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10) === todayJST;
+        if (hasTodayInsight) return null;
+
+        // AIの最終投稿以降に自分の投稿がなければ非表示
+        const lastUserPost = feed
+          .filter((item) => item.circleId === selectedCircleId && item.userId === currentUserId && item.kind !== "insight")
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+        const hasNewActivity = lastUserPost && (
+          !lastInsight || new Date(lastUserPost.createdAt) > new Date(lastInsight.createdAt)
+        );
+        if (!hasNewActivity) return null;
+
+        return (
+          <div className="flex-shrink-0 px-3 pb-1 bg-slate-50 flex justify-center">
+            <button
+              type="button"
+              onClick={async () => {
+                if (isInsightLoading) return;
+                setIsInsightLoading(true);
+                try {
+                  const res = await fetch("/api/insight", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ circleId: selectedCircleId }),
+                  });
+                  if (!res.ok) {
+                    const data = await res.json();
+                    setError(data.error || "AIインサイトの取得に失敗しました");
+                    return;
+                  }
+                  const data = await res.json();
+                  const newItem: FeedItem = {
+                    id: `insight-${data.id}`,
+                    kind: "insight",
+                    circleId: selectedCircleId,
+                    circleName: selectedCircle?.name ?? "",
+                    userId: "",
+                    userName: "",
+                    userImage: null,
+                    amount: 0,
+                    insightText: data.insight,
+                    createdAt: data.generatedAt,
+                  };
+                  setFeed((prev) => {
+                    if (prev.some((item) => item.id === newItem.id)) return prev;
+                    return [...prev, newItem].sort(
+                      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+                    );
+                  });
+                } catch {
+                  setError("AIインサイトの取得に失敗しました");
+                } finally {
+                  setIsInsightLoading(false);
+                }
+              }}
+              disabled={isInsightLoading}
+              className="text-[11px] text-sky-600 border border-sky-200 bg-sky-50 rounded-full px-3 py-0.5 hover:bg-sky-100 disabled:opacity-50 transition"
+            >
+              {isInsightLoading ? "分析中..." : "✨ 昨日までの傾向をAIに聞いてみる"}
+            </button>
+          </div>
+        );
+      })()}
+
       {/* 入力エリア（画面下部に固定） */}
       <div className="flex-shrink-0 bg-white border-t border-slate-200">
         {/* エラー表示 */}
@@ -1820,29 +1882,6 @@ export default function UnifiedChat({
           </div>
         )}
 
-        {/* 直近タグ（フォーカス時は非表示） */}
-        {!isTimeline &&
-          !isInputFocused &&
-          recentTags.length > 0 &&
-          inputMode === "expense" && (
-            <div className="px-3 pt-2 pb-1 overflow-x-auto">
-              <div className="flex gap-1.5 whitespace-nowrap">
-                {recentTags.map((tag, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => {
-                      setInput(tag + "　");
-                      inputRef.current?.focus();
-                    }}
-                    className="text-[10px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 hover:bg-sky-200 active:bg-sky-300 transition"
-                  >
-                    {tag}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
         {/* サークル選択 + アクションボタン */}
         <div className="px-3 py-1.5 flex items-center gap-2">
@@ -1851,6 +1890,7 @@ export default function UnifiedChat({
             onChange={(e) => {
               const value = e.target.value;
               setSelectedCircleId(value);
+              setError(null);
               if (value === TIMELINE_VALUE) {
                 setFilterCircleId("");
               } else {
@@ -1987,31 +2027,24 @@ export default function UnifiedChat({
               {/* 入力欄 */}
               <input
                 ref={inputRef}
-                type={inputMode === "snapshot" ? "number" : "text"}
-                inputMode={inputMode === "snapshot" ? "numeric" : "text"}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onFocus={() => setIsInputFocused(true)}
                 onBlur={() => setIsInputFocused(false)}
                 placeholder={
                   inputMode === "expense"
-                    ? "〇〇 △△円"
+                    ? "金額を入力"
                     : inputMode === "income"
-                      ? "給与 〇〇円"
+                      ? "金額を入力"
                       : "残高を入力"
                 }
                 disabled={isLoading || !selectedCircleId}
                 className="flex-1 min-w-0 bg-slate-100 border border-slate-200 rounded-full px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 disabled:opacity-50"
               />
 
-              {/* 送信ボタン */}
-              <button
-                type="submit"
-                disabled={isLoading || !input.trim() || !selectedCircleId}
-                className="flex-shrink-0 bg-slate-900 text-white rounded-full px-3 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-transform"
-              >
-                {isLoading ? "..." : "送信"}
-              </button>
             </div>
           </form>
         )}
@@ -2022,6 +2055,120 @@ export default function UnifiedChat({
           style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
         />
       </div>
+
+      {/* シェアメニューダイアログ */}
+      {showShareMenuDialog && selectedCircle && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowShareMenuDialog(false)}>
+          <div className="bg-white rounded-xl w-full max-w-sm p-5" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-base font-semibold text-slate-900 mb-4">{selectedCircle.name}</h3>
+            <div className="space-y-2">
+              {/* フィードをシェア */}
+              <button
+                type="button"
+                onClick={handleShareFeed}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-left transition"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-600 flex-shrink-0">
+                  <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                </svg>
+                <div>
+                  <p className="text-sm font-medium text-slate-900">フィードをシェア</p>
+                  <p className="text-xs text-slate-500">{selectedCircle.isPublic ? "公開フィードを共有" : "公開設定が必要です"}</p>
+                </div>
+              </button>
+              {/* 招待リンクをコピー */}
+              <button
+                type="button"
+                onClick={handleCopyInvite}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-left transition"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-600 flex-shrink-0">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+                <div>
+                  <p className="text-sm font-medium text-slate-900">{copiedInvite ? "コピーしました！" : "招待リンクをコピー"}</p>
+                  <p className="text-xs text-slate-500">リンクをLINE等で送る</p>
+                </div>
+              </button>
+              {/* 招待QRコード（allowNewMembersがONかつADMINのみ） */}
+              {selectedCircle.allowNewMembers && adminCircleIds.includes(selectedCircle.id) && (
+                <button
+                  type="button"
+                  onClick={() => { setShowShareMenuDialog(false); setShowQRDialog(true); }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-left transition"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-600 flex-shrink-0">
+                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                    <rect x="5" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="16" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="5" y="16" width="3" height="3" fill="currentColor" stroke="none"/>
+                    <path d="M14 14h3v3h-3z" fill="currentColor" stroke="none"/><path d="M17 17h4v4h-4z"/><path d="M14 20h3"/>
+                  </svg>
+                  <div>
+                    <p className="text-sm font-medium text-slate-900">招待QRコードを表示</p>
+                    <p className="text-xs text-slate-500">その場で見せて参加してもらう</p>
+                  </div>
+                </button>
+              )}
+            </div>
+            <button type="button" onClick={() => setShowShareMenuDialog(false)} className="w-full mt-3 bg-slate-100 text-slate-700 rounded-lg px-4 py-2 text-sm font-medium">
+              閉じる
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* QRコードダイアログ */}
+      {showQRDialog && selectedCircle && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowQRDialog(false)}>
+          <div className="bg-white rounded-xl w-full max-w-sm p-5 flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-base font-semibold text-slate-900 mb-1">{selectedCircle.name}</h3>
+            <p className="text-xs text-slate-500 mb-4">QRコードを読み取って参加</p>
+            <div className="p-3 bg-white rounded-xl border border-slate-200">
+              <QRCodeSVG
+                value={`${typeof window !== "undefined" ? window.location.origin : "https://crun.click"}/join?circleId=${selectedCircle.id}`}
+                size={200}
+                bgColor="#ffffff"
+                fgColor="#0f172a"
+              />
+            </div>
+            <button type="button" onClick={() => setShowQRDialog(false)} className="w-full mt-4 bg-slate-100 text-slate-700 rounded-lg px-4 py-2 text-sm font-medium">
+              閉じる
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* AIインサイト全文ダイアログ */}
+      {insightDialog && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => setInsightDialog(null)}
+        >
+          <div
+            className="bg-white rounded-xl w-full max-w-sm p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-7 h-7 rounded-full bg-sky-500 flex items-center justify-center text-xs text-white font-medium">AI</div>
+              <div>
+                {insightDialog.circleName && (
+                  <p className="text-[10px] text-sky-500 font-medium leading-none">{insightDialog.circleName}</p>
+                )}
+                <p className="text-xs text-slate-500">{new Date(insightDialog.createdAt).toLocaleDateString("ja-JP", { month: "short", day: "numeric" })} AI インサイト</p>
+              </div>
+            </div>
+            <p className="text-sm text-slate-800 leading-relaxed">{insightDialog.text}</p>
+            <p className="text-[10px] text-slate-400 mt-3">AI による直近2週間の傾向分析</p>
+            <button
+              type="button"
+              onClick={() => setInsightDialog(null)}
+              className="mt-4 w-full py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition"
+            >
+              閉じる
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* サークル追加モーダル */}
       {/* シェア未許可ダイアログ */}

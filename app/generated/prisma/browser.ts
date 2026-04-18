@@ -103,6 +103,11 @@ export type Reaction = Prisma.ReactionModel
  */
 export type IosAuthToken = Prisma.IosAuthTokenModel
 /**
+ * Model UserInsight
+ * 
+ */
+export type UserInsight = Prisma.UserInsightModel
+/**
  * Model Notice
  * 
  */

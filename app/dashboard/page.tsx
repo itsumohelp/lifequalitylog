@@ -7,7 +7,7 @@ import IOSAuthCallback from "../components/IOSAuthCallback";
 
 type FeedItem = {
   id: string;
-  kind: "snapshot" | "expense" | "income" | "notice";
+  kind: "snapshot" | "expense" | "income" | "notice" | "insight";
   circleId: string;
   circleName: string;
   userId: string;
@@ -25,6 +25,7 @@ type FeedItem = {
   noticeTitle?: string;
   noticeBody?: string | null;
   noticeLink?: string | null;
+  insightText?: string;
   createdAt: string;
 };
 
@@ -60,7 +61,7 @@ export default async function DashboardPage() {
   const hasCircles = circleIds.length > 0;
 
   let feed: FeedItem[] = [];
-  let circles: { id: string; name: string; adminName: string; isPublic: boolean }[] = [];
+  let circles: { id: string; name: string; adminName: string; isPublic: boolean; allowNewMembers: boolean }[] = [];
   let circleBalances: { circleId: string; circleName: string; balance: number; monthlyExpense: number; allTimeExpense: number }[] = [];
   let totalBalance = 0;
   let monthlyExpense = 0;
@@ -76,6 +77,7 @@ export default async function DashboardPage() {
         name: true,
         currentBalance: true,
         isPublic: true,
+        allowNewMembers: true,
         members: {
           where: { role: "ADMIN" },
           select: {
@@ -96,6 +98,7 @@ export default async function DashboardPage() {
       name: c.name,
       adminName: c.members[0]?.user?.displayName || c.members[0]?.user?.name || "未設定",
       isPublic: c.isPublic,
+      allowNewMembers: c.allowNewMembers,
     }));
 
     // 残高スナップショットを取得（全サークル分）
@@ -258,8 +261,8 @@ export default async function DashboardPage() {
       }
     }
 
-    // 統合してソート（最新7日分）
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    // 統合してソート（最新14日分）
+    const sevenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
 
     feed = [
       ...snapshots
@@ -315,6 +318,34 @@ export default async function DashboardPage() {
     ]
       .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
+    // 過去7日分のインサイトをフィードに追加（サークル単位）
+    const insights = await prisma.userInsight.findMany({
+      where: {
+        userId,
+        circleId: { in: circleIds },
+        generatedAt: { gte: sevenDaysAgo },
+      },
+      orderBy: { generatedAt: "asc" },
+    });
+
+    const circleNameMap = new Map(circlesWithAdmin.map((c) => [c.id, c.name]));
+
+    const insightItems: FeedItem[] = insights.map((ins) => ({
+      id: `insight-${ins.id}`,
+      kind: "insight" as const,
+      circleId: ins.circleId ?? "",
+      circleName: circleNameMap.get(ins.circleId ?? "") ?? "",
+      userId: "",
+      userName: "",
+      userImage: null,
+      amount: 0,
+      insightText: ins.insight,
+      createdAt: ins.generatedAt.toISOString(),
+    }));
+
+    feed = [...feed, ...insightItems].sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
   }
 
   return (
