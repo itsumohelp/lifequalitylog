@@ -14,12 +14,20 @@ function generateBuildId(): string {
 const buildId = generateBuildId();
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
+  output: "standalone",
   images: {
-    remotePatterns: [new URL('https://lh3.googleusercontent.com/**')],
+    remotePatterns: [new URL("https://lh3.googleusercontent.com/**")],
   },
   env: {
     NEXT_PUBLIC_BUILD_ID: buildId,
+  },
+  async headers() {
+    return [
+      {
+        source: "/.well-known/apple-app-site-association",
+        headers: [{ key: "Content-Type", value: "application/json" }],
+      },
+    ];
   },
 };
 

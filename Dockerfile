@@ -61,6 +61,6 @@ EXPOSE 3000
 
 
 ENV PORT=3000
-ENV NEXTAUTH_URL=https://web-717738890815.asia-northeast1.run.app
+
 ENV HOSTNAME="0.0.0.0"
 CMD ["node", "server.js"]

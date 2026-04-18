@@ -68,6 +68,7 @@ export const ModelName = {
   BalanceTransaction: 'BalanceTransaction',
   Reaction: 'Reaction',
   IosAuthToken: 'IosAuthToken',
+  UserInsight: 'UserInsight',
   Notice: 'Notice'
 } as const
 
@@ -311,6 +312,17 @@ export const IosAuthTokenScalarFieldEnum = {
 } as const
 
 export type IosAuthTokenScalarFieldEnum = (typeof IosAuthTokenScalarFieldEnum)[keyof typeof IosAuthTokenScalarFieldEnum]
+
+
+export const UserInsightScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  circleId: 'circleId',
+  insight: 'insight',
+  generatedAt: 'generatedAt'
+} as const
+
+export type UserInsightScalarFieldEnum = (typeof UserInsightScalarFieldEnum)[keyof typeof UserInsightScalarFieldEnum]
 
 
 export const NoticeScalarFieldEnum = {

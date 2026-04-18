@@ -43,29 +43,16 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             <svg
               width="64"
               height="64"
-              viewBox="0 0 32 32"
-              fill="none"
+              viewBox="0 0 512 512"
               xmlns="http://www.w3.org/2000/svg"
             >
-              {/* 外側の円（C） */}
-              <circle
-                cx="16"
-                cy="16"
-                r="12"
-                stroke="#0ea5e9"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeDasharray="56 20"
-                transform="rotate(-45 16 16)"
-              />
-              {/* 内側のR */}
-              <path
-                d="M13 10h4a3 3 0 0 1 0 6h-4v6M17 16l4 6"
-                stroke="#0f172a"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+              <rect width="512" height="512" fill="#ffffff"/>
+              <text x="256" y="262" textAnchor="middle"
+                    fontFamily="'Helvetica Neue', Arial, sans-serif"
+                    fontSize="182" fontWeight="800" fill="#0f172a">circle</text>
+              <text x="256" y="384" textAnchor="middle"
+                    fontFamily="'Helvetica Neue', Arial, sans-serif"
+                    fontSize="182" fontWeight="800" fill="#0f172a">run</text>
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-slate-950">CircleRun</h1>
