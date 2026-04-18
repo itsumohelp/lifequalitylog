@@ -75,7 +75,7 @@ function CalendarTab({ circles }: { circles: CircleInfo[] }) {
   const filtered = useMemo(() => {
     if (!circleData) return null;
     const hasFilter = selectedTags.size > 0;
-    const filterExp = (expenses: { amount: number; tags: string[] }[]) =>
+    const filterExp = <T extends { amount: number; tags: string[] }>(expenses: T[]): T[] =>
       hasFilter
         ? expenses.filter((e) => e.tags.some((t) => selectedTags.has(t)))
         : expenses;
