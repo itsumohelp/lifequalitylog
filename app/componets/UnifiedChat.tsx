@@ -188,11 +188,54 @@ export default function UnifiedChat({
   const [togglingPublic, setTogglingPublic] = useState(false);
   const [isInsightLoading, setIsInsightLoading] = useState(false);
   const [insightDialog, setInsightDialog] = useState<{ text: string; circleName: string; createdAt: string } | null>(null);
+  const [showInsightConsentDialog, setShowInsightConsentDialog] = useState(false);
+  const pendingInsightCircleIdRef = useRef<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const isTimeline = selectedCircleId === TIMELINE_VALUE;
   const selectedCircle = circlesState.find((c) => c.id === selectedCircleId);
+
+  // AIインサイト問い合わせ
+  const runInsight = useCallback(async (circleId: string, circleName: string) => {
+    if (isInsightLoading) return;
+    setIsInsightLoading(true);
+    try {
+      const res = await fetch("/api/insight", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ circleId }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "AIインサイトの取得に失敗しました");
+        return;
+      }
+      const data = await res.json();
+      const newItem: FeedItem = {
+        id: `insight-${data.id}`,
+        kind: "insight",
+        circleId,
+        circleName,
+        userId: "",
+        userName: "",
+        userImage: null,
+        amount: 0,
+        insightText: data.insight,
+        createdAt: data.generatedAt,
+      };
+      setFeed((prev) => {
+        if (prev.some((item) => item.id === newItem.id)) return prev;
+        return [...prev, newItem].sort(
+          (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+      });
+    } catch {
+      setError("AIインサイトの取得に失敗しました");
+    } finally {
+      setIsInsightLoading(false);
+    }
+  }, [isInsightLoading]);
 
   // シェアボタン処理 → メニューを開く
   const handleShare = () => {
@@ -1821,47 +1864,58 @@ export default function UnifiedChat({
         );
         if (!hasNewActivity) return null;
 
+        const AI_CONSENT_KEY = "aiInsightConsented";
+        const hasConsented = isLocalStorageAvailable() && localStorage.getItem(AI_CONSENT_KEY) === "true";
+
+        const runInsight = async () => {
+          if (isInsightLoading) return;
+          setIsInsightLoading(true);
+          try {
+            const res = await fetch("/api/insight", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ circleId: selectedCircleId }),
+            });
+            if (!res.ok) {
+              const data = await res.json();
+              setError(data.error || "AIインサイトの取得に失敗しました");
+              return;
+            }
+            const data = await res.json();
+            const newItem: FeedItem = {
+              id: `insight-${data.id}`,
+              kind: "insight",
+              circleId: selectedCircleId,
+              circleName: selectedCircle?.name ?? "",
+              userId: "",
+              userName: "",
+              userImage: null,
+              amount: 0,
+              insightText: data.insight,
+              createdAt: data.generatedAt,
+            };
+            setFeed((prev) => {
+              if (prev.some((item) => item.id === newItem.id)) return prev;
+              return [...prev, newItem].sort(
+                (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+              );
+            });
+          } catch {
+            setError("AIインサイトの取得に失敗しました");
+          } finally {
+            setIsInsightLoading(false);
+          }
+        };
+
         return (
           <div className="flex-shrink-0 px-3 pb-1 bg-slate-50 flex justify-center">
             <button
               type="button"
-              onClick={async () => {
-                if (isInsightLoading) return;
-                setIsInsightLoading(true);
-                try {
-                  const res = await fetch("/api/insight", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ circleId: selectedCircleId }),
-                  });
-                  if (!res.ok) {
-                    const data = await res.json();
-                    setError(data.error || "AIインサイトの取得に失敗しました");
-                    return;
-                  }
-                  const data = await res.json();
-                  const newItem: FeedItem = {
-                    id: `insight-${data.id}`,
-                    kind: "insight",
-                    circleId: selectedCircleId,
-                    circleName: selectedCircle?.name ?? "",
-                    userId: "",
-                    userName: "",
-                    userImage: null,
-                    amount: 0,
-                    insightText: data.insight,
-                    createdAt: data.generatedAt,
-                  };
-                  setFeed((prev) => {
-                    if (prev.some((item) => item.id === newItem.id)) return prev;
-                    return [...prev, newItem].sort(
-                      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-                    );
-                  });
-                } catch {
-                  setError("AIインサイトの取得に失敗しました");
-                } finally {
-                  setIsInsightLoading(false);
+              onClick={() => {
+                if (hasConsented) {
+                  runInsight();
+                } else {
+                  setShowInsightConsentDialog(true);
                 }
               }}
               disabled={isInsightLoading}
@@ -2134,6 +2188,61 @@ export default function UnifiedChat({
             <button type="button" onClick={() => setShowQRDialog(false)} className="w-full mt-4 bg-slate-100 text-slate-700 rounded-lg px-4 py-2 text-sm font-medium">
               閉じる
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* AIインサイト同意ダイアログ */}
+      {showInsightConsentDialog && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowInsightConsentDialog(false)}
+        >
+          <div
+            className="bg-white rounded-xl w-full max-w-sm p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-base font-semibold text-slate-900 mb-3">AIに傾向を分析してもらいますか？</h3>
+            <p className="text-sm text-slate-600 leading-relaxed mb-3">
+              以下の情報をAI（Google Gemini）に送信して、直近の傾向を分析します。
+            </p>
+            <ul className="text-sm text-slate-700 space-y-1.5 mb-3 pl-1">
+              <li className="flex items-start gap-2"><span className="text-green-500 mt-0.5">✓</span><span>支出・収入の<strong>金額・説明文</strong></span></li>
+              <li className="flex items-start gap-2"><span className="text-green-500 mt-0.5">✓</span><span>残高スナップショット</span></li>
+              <li className="flex items-start gap-2"><span className="text-red-400 mt-0.5">✗</span><span className="text-slate-500">メールアドレス・個人情報は含みません</span></li>
+              <li className="flex items-start gap-2"><span className="text-red-400 mt-0.5">✗</span><span className="text-slate-500">タグは含みません</span></li>
+            </ul>
+            <p className="text-xs text-slate-400 mb-4">
+              詳しくは
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-sky-500 underline ml-0.5">プライバシーポリシー</a>
+              の「AIの利用について」をご確認ください。
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setShowInsightConsentDialog(false)}
+                className="flex-1 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition"
+              >
+                キャンセル
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (isLocalStorageAvailable()) {
+                    localStorage.setItem("aiInsightConsented", "true");
+                  }
+                  setShowInsightConsentDialog(false);
+                  // runInsightは閉じた後に呼べないためフラグで制御
+                  setTimeout(() => {
+                    const btn = document.querySelector("[data-insight-btn]") as HTMLButtonElement | null;
+                    btn?.click();
+                  }, 100);
+                }}
+                className="flex-1 py-2 text-sm text-white bg-sky-500 rounded-lg hover:bg-sky-600 transition font-medium"
+              >
+                同意して分析する
+              </button>
+            </div>
           </div>
         </div>
       )}
