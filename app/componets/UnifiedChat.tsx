@@ -1867,54 +1867,15 @@ export default function UnifiedChat({
         const AI_CONSENT_KEY = "aiInsightConsented";
         const hasConsented = isLocalStorageAvailable() && localStorage.getItem(AI_CONSENT_KEY) === "true";
 
-        const runInsight = async () => {
-          if (isInsightLoading) return;
-          setIsInsightLoading(true);
-          try {
-            const res = await fetch("/api/insight", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ circleId: selectedCircleId }),
-            });
-            if (!res.ok) {
-              const data = await res.json();
-              setError(data.error || "AIインサイトの取得に失敗しました");
-              return;
-            }
-            const data = await res.json();
-            const newItem: FeedItem = {
-              id: `insight-${data.id}`,
-              kind: "insight",
-              circleId: selectedCircleId,
-              circleName: selectedCircle?.name ?? "",
-              userId: "",
-              userName: "",
-              userImage: null,
-              amount: 0,
-              insightText: data.insight,
-              createdAt: data.generatedAt,
-            };
-            setFeed((prev) => {
-              if (prev.some((item) => item.id === newItem.id)) return prev;
-              return [...prev, newItem].sort(
-                (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-              );
-            });
-          } catch {
-            setError("AIインサイトの取得に失敗しました");
-          } finally {
-            setIsInsightLoading(false);
-          }
-        };
-
         return (
           <div className="flex-shrink-0 px-3 pb-1 bg-slate-50 flex justify-center">
             <button
               type="button"
               onClick={() => {
                 if (hasConsented) {
-                  runInsight();
+                  runInsight(selectedCircleId, selectedCircle?.name ?? "");
                 } else {
+                  pendingInsightCircleIdRef.current = selectedCircleId;
                   setShowInsightConsentDialog(true);
                 }
               }}
@@ -2098,7 +2059,15 @@ export default function UnifiedChat({
                 disabled={isLoading || !selectedCircleId}
                 className="flex-1 min-w-0 bg-slate-100 border border-slate-200 rounded-full px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 disabled:opacity-50"
               />
-
+              <button
+                type="submit"
+                disabled={isLoading || !input.trim() || !selectedCircleId}
+                className="flex-shrink-0 w-9 h-9 rounded-full bg-slate-900 text-white flex items-center justify-center disabled:opacity-40 transition"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                  <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+                </svg>
+              </button>
             </div>
           </form>
         )}
@@ -2232,11 +2201,9 @@ export default function UnifiedChat({
                     localStorage.setItem("aiInsightConsented", "true");
                   }
                   setShowInsightConsentDialog(false);
-                  // runInsightは閉じた後に呼べないためフラグで制御
-                  setTimeout(() => {
-                    const btn = document.querySelector("[data-insight-btn]") as HTMLButtonElement | null;
-                    btn?.click();
-                  }, 100);
+                  const circleId = pendingInsightCircleIdRef.current;
+                  const circleName = circlesState.find((c) => c.id === circleId)?.name ?? "";
+                  if (circleId) runInsight(circleId, circleName);
                 }}
                 className="flex-1 py-2 text-sm text-white bg-sky-500 rounded-lg hover:bg-sky-600 transition font-medium"
               >

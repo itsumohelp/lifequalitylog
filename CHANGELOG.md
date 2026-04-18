@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.45] - 2026-04-18
+
+### Added
+- **AI insight consent dialog**: First-time use of the AI insight button now shows a consent dialog explaining what data is sent to AI (amounts and descriptions) and what is NOT sent (email address, tags). Includes a link to the Privacy Policy. Consent is stored in `localStorage` and not shown again after approval.
+- **Send button restored**: Numeric keyboard (`inputMode="numeric"`) does not show a return key on iOS, making submission impossible. Re-added a send button (arrow icon) to the right of the input field.
+- **Privacy Policy: AI section added**: Added section 8 "AIの利用について" explaining that AI is only called on explicit user action, what data is included (amounts, descriptions, snapshots) and excluded (email, tags). Updated last modified date to 2026-04-18.
+
+### Changed
+- **All bubble width**: All feed bubbles (personal posts, notices, AI insights) changed from `max-w-[70%]` to `max-w-full` — width expands to content, up to full available width.
+
+---
+
+### 追加
+- **AIインサイト同意ダイアログ**: AIインサイトボタンの初回押下時に同意ダイアログを表示。AIに送信される情報（金額・説明文）と送信されない情報（メールアドレス・タグ）を明示。プライバシーポリシーへのリンクを掲載。同意は`localStorage`に保存し、2回目以降は表示しない。
+- **送信ボタンを復活**: 数値専用キーボード（`inputMode="numeric"`）はiOSでReturnキーが表示されず登録不能になっていた。入力欄右に送信ボタン（矢印アイコン）を再追加。
+- **プライバシーポリシー: AI利用について追記**: 第8条「AIの利用について」を追加。AIへの問い合わせはユーザーの明示的な操作時のみ実行されること、送信されるデータ（金額・説明文・残高スナップショット）と送信されないデータ（メールアドレス・タグ）を明記。最終更新日を2026年4月18日に更新。
+
+### 変更
+- **全バブル横幅**: 全フィードバブル（個人投稿・お知らせ・AIインサイト）を`max-w-[70%]`から`max-w-full`に変更。コンテンツ幅に応じて最大全幅まで伸縮。
+
 ## [0.0.44] - 2026-04-18
 
 ### Added
