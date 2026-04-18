@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **バブル横幅**: 全バブル（個人投稿・お知らせ・AIインサイト）を`max-w-full`に変更。コンテンツ幅に応じて最大全幅まで伸縮（従来は`max-w-[70%]`固定）。
 - **入力モード**: 数値専用キーボード（`inputMode="numeric"`）に変更。最近使ったタグ表示機能を削除。
 - **シェアボタン**: フィード共有・招待リンクコピー・QRコード表示の3機能を持つメニューに拡張。
+- **ダイアログ**: AIの利用同意ダイアログを表示内容を更新。AIが生成する内容の性質と利用規約への同意を明確に説明。
 
 ### iOSアプリ
 - **Universal Links**: `apple-app-site-association`と`Associated Domains`（`applinks:crun.click`）を追加。招待QRコードのリンクがネイティブアプリを直接起動するように。
