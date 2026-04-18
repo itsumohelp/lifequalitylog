@@ -37,6 +37,11 @@ export async function DELETE(
     return NextResponse.json({ error: "Permission denied" }, { status: 403 });
   }
 
+  // EDITORは自分の投稿のみ削除可
+  if (member.role === "EDITOR" && snapshot.userId !== session.user.id) {
+    return NextResponse.json({ error: "Permission denied" }, { status: 403 });
+  }
+
   // 関連するリアクションを削除
   await prisma.reaction.deleteMany({
     where: {

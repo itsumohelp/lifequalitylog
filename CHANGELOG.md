@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.46] - 2026-04-18
+
+### Added
+- **Analytics page redesigned**: `dashboard/analytics` rebuilt as a two-tab page ("タグ・カレンダー" / "月次集計").
+  - **Tag & Calendar tab**: Select a circle, filter by multiple tags (OR condition), view current month summary (expense / income / balance), and a 30-day calendar starting Sunday. Each day shows net cash flow and balance snapshot if recorded.
+  - **Monthly tab**: Select a circle, view 12 months of expense / income / balance in a table (newest first). Current month highlighted.
+- **New APIs**: `/api/analytics/circle` (daily + tag data) and `/api/analytics/circle-monthly` (monthly aggregation). Both use indexed columns (`expenseDate`, `incomeDate`, `snapshotDate`) for performance.
+- **Circle sort order**: Circles sorted by ADMIN first, then by post count descending within each role group.
+
+### Changed
+- **Permission control for other users' posts**: EDITOR role can now only delete/edit-tag their own posts. ADMIN can operate on all posts. Enforced on both frontend (button visibility) and backend (API 403 check).
+- **Share button**: "フィードをシェア" button hidden when circle is not public (`isPublic: false`).
+- **Circle delete confirmation**: Added a two-step confirmation UI before deleting a circle (was immediate on first tap).
+- **Vertex AI project ID fallback**: If `GOOGLE_CLOUD_PROJECT` env var is not set, project ID is fetched from the GCP metadata server (`metadata.google.internal`) automatically. Prevents auth errors on Cloud Run.
+- **Post-login redirect for native app**: `CapacitorLoginButton` now accepts a `callbackUrl` prop (passed from `LoginForm` → `page.tsx`). After Google or Apple login, redirects to `callbackUrl` instead of hardcoded `/dashboard`.
+
+### Fixed
+- **Analytics monthly query**: Changed `createdAt` filter to `expenseDate` / `incomeDate` to use existing DB indexes (`@@index([circleId, expenseDate])`).
+
+---
+
+### 追加
+- **集計ページ全面リニューアル**: `dashboard/analytics`を「タグ・カレンダー」「月次集計」の2タブ構成に刷新。
+  - **タグ・カレンダータブ**: サークル選択、複数タグフィルタ（OR条件）、当月サマリー（支出・収入・残高）、30日カレンダー（日曜始まり）。各日に収支合算と残高スナップショットを表示。
+  - **月次集計タブ**: サークル選択後、過去12ヶ月の支出・収入・残高を一覧表示（新しい月が上）。当月をハイライト。
+- **新規API**: `/api/analytics/circle`（日別・タグデータ）と `/api/analytics/circle-monthly`（月次集計）。両APIともインデックス列（`expenseDate`、`incomeDate`、`snapshotDate`）を使用。
+- **サークルの表示順**: ADMIN優先、同一ロール内は投稿数降順でソート。
+
+### 変更
+- **他ユーザー投稿への権限制御**: EDITORロールは自分の投稿のみ削除・タグ編集可能に変更。ADMINは全投稿を操作可能。フロントエンド（ボタン表示制御）とバックエンド（API 403チェック）の両方で制御。
+- **シェアボタン**: サークルが非公開（`isPublic: false`）の場合、「フィードをシェア」ボタンを非表示に。
+- **サークル削除の確認ダイアログ**: 削除ボタン押下後に「本当に削除しますか？」の確認UIを表示する2ステップに変更（以前は即時実行）。
+- **Vertex AI プロジェクトID自動取得**: `GOOGLE_CLOUD_PROJECT`環境変数が未設定の場合、GCPメタデータサーバー（`metadata.google.internal`）からプロジェクトIDを自動取得。Cloud Run環境での認証エラーを防止。
+- **ネイティブアプリのログイン後リダイレクト**: `CapacitorLoginButton`が`callbackUrl`プロップを受け取るよう変更（`LoginForm` → `page.tsx`経由で渡される）。GoogleおよびAppleログイン後、ハードコードされた`/dashboard`ではなく`callbackUrl`にリダイレクト。
+
+### 修正
+- **集計クエリのインデックス不一致**: 月次集計クエリの`createdAt`フィルタを`expenseDate`/`incomeDate`に変更し、既存DBインデックス（`@@index([circleId, expenseDate])`）を活用。
+
 ## [0.0.45] - 2026-04-18
 
 ### Added

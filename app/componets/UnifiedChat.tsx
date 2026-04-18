@@ -274,6 +274,14 @@ export default function UnifiedChat({
     return role === "ADMIN" || role === "EDITOR";
   };
 
+  // アイテムを操作できるかチェック（ADMINは全員の投稿、EDITORは自分の投稿のみ）
+  const canModifyItem = (item: FeedItem) => {
+    const role = userRoles.find((r) => r.circleId === item.circleId)?.role;
+    if (role === "ADMIN") return true;
+    if (role === "EDITOR") return item.userId === currentUserId;
+    return false;
+  };
+
   // リアクションを取得（遅延読み込み）
   const fetchReactions = useCallback(async (items: FeedItem[]) => {
     // expense, income, snapshot のみ対象
@@ -448,7 +456,7 @@ export default function UnifiedChat({
 
   // アイテム削除処理
   const handleDeleteItem = async (item: FeedItem) => {
-    if (!canEditCircle(item.circleId)) return;
+    if (!canModifyItem(item)) return;
 
     setIsDeleting(true);
     try {
@@ -2085,21 +2093,23 @@ export default function UnifiedChat({
           <div className="bg-white rounded-xl w-full max-w-sm p-5" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-base font-semibold text-slate-900 mb-4">{selectedCircle.name}</h3>
             <div className="space-y-2">
-              {/* フィードをシェア */}
-              <button
-                type="button"
-                onClick={handleShareFeed}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-left transition"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-600 flex-shrink-0">
-                  <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-                </svg>
-                <div>
-                  <p className="text-sm font-medium text-slate-900">フィードをシェア</p>
-                  <p className="text-xs text-slate-500">{selectedCircle.isPublic ? "公開フィードを共有" : "公開設定が必要です"}</p>
-                </div>
-              </button>
+              {/* フィードをシェア（公開時のみ） */}
+              {selectedCircle.isPublic && (
+                <button
+                  type="button"
+                  onClick={handleShareFeed}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-left transition"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-600 flex-shrink-0">
+                    <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                  </svg>
+                  <div>
+                    <p className="text-sm font-medium text-slate-900">フィードをシェア</p>
+                    <p className="text-xs text-slate-500">公開フィードを共有</p>
+                  </div>
+                </button>
+              )}
               {/* 招待リンクをコピー */}
               <button
                 type="button"
@@ -2455,7 +2465,7 @@ export default function UnifiedChat({
 
               {/* タグ（支出の場合はタグ編集UI） */}
               {selectedItem.kind === "expense" &&
-              canEditCircle(selectedItem.circleId) ? (
+              canModifyItem(selectedItem) ? (
                 <div className="space-y-2">
                   <span className="text-sm text-slate-500">タグ</span>
 
@@ -2594,7 +2604,7 @@ export default function UnifiedChat({
               {(selectedItem.kind === "expense" ||
                 selectedItem.kind === "income" ||
                 selectedItem.kind === "snapshot") &&
-                canEditCircle(selectedItem.circleId) && (
+                canModifyItem(selectedItem) && (
                   <button
                     type="button"
                     onClick={() => handleDeleteItem(selectedItem)}
