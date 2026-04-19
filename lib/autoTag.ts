@@ -35,13 +35,13 @@ export async function computeAutoTags(
   amount: number,
   date: Date,
 ): Promise<string[]> {
-  const ninetyDaysAgo = new Date(date);
-  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+  const lookbackFrom = new Date(date);
+  lookbackFrom.setDate(lookbackFrom.getDate() - 40);
 
   const pastExpenses = await prisma.expense.findMany({
     where: {
       circleId,
-      expenseDate: { gte: ninetyDaysAgo, lt: date },
+      expenseDate: { gte: lookbackFrom, lt: date },
     },
     select: { amount: true, tags: true, expenseDate: true },
   });

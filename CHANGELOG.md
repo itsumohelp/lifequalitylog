@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.50] - 2026-04-19
+
+### Changed
+- **Auto-tag lookback period**: Reduced from 90 days to 40 days for more relevant tag suggestions.
+
+### 変更
+- **自動タグの参照期間**: 過去90日から40日に短縮。より直近の支出パターンに基づいたタグ提案を行う。
+
+---
+
 ## [0.0.49] - 2026-04-19
 
 ### Fixed
