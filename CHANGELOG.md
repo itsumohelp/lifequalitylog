@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.52] - 2026-04-19
+
+### Added
+- **Time-based category tag suggestions**: When editing tags in the detail view, a "カテゴリから選択" section now appears with pre-defined category tags suggested based on the time of day the item was registered (morning/lunch/afternoon/evening/night). Already-applied tags are excluded.
+- **Exact amount match (Pass 0) for auto-tagging**: Added a highest-priority pass before existing fallback logic. If the registered amount has a non-zero ones digit (e.g., ¥487 but not ¥500 or ¥1000), past records with the exact same amount and same weekday/weekend type are checked first. Round numbers are excluded to avoid false positives from generic amounts.
+- **Income auto-tagging**: Auto-tag support extended to income registration. `autoTags` field added to Income model. Income items show auto-tags (amber ✦ pill) in the feed and detail view, and auto-tags can be deleted from the detail view.
+- **Income tag editing**: Manual tags on income items can now be added and removed from the detail view (same as expense tags).
+
+### 追加
+- **時間帯別カテゴリタグサジェスト**: 詳細画面でタグ編集時に「カテゴリから選択」セクションを追加。登録時刻に応じた時間帯（朝/昼/午後/夜/深夜）のカテゴリタグを提案。既に付与済みのタグは除外して表示。
+- **金額完全一致パス（Pass 0）の追加**: 既存フォールバックの前段に最優先パスを追加。登録金額の1の位が0でない場合（例: 487円はOK、500円・1000円はスキップ）、過去40日以内で平日/休日＋金額完全一致を最初にチェック。汎用的な金額での誤付与を防ぐため端数なし金額は除外。
+- **収入の自動タグ付け**: 自動タグ付けを収入にも対応。IncomeモデルにautoTagsフィールドを追加。フィードと詳細画面で収入の自動タグ（amber ✦ピル）を表示・削除可能。
+- **収入のタグ編集**: 収入アイテムの手動タグを詳細画面から追加・削除可能に（支出タグと同じ操作）。
+
+---
+
 ## [0.0.50] - 2026-04-19
 
 ### Changed

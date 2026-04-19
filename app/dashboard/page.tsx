@@ -21,6 +21,7 @@ type FeedItem = {
   source?: string | null;
   category?: string;
   tags?: string[];
+  autoTags?: string[];
   note?: string | null;
   noticeTitle?: string;
   noticeBody?: string | null;
@@ -362,6 +363,7 @@ export default async function DashboardPage() {
           source: i.source,
           category: i.category,
           tags: i.tags,
+          autoTags: i.autoTags,
           createdAt: i.createdAt.toISOString(),
         })),
     ].sort(

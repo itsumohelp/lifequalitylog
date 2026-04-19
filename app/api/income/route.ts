@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { parseExpenseInput } from "@/lib/expenseParser";
+import { computeAutoTagsForIncome } from "@/lib/autoTag";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -65,6 +66,21 @@ export async function POST(request: Request) {
       category = "TRANSFER";
     }
 
+    // 自動タグ付け
+    const userPref = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { autoTagEnabled: true },
+    });
+    const incomeDate = new Date();
+    let autoTags: string[] = [];
+    if (userPref?.autoTagEnabled && parsed.tags.length === 0) {
+      autoTags = await computeAutoTagsForIncome(
+        circleId,
+        parsed.amount,
+        incomeDate,
+      );
+    }
+
     // 収入を保存
     const income = await prisma.income.create({
       data: {
@@ -75,6 +91,8 @@ export async function POST(request: Request) {
         source: parsed.place,
         category,
         tags: parsed.tags,
+        autoTags,
+        incomeDate,
       },
       include: {
         user: { select: { id: true, name: true, image: true } },

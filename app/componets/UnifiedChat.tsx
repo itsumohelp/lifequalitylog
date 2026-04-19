@@ -71,6 +71,34 @@ type FeedItem = {
   createdAt: string;
 };
 
+// 大分類タグ（時間帯別サジェスト）
+const CATEGORY_TAGS_BY_HOUR: Record<string, string[]> = {
+  morning: ["朝食", "カフェ", "コンビニ", "電車", "バス"],
+  lunch: ["ランチ", "外食", "カフェ", "コンビニ", "電車"],
+  afternoon: ["カフェ", "おやつ", "買い物", "スーパー", "電車"],
+  evening: ["夕食", "外食", "飲み会", "スーパー", "コンビニ"],
+  night: ["コンビニ", "外食", "タクシー", "飲み会"],
+};
+
+const ALL_CATEGORY_TAGS = [
+  "朝食", "ランチ", "夕食", "外食", "カフェ", "コンビニ", "スーパー", "飲み会", "おやつ",
+  "電車", "バス", "タクシー", "ガソリン",
+  "日用品", "消耗品",
+  "娯楽", "映画", "ゲーム", "本",
+  "美容院", "薬", "ジム", "医療",
+  "衣料",
+  "スマホ", "通信",
+  "給与", "ボーナス", "副収入",
+];
+
+function getTimeSlotKey(hour: number): string {
+  if (hour >= 5 && hour < 10) return "morning";
+  if (hour >= 10 && hour < 14) return "lunch";
+  if (hour >= 14 && hour < 18) return "afternoon";
+  if (hour >= 18 && hour < 23) return "evening";
+  return "night";
+}
+
 type Circle = {
   id: string;
   name: string;
@@ -550,7 +578,7 @@ export default function UnifiedChat({
     }
   };
 
-  // 支出にタグを追加
+  // 支出・収入にタグを追加
   const handleAddTag = async (item: FeedItem, newTag: string) => {
     const trimmed = newTag.trim();
     if (!trimmed || isTagging) return;
@@ -558,12 +586,16 @@ export default function UnifiedChat({
     const currentTags = item.tags || [];
     if (currentTags.includes(trimmed)) return;
 
-    const id = item.id.replace("expense-", "");
+    const isIncome = item.kind === "income";
+    const id = isIncome
+      ? item.id.replace("income-", "")
+      : item.id.replace("expense-", "");
+    const apiPath = isIncome ? `/api/income/${id}` : `/api/expense/${id}`;
     const updatedTags = [...currentTags, trimmed];
 
     setIsTagging(true);
     try {
-      const res = await fetch(`/api/expense/${id}`, {
+      const res = await fetch(apiPath, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tags: updatedTags }),
@@ -588,16 +620,20 @@ export default function UnifiedChat({
     }
   };
 
-  // 支出のタグを削除
+  // 支出・収入のタグを削除
   const handleRemoveTag = async (item: FeedItem, tagToRemove: string) => {
     if (isTagging) return;
 
-    const id = item.id.replace("expense-", "");
+    const isIncome = item.kind === "income";
+    const id = isIncome
+      ? item.id.replace("income-", "")
+      : item.id.replace("expense-", "");
+    const apiPath = isIncome ? `/api/income/${id}` : `/api/expense/${id}`;
     const updatedTags = (item.tags || []).filter((t) => t !== tagToRemove);
 
     setIsTagging(true);
     try {
-      const res = await fetch(`/api/expense/${id}`, {
+      const res = await fetch(apiPath, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tags: updatedTags }),
@@ -625,14 +661,18 @@ export default function UnifiedChat({
   const handleRemoveAutoTag = async (item: FeedItem, tagToRemove: string) => {
     if (isTagging) return;
 
-    const id = item.id.replace("expense-", "");
+    const isIncome = item.kind === "income";
+    const id = isIncome
+      ? item.id.replace("income-", "")
+      : item.id.replace("expense-", "");
+    const apiPath = isIncome ? `/api/income/${id}` : `/api/expense/${id}`;
     const updatedAutoTags = (item.autoTags || []).filter(
       (t) => t !== tagToRemove,
     );
 
     setIsTagging(true);
     try {
-      const res = await fetch(`/api/expense/${id}`, {
+      const res = await fetch(apiPath, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ autoTags: updatedAutoTags }),
@@ -1652,6 +1692,20 @@ export default function UnifiedChat({
                                       ))}
                                     </>
                                   )}
+                                  {item.autoTags &&
+                                    item.autoTags.length > 0 && (
+                                      <>
+                                        {item.autoTags.map((tag, idx) => (
+                                          <span
+                                            key={`auto-${idx}`}
+                                            className="inline-flex items-center gap-0.5 text-[10px] px-2 py-0.5 rounded-full bg-amber-500 text-white"
+                                            title="自動タグ"
+                                          >
+                                            ✦ {tag}
+                                          </span>
+                                        ))}
+                                      </>
+                                    )}
                                 </div>
                               </>
                             ) : item.kind === "invite" ? (
@@ -2777,8 +2831,9 @@ export default function UnifiedChat({
                 </div>
               )}
 
-              {/* タグ（支出の場合はタグ編集UI） */}
-              {selectedItem.kind === "expense" &&
+              {/* タグ（支出・収入の場合はタグ編集UI） */}
+              {(selectedItem.kind === "expense" ||
+                selectedItem.kind === "income") &&
               canModifyItem(selectedItem) ? (
                 <div className="space-y-2">
                   <span className="text-sm text-slate-500">タグ</span>
@@ -2830,6 +2885,41 @@ export default function UnifiedChat({
                       </>
                     )}
                   </div>
+
+                  {/* 時間帯カテゴリから選択 */}
+                  {(() => {
+                    const hour = new Date(selectedItem.createdAt).getHours();
+                    const slotKey = getTimeSlotKey(hour);
+                    const slotTags = CATEGORY_TAGS_BY_HOUR[slotKey] || [];
+                    const appliedTags = [
+                      ...(selectedItem.tags || []),
+                      ...(selectedItem.autoTags || []),
+                    ];
+                    const suggestions = slotTags.filter(
+                      (t) => !appliedTags.includes(t),
+                    );
+                    if (suggestions.length === 0) return null;
+                    return (
+                      <div>
+                        <div className="text-[11px] text-slate-400 mb-1">
+                          カテゴリから選択
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {suggestions.map((tag, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => handleAddTag(selectedItem, tag)}
+                              disabled={isTagging}
+                              className="text-xs px-2 py-0.5 rounded-full border border-slate-300 text-slate-600 hover:bg-slate-50 active:scale-95 transition disabled:opacity-50"
+                            >
+                              + {tag}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* 既存タグから選択 */}
                   {existingCircleTags.filter(
