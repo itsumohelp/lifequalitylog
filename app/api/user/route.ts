@@ -19,6 +19,7 @@ export async function GET() {
       displayName: true,
       email: true,
       image: true,
+      autoTagEnabled: true,
     },
   });
 
@@ -86,9 +87,9 @@ export async function PATCH(request: Request) {
 
   const userId = session.user.id as string;
   const body = await request.json();
-  const { displayName, imageOptOut } = body;
+  const { displayName, imageOptOut, autoTagEnabled } = body;
 
-  const updateData: { displayName?: string; image?: null } = {};
+  const updateData: { displayName?: string; image?: null; autoTagEnabled?: boolean } = {};
 
   // 表示名の更新
   if (displayName !== undefined) {
@@ -114,6 +115,11 @@ export async function PATCH(request: Request) {
     updateData.image = null;
   }
 
+  // 自動タグのON/OFF
+  if (typeof autoTagEnabled === "boolean") {
+    updateData.autoTagEnabled = autoTagEnabled;
+  }
+
   if (Object.keys(updateData).length === 0) {
     return NextResponse.json(
       { error: "更新する項目がありません" },
@@ -130,6 +136,7 @@ export async function PATCH(request: Request) {
       displayName: true,
       email: true,
       image: true,
+      autoTagEnabled: true,
     },
   });
 

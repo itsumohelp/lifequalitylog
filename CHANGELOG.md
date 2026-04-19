@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.48] - 2026-04-19
+
+### Added
+- **Rule-based auto-tagging (opt-in)**: When registering an expense, the system automatically suggests tags based on past spending patterns in the same circle. Disabled by default; can be enabled in Settings.
+  - Matching criteria: amount within ±20%, same hour of day (±1hr), same day of week, within past 90 days.
+  - A tag is suggested if it appears in 60%+ of matching past records, with a minimum of 3 matching records.
+  - Auto-tags are stored separately from manual tags (`autoTags` field on Expense model).
+  - Auto-tags are visually distinct in the feed and detail view: shown with an outline style and a ✦ prefix.
+  - Auto-tags can be deleted from the detail view (same mechanism as manual tags).
+  - Auto-tags are included in analytics tag filtering.
+- **Settings toggle**: "自動タグ付け" switch added to Settings page under "機能設定". Toggle persists via `autoTagEnabled` field on User model.
+- **DB migrations**: `autoTags TEXT[]` on `Expense` table; `auto_tag_enabled BOOLEAN DEFAULT false` on `users` table.
+
+### 追加
+- **ルールベース自動タグ付け（オプトイン）**: 支出登録時に同サークルの過去の支出パターンからタグを自動提案。デフォルトOFF、設定画面からONにできる。
+  - マッチ条件: 金額±20%以内、時間帯±1時間、同じ曜日、過去90日以内。
+  - 3件以上のマッチ記録のうち60%以上に出現するタグを提案。
+  - 自動タグは手動タグとは別フィールド（`autoTags`）に保存。
+  - フィードと詳細画面で視覚的に区別：枠線スタイル＋✦プレフィックスで表示。
+  - 詳細画面から削除可能（手動タグと同じ操作）。
+  - 集計画面のタグフィルターでも自動タグを含めて集計。
+- **設定画面トグル**: 設定画面の「機能設定」セクションに「自動タグ付け」スイッチを追加。設定はUserモデルの`autoTagEnabled`フィールドに保存。
+
+---
+
 ## [0.0.47] - 2026-04-19
 
 ### Fixed

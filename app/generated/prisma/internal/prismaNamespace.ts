@@ -1938,7 +1938,8 @@ export const UserScalarFieldEnum = {
   displayName: 'displayName',
   email: 'email',
   emailVerified: 'emailVerified',
-  image: 'image'
+  image: 'image',
+  autoTagEnabled: 'autoTagEnabled'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -2034,6 +2035,7 @@ export const ExpenseScalarFieldEnum = {
   place: 'place',
   category: 'category',
   tags: 'tags',
+  autoTags: 'autoTags',
   expenseDate: 'expenseDate',
   createdAt: 'createdAt'
 } as const

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
 import { parseExpenseInput } from "@/lib/expenseParser";
+import { computeAutoTags } from "@/lib/autoTag";
 
 // 支出一覧を取得
 export async function GET(request: NextRequest) {
@@ -88,6 +89,16 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // 自動タグを計算（ユーザーがオプトインしている場合のみ）
+  const expenseDate = new Date();
+  const userPref = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { autoTagEnabled: true },
+  });
+  const autoTags = userPref?.autoTagEnabled
+    ? await computeAutoTags(circleId, parsed.amount, expenseDate)
+    : [];
+
   // 支出を登録
   const expense = await prisma.expense.create({
     data: {
@@ -98,6 +109,8 @@ export async function POST(request: NextRequest) {
       place: parsed.place,
       category: parsed.category,
       tags: parsed.tags,
+      autoTags,
+      expenseDate,
     },
     include: {
       user: {

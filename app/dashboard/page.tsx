@@ -296,6 +296,7 @@ export default async function DashboardPage() {
           place: e.place,
           category: e.category,
           tags: e.tags,
+          autoTags: e.autoTags,
           createdAt: e.createdAt.toISOString(),
         })),
       ...incomes

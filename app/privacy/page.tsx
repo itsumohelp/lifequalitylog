@@ -14,7 +14,7 @@ export default function PrivacyPage() {
         <h1 className="text-2xl font-bold text-slate-900 mt-6 mb-2">
           プライバシーポリシー
         </h1>
-        <p className="text-sm text-slate-500 mb-8">最終更新日: 2026年4月18日</p>
+        <p className="text-sm text-slate-500 mb-8">最終更新日: 2026年4月19日</p>
 
         <div className="prose prose-slate prose-sm max-w-none space-y-6">
           <section>
@@ -138,6 +138,9 @@ export default function PrivacyPage() {
                 <strong>タグはAI入力対象外</strong>：支出・収入に付与されたタグはセンシティブ情報として扱い、AIへの入力には使用しません。
               </li>
             </ul>
+            <p className="text-slate-700 leading-relaxed mt-3">
+              なお、オプトイン機能「自動タグ付け」は<strong>AIを使用しません</strong>。同一サークル内の過去の支出記録（金額・日時）をもとに、本サービス独自のルールベースロジックでタグを提案する機能です。入力したタグ情報が外部サービスに送信されることは一切ありません。
+            </p>
           </section>
 
           <section>

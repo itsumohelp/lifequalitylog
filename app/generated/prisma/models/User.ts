@@ -31,6 +31,7 @@ export type UserMinAggregateOutputType = {
   email: string | null
   emailVerified: Date | null
   image: string | null
+  autoTagEnabled: boolean | null
 }
 
 export type UserMaxAggregateOutputType = {
@@ -40,6 +41,7 @@ export type UserMaxAggregateOutputType = {
   email: string | null
   emailVerified: Date | null
   image: string | null
+  autoTagEnabled: boolean | null
 }
 
 export type UserCountAggregateOutputType = {
@@ -49,6 +51,7 @@ export type UserCountAggregateOutputType = {
   email: number
   emailVerified: number
   image: number
+  autoTagEnabled: number
   _all: number
 }
 
@@ -60,6 +63,7 @@ export type UserMinAggregateInputType = {
   email?: true
   emailVerified?: true
   image?: true
+  autoTagEnabled?: true
 }
 
 export type UserMaxAggregateInputType = {
@@ -69,6 +73,7 @@ export type UserMaxAggregateInputType = {
   email?: true
   emailVerified?: true
   image?: true
+  autoTagEnabled?: true
 }
 
 export type UserCountAggregateInputType = {
@@ -78,6 +83,7 @@ export type UserCountAggregateInputType = {
   email?: true
   emailVerified?: true
   image?: true
+  autoTagEnabled?: true
   _all?: true
 }
 
@@ -160,6 +166,7 @@ export type UserGroupByOutputType = {
   email: string | null
   emailVerified: Date | null
   image: string | null
+  autoTagEnabled: boolean
   _count: UserCountAggregateOutputType | null
   _min: UserMinAggregateOutputType | null
   _max: UserMaxAggregateOutputType | null
@@ -190,6 +197,7 @@ export type UserWhereInput = {
   email?: Prisma.StringNullableFilter<"User"> | string | null
   emailVerified?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   image?: Prisma.StringNullableFilter<"User"> | string | null
+  autoTagEnabled?: Prisma.BoolFilter<"User"> | boolean
   accounts?: Prisma.AccountListRelationFilter
   sessions?: Prisma.SessionListRelationFilter
   circleMembers?: Prisma.CircleMemberListRelationFilter
@@ -208,6 +216,7 @@ export type UserOrderByWithRelationInput = {
   email?: Prisma.SortOrderInput | Prisma.SortOrder
   emailVerified?: Prisma.SortOrderInput | Prisma.SortOrder
   image?: Prisma.SortOrderInput | Prisma.SortOrder
+  autoTagEnabled?: Prisma.SortOrder
   accounts?: Prisma.AccountOrderByRelationAggregateInput
   sessions?: Prisma.SessionOrderByRelationAggregateInput
   circleMembers?: Prisma.CircleMemberOrderByRelationAggregateInput
@@ -229,6 +238,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   displayName?: Prisma.StringNullableFilter<"User"> | string | null
   emailVerified?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   image?: Prisma.StringNullableFilter<"User"> | string | null
+  autoTagEnabled?: Prisma.BoolFilter<"User"> | boolean
   accounts?: Prisma.AccountListRelationFilter
   sessions?: Prisma.SessionListRelationFilter
   circleMembers?: Prisma.CircleMemberListRelationFilter
@@ -247,6 +257,7 @@ export type UserOrderByWithAggregationInput = {
   email?: Prisma.SortOrderInput | Prisma.SortOrder
   emailVerified?: Prisma.SortOrderInput | Prisma.SortOrder
   image?: Prisma.SortOrderInput | Prisma.SortOrder
+  autoTagEnabled?: Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
   _min?: Prisma.UserMinOrderByAggregateInput
@@ -262,6 +273,7 @@ export type UserScalarWhereWithAggregatesInput = {
   email?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   emailVerified?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   image?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  autoTagEnabled?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
 }
 
 export type UserCreateInput = {
@@ -271,6 +283,7 @@ export type UserCreateInput = {
   email?: string | null
   emailVerified?: Date | string | null
   image?: string | null
+  autoTagEnabled?: boolean
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
@@ -289,6 +302,7 @@ export type UserUncheckedCreateInput = {
   email?: string | null
   emailVerified?: Date | string | null
   image?: string | null
+  autoTagEnabled?: boolean
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
@@ -307,6 +321,7 @@ export type UserUpdateInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
@@ -325,6 +340,7 @@ export type UserUncheckedUpdateInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -343,6 +359,7 @@ export type UserCreateManyInput = {
   email?: string | null
   emailVerified?: Date | string | null
   image?: string | null
+  autoTagEnabled?: boolean
 }
 
 export type UserUpdateManyMutationInput = {
@@ -352,6 +369,7 @@ export type UserUpdateManyMutationInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type UserUncheckedUpdateManyInput = {
@@ -361,6 +379,7 @@ export type UserUncheckedUpdateManyInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type UserScalarRelationFilter = {
@@ -375,6 +394,7 @@ export type UserCountOrderByAggregateInput = {
   email?: Prisma.SortOrder
   emailVerified?: Prisma.SortOrder
   image?: Prisma.SortOrder
+  autoTagEnabled?: Prisma.SortOrder
 }
 
 export type UserMaxOrderByAggregateInput = {
@@ -384,6 +404,7 @@ export type UserMaxOrderByAggregateInput = {
   email?: Prisma.SortOrder
   emailVerified?: Prisma.SortOrder
   image?: Prisma.SortOrder
+  autoTagEnabled?: Prisma.SortOrder
 }
 
 export type UserMinOrderByAggregateInput = {
@@ -393,6 +414,7 @@ export type UserMinOrderByAggregateInput = {
   email?: Prisma.SortOrder
   emailVerified?: Prisma.SortOrder
   image?: Prisma.SortOrder
+  autoTagEnabled?: Prisma.SortOrder
 }
 
 export type UserCreateNestedOneWithoutAccountsInput = {
@@ -421,6 +443,10 @@ export type UserUpdateOneRequiredWithoutSessionsNestedInput = {
   upsert?: Prisma.UserUpsertWithoutSessionsInput
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSessionsInput, Prisma.UserUpdateWithoutSessionsInput>, Prisma.UserUncheckedUpdateWithoutSessionsInput>
+}
+
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
 }
 
 export type UserCreateNestedOneWithoutCircleMembersInput = {
@@ -528,6 +554,7 @@ export type UserCreateWithoutAccountsInput = {
   email?: string | null
   emailVerified?: Date | string | null
   image?: string | null
+  autoTagEnabled?: boolean
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
   snapshots?: Prisma.SnapshotCreateNestedManyWithoutUserInput
@@ -545,6 +572,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   email?: string | null
   emailVerified?: Date | string | null
   image?: string | null
+  autoTagEnabled?: boolean
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
   snapshots?: Prisma.SnapshotUncheckedCreateNestedManyWithoutUserInput
@@ -578,6 +606,7 @@ export type UserUpdateWithoutAccountsInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
   snapshots?: Prisma.SnapshotUpdateManyWithoutUserNestedInput
@@ -595,6 +624,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
   snapshots?: Prisma.SnapshotUncheckedUpdateManyWithoutUserNestedInput
@@ -612,6 +642,7 @@ export type UserCreateWithoutSessionsInput = {
   email?: string | null
   emailVerified?: Date | string | null
   image?: string | null
+  autoTagEnabled?: boolean
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
   snapshots?: Prisma.SnapshotCreateNestedManyWithoutUserInput
@@ -629,6 +660,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   email?: string | null
   emailVerified?: Date | string | null
   image?: string | null
+  autoTagEnabled?: boolean
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
   snapshots?: Prisma.SnapshotUncheckedCreateNestedManyWithoutUserInput
@@ -662,6 +694,7 @@ export type UserUpdateWithoutSessionsInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
   snapshots?: Prisma.SnapshotUpdateManyWithoutUserNestedInput
@@ -679,6 +712,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
   snapshots?: Prisma.SnapshotUncheckedUpdateManyWithoutUserNestedInput
@@ -696,6 +730,7 @@ export type UserCreateWithoutCircleMembersInput = {
   email?: string | null
   emailVerified?: Date | string | null
   image?: string | null
+  autoTagEnabled?: boolean
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   snapshots?: Prisma.SnapshotCreateNestedManyWithoutUserInput
@@ -713,6 +748,7 @@ export type UserUncheckedCreateWithoutCircleMembersInput = {
   email?: string | null
   emailVerified?: Date | string | null
   image?: string | null
+  autoTagEnabled?: boolean
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   snapshots?: Prisma.SnapshotUncheckedCreateNestedManyWithoutUserInput
@@ -746,6 +782,7 @@ export type UserUpdateWithoutCircleMembersInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   snapshots?: Prisma.SnapshotUpdateManyWithoutUserNestedInput
@@ -763,6 +800,7 @@ export type UserUncheckedUpdateWithoutCircleMembersInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   snapshots?: Prisma.SnapshotUncheckedUpdateManyWithoutUserNestedInput
@@ -780,6 +818,7 @@ export type UserCreateWithoutSnapshotsInput = {
   email?: string | null
   emailVerified?: Date | string | null
   image?: string | null
+  autoTagEnabled?: boolean
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
@@ -797,6 +836,7 @@ export type UserUncheckedCreateWithoutSnapshotsInput = {
   email?: string | null
   emailVerified?: Date | string | null
   image?: string | null
+  autoTagEnabled?: boolean
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
@@ -830,6 +870,7 @@ export type UserUpdateWithoutSnapshotsInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
@@ -847,6 +888,7 @@ export type UserUncheckedUpdateWithoutSnapshotsInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -864,6 +906,7 @@ export type UserCreateWithoutCircleSnapshotsInput = {
   email?: string | null
   emailVerified?: Date | string | null
   image?: string | null
+  autoTagEnabled?: boolean
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
@@ -881,6 +924,7 @@ export type UserUncheckedCreateWithoutCircleSnapshotsInput = {
   email?: string | null
   emailVerified?: Date | string | null
   image?: string | null
+  autoTagEnabled?: boolean
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
@@ -914,6 +958,7 @@ export type UserUpdateWithoutCircleSnapshotsInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
@@ -931,6 +976,7 @@ export type UserUncheckedUpdateWithoutCircleSnapshotsInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -948,6 +994,7 @@ export type UserCreateWithoutExpensesInput = {
   email?: string | null
   emailVerified?: Date | string | null
   image?: string | null
+  autoTagEnabled?: boolean
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
@@ -965,6 +1012,7 @@ export type UserUncheckedCreateWithoutExpensesInput = {
   email?: string | null
   emailVerified?: Date | string | null
   image?: string | null
+  autoTagEnabled?: boolean
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
@@ -998,6 +1046,7 @@ export type UserUpdateWithoutExpensesInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
@@ -1015,6 +1064,7 @@ export type UserUncheckedUpdateWithoutExpensesInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -1032,6 +1082,7 @@ export type UserCreateWithoutIncomesInput = {
   email?: string | null
   emailVerified?: Date | string | null
   image?: string | null
+  autoTagEnabled?: boolean
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
@@ -1049,6 +1100,7 @@ export type UserUncheckedCreateWithoutIncomesInput = {
   email?: string | null
   emailVerified?: Date | string | null
   image?: string | null
+  autoTagEnabled?: boolean
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
@@ -1082,6 +1134,7 @@ export type UserUpdateWithoutIncomesInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
@@ -1099,6 +1152,7 @@ export type UserUncheckedUpdateWithoutIncomesInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -1116,6 +1170,7 @@ export type UserCreateWithoutBalanceTransactionsInput = {
   email?: string | null
   emailVerified?: Date | string | null
   image?: string | null
+  autoTagEnabled?: boolean
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
@@ -1133,6 +1188,7 @@ export type UserUncheckedCreateWithoutBalanceTransactionsInput = {
   email?: string | null
   emailVerified?: Date | string | null
   image?: string | null
+  autoTagEnabled?: boolean
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
@@ -1166,6 +1222,7 @@ export type UserUpdateWithoutBalanceTransactionsInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
@@ -1183,6 +1240,7 @@ export type UserUncheckedUpdateWithoutBalanceTransactionsInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -1200,6 +1258,7 @@ export type UserCreateWithoutReactionsInput = {
   email?: string | null
   emailVerified?: Date | string | null
   image?: string | null
+  autoTagEnabled?: boolean
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
@@ -1217,6 +1276,7 @@ export type UserUncheckedCreateWithoutReactionsInput = {
   email?: string | null
   emailVerified?: Date | string | null
   image?: string | null
+  autoTagEnabled?: boolean
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
@@ -1250,6 +1310,7 @@ export type UserUpdateWithoutReactionsInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
@@ -1267,6 +1328,7 @@ export type UserUncheckedUpdateWithoutReactionsInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -1387,6 +1449,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   email?: boolean
   emailVerified?: boolean
   image?: boolean
+  autoTagEnabled?: boolean
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   circleMembers?: boolean | Prisma.User$circleMembersArgs<ExtArgs>
@@ -1406,6 +1469,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   email?: boolean
   emailVerified?: boolean
   image?: boolean
+  autoTagEnabled?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1415,6 +1479,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   email?: boolean
   emailVerified?: boolean
   image?: boolean
+  autoTagEnabled?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectScalar = {
@@ -1424,9 +1489,10 @@ export type UserSelectScalar = {
   email?: boolean
   emailVerified?: boolean
   image?: boolean
+  autoTagEnabled?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "displayName" | "email" | "emailVerified" | "image", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "displayName" | "email" | "emailVerified" | "image" | "autoTagEnabled", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
@@ -1462,6 +1528,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     email: string | null
     emailVerified: Date | null
     image: string | null
+    autoTagEnabled: boolean
   }, ExtArgs["result"]["user"]>
   composites: {}
 }
@@ -1900,6 +1967,7 @@ export interface UserFieldRefs {
   readonly email: Prisma.FieldRef<"User", 'String'>
   readonly emailVerified: Prisma.FieldRef<"User", 'DateTime'>
   readonly image: Prisma.FieldRef<"User", 'String'>
+  readonly autoTagEnabled: Prisma.FieldRef<"User", 'Boolean'>
 }
     
 

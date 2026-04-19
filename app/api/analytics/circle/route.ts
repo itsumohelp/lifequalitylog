@@ -82,7 +82,7 @@ export async function GET(request: Request) {
     // 当月の支出（タグ付きで全件返す → クライアントでフィルタ）
     prisma.expense.findMany({
       where: { circleId, expenseDate: { gte: startOfMonth } },
-      select: { amount: true, tags: true },
+      select: { amount: true, tags: true, autoTags: true },
     }),
     // 当月の収入合計
     prisma.income.aggregate({
@@ -92,7 +92,7 @@ export async function GET(request: Request) {
     // 過去30日の支出（タグ付き）
     prisma.expense.findMany({
       where: { circleId, expenseDate: { gte: thirtyDaysAgo, lte: endOfToday } },
-      select: { amount: true, tags: true, expenseDate: true },
+      select: { amount: true, tags: true, autoTags: true, expenseDate: true },
       orderBy: { expenseDate: "asc" },
     }),
     // 過去30日の収入
@@ -109,8 +109,8 @@ export async function GET(request: Request) {
     }),
   ]);
 
-  // 全タグ一覧（当月のみ対象）
-  const allTags = [...new Set(monthlyExpenses.flatMap((e) => e.tags))].sort();
+  // 全タグ一覧（当月のみ対象、手動+自動タグを合算）
+  const allTags = [...new Set(monthlyExpenses.flatMap((e) => [...e.tags, ...e.autoTags]))].sort();
 
   // 日付キー生成（YYYY-MM-DD）
   const toDateKey = (d: Date) =>
@@ -120,12 +120,12 @@ export async function GET(request: Request) {
     circles: circleList,
     balance,
     tags: allTags,
-    monthlyExpenses: monthlyExpenses.map((e) => ({ amount: e.amount, tags: e.tags })),
+    monthlyExpenses: monthlyExpenses.map((e) => ({ amount: e.amount, tags: [...e.tags, ...e.autoTags] })),
     monthlyIncomeTotal: monthlyIncomeAgg._sum.amount ?? 0,
     dailyExpenses: dailyExpenses.map((e) => ({
       date: toDateKey(new Date(e.expenseDate)),
       amount: e.amount,
-      tags: e.tags,
+      tags: [...e.tags, ...e.autoTags],
     })),
     dailyIncomes: dailyIncomes.map((i) => ({
       date: toDateKey(new Date(i.incomeDate)),
