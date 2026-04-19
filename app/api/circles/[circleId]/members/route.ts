@@ -29,7 +29,7 @@ export async function GET(_request: Request, { params }: Params) {
   if (!membership || membership.role !== "ADMIN") {
     return NextResponse.json(
       { error: "このサークルの管理権限がありません" },
-      { status: 403 }
+      { status: 403 },
     );
   }
 

@@ -33,19 +33,23 @@ export async function PATCH(request: Request, { params }: Params) {
     if (!membership || membership.role !== "ADMIN") {
       return NextResponse.json(
         { error: "このサークルの管理権限がありません" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
     // 更新データを構築
-    const updateData: { name?: string; isPublic?: boolean; allowNewMembers?: boolean } = {};
+    const updateData: {
+      name?: string;
+      isPublic?: boolean;
+      allowNewMembers?: boolean;
+    } = {};
 
     // 名前の更新
     if (name !== undefined) {
       if (!name || typeof name !== "string" || !name.trim()) {
         return NextResponse.json(
           { error: "サークル名を入力してください" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -68,7 +72,7 @@ export async function PATCH(request: Request, { params }: Params) {
       if (existingCircle) {
         return NextResponse.json(
           { error: "同じ名前のサークルが既に存在します" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -89,7 +93,7 @@ export async function PATCH(request: Request, { params }: Params) {
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json(
         { error: "更新するデータがありません" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -104,7 +108,7 @@ export async function PATCH(request: Request, { params }: Params) {
     console.error("Circle update error:", error);
     return NextResponse.json(
       { error: "サークルの更新に失敗しました" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -132,7 +136,7 @@ export async function DELETE(_request: Request, { params }: Params) {
   if (!membership || membership.role !== "ADMIN") {
     return NextResponse.json(
       { error: "このサークルの管理権限がありません" },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
@@ -144,7 +148,7 @@ export async function DELETE(_request: Request, { params }: Params) {
   if (memberCount > 1) {
     return NextResponse.json(
       { error: "他のメンバーがいるサークルは削除できません" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 

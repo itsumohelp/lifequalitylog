@@ -13,7 +13,10 @@ export async function GET(request: Request) {
   const circleId = searchParams.get("circleId");
 
   if (!circleId) {
-    return NextResponse.json({ error: "circleId is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "circleId is required" },
+      { status: 400 },
+    );
   }
 
   // メンバーか確認
@@ -69,7 +72,13 @@ export async function GET(request: Request) {
     const key = `${year}-${String(month).padStart(2, "0")}`;
     const expense = expMap.get(key) ?? 0;
     const income = incMap.get(key) ?? 0;
-    return { yearMonth: key, label: `${year}/${String(month).padStart(2, "0")}`, expense, income, net: income - expense };
+    return {
+      yearMonth: key,
+      label: `${year}/${String(month).padStart(2, "0")}`,
+      expense,
+      income,
+      net: income - expense,
+    };
   });
 
   return NextResponse.json({

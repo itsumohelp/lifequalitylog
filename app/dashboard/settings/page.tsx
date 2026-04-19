@@ -121,8 +121,12 @@ export default function SettingsPage() {
   };
 
   useEffect(() => {
-    type CapacitorWindow = Window & { Capacitor?: { isNativePlatform?: () => boolean } };
-    setIsNativeApp(!!(window as CapacitorWindow).Capacitor?.isNativePlatform?.());
+    type CapacitorWindow = Window & {
+      Capacitor?: { isNativePlatform?: () => boolean };
+    };
+    setIsNativeApp(
+      !!(window as CapacitorWindow).Capacitor?.isNativePlatform?.(),
+    );
   }, []);
 
   useEffect(() => {
@@ -521,7 +525,6 @@ export default function SettingsPage() {
   return (
     <div className="flex-1 bg-white overflow-y-auto">
       <div className="mx-auto max-w-md px-4 pt-4 pb-20">
-
         {/* メッセージ */}
         {message && (
           <div
@@ -619,7 +622,9 @@ export default function SettingsPage() {
 
             {/* 機能設定 */}
             <div className="bg-slate-50 rounded-xl p-4">
-              <h2 className="text-sm font-medium text-slate-700 mb-3">機能設定</h2>
+              <h2 className="text-sm font-medium text-slate-700 mb-3">
+                機能設定
+              </h2>
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-sm text-slate-700">自動タグ付け</div>
@@ -770,11 +775,14 @@ export default function SettingsPage() {
                 type="button"
                 onClick={() => {
                   const appScheme = "circlerun://";
-                  const appStoreUrl = "https://apps.apple.com/jp/app/circlerun/id6743771829";
+                  const appStoreUrl =
+                    "https://apps.apple.com/jp/app/circlerun/id6743771829";
                   const timeout = setTimeout(() => {
                     window.location.href = appStoreUrl;
                   }, 1500);
-                  window.addEventListener("blur", () => clearTimeout(timeout), { once: true });
+                  window.addEventListener("blur", () => clearTimeout(timeout), {
+                    once: true,
+                  });
                   window.location.href = appScheme;
                 }}
                 className="w-full bg-sky-500 text-white rounded-lg px-4 py-2 text-sm font-medium"
@@ -795,8 +803,14 @@ export default function SettingsPage() {
 
         {/* サークル離脱モーダル（EDITOR/VIEWER用） */}
         {selectedCircle && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedCircle(null)}>
-            <div className="bg-white rounded-xl w-full max-w-sm p-4" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setSelectedCircle(null)}
+          >
+            <div
+              className="bg-white rounded-xl w-full max-w-sm p-4"
+              onClick={(e) => e.stopPropagation()}
+            >
               <h3 className="text-lg font-semibold text-slate-900 mb-2">
                 サークルから離脱
               </h3>
@@ -838,8 +852,17 @@ export default function SettingsPage() {
 
         {/* サークル管理モーダル（ADMIN用） */}
         {selectedAdminCircle && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => { setSelectedAdminCircle(null); setShowDeleteCircleConfirm(false); }}>
-            <div className="bg-white rounded-xl w-full max-w-sm p-4 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => {
+              setSelectedAdminCircle(null);
+              setShowDeleteCircleConfirm(false);
+            }}
+          >
+            <div
+              className="bg-white rounded-xl w-full max-w-sm p-4 max-h-[80vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
               <h3 className="text-lg font-semibold text-slate-900 mb-4">
                 サークル管理
               </h3>
@@ -1101,7 +1124,8 @@ export default function SettingsPage() {
                       <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                         <p className="text-xs text-red-700 font-medium mb-3">
                           本当に「{selectedAdminCircle.name}」を削除しますか？
-                          <br />この操作は取り消せません。
+                          <br />
+                          この操作は取り消せません。
                         </p>
                         <div className="flex gap-2">
                           <button
@@ -1265,8 +1289,14 @@ export default function SettingsPage() {
 
         {/* サークル追加モーダル */}
         {isCircleModalOpen && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setIsCircleModalOpen(false)}>
-            <div className="bg-white rounded-xl w-full max-w-sm p-4" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setIsCircleModalOpen(false)}
+          >
+            <div
+              className="bg-white rounded-xl w-full max-w-sm p-4"
+              onClick={(e) => e.stopPropagation()}
+            >
               <h3 className="text-lg font-semibold text-slate-900 mb-4">
                 新しいサークルを作成
               </h3>

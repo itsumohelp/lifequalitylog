@@ -36,10 +36,7 @@ export default async function SnapshotsPage() {
         {/* ヘッダー */}
         <header className="mb-4">
           <div className="flex items-center justify-between mb-2">
-            <Link
-              href="/dashboard"
-              className="text-xs text-sky-300"
-            >
+            <Link href="/dashboard" className="text-xs text-sky-300">
               ← ダッシュボード
             </Link>
             <h1 className="text-sm font-semibold text-sky-100">
@@ -77,10 +74,7 @@ export default async function SnapshotsPage() {
               {snapshots.map((s, index) => {
                 const isFirst = index === 0;
                 return (
-                  <li
-                    key={s.id}
-                    className="relative pl-4"
-                  >
+                  <li key={s.id} className="relative pl-4">
                     {/* タイムラインの縦線 */}
                     <div className="absolute left-1 top-0 bottom-0 flex flex-col items-center">
                       <span
@@ -101,13 +95,10 @@ export default async function SnapshotsPage() {
                         </span>
                       </div>
                       {s.memo && (
-                        <p className="text-xs text-slate-200 mb-1">
-                          {s.memo}
-                        </p>
+                        <p className="text-xs text-slate-200 mb-1">{s.memo}</p>
                       )}
                       <p className="text-[10px] text-slate-500">
-                        記録日時:{" "}
-                        {formatDate(s.createdAt ?? s.recordedAt)}
+                        記録日時: {formatDate(s.createdAt ?? s.recordedAt)}
                       </p>
                     </article>
                   </li>

@@ -14,4 +14,3 @@ export function consumePollToken(pollId: string): string | null {
   if (!entry || Date.now() > entry.expiresAt) return null;
   return entry.token;
 }
-

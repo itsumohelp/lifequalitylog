@@ -12,7 +12,10 @@ export async function GET(request: Request) {
   const targetsParam = searchParams.get("targets");
 
   if (!targetsParam) {
-    return NextResponse.json({ error: "targets parameter is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "targets parameter is required" },
+      { status: 400 },
+    );
   }
 
   // targets形式: "expense:id1,snapshot:id2,income:id3"
@@ -22,7 +25,10 @@ export async function GET(request: Request) {
   });
 
   if (targetPairs.some((t) => !t.targetType || !t.targetId)) {
-    return NextResponse.json({ error: "Invalid targets format" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid targets format" },
+      { status: 400 },
+    );
   }
 
   // 全リアクションを取得
@@ -85,21 +91,21 @@ export async function POST(request: Request) {
     if (!targetType || !targetId || !type) {
       return NextResponse.json(
         { error: "targetType, targetId, type are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!["expense", "income", "snapshot", "notice"].includes(targetType)) {
       return NextResponse.json(
         { error: "Invalid targetType" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!["CHECK", "GOOD", "BAD", "DOGEZA"].includes(type)) {
       return NextResponse.json(
         { error: "Invalid reaction type" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -127,7 +133,7 @@ export async function POST(request: Request) {
     console.error("Reaction create error:", error);
     return NextResponse.json(
       { error: "リアクションの追加に失敗しました" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -149,7 +155,7 @@ export async function DELETE(request: Request) {
     if (!targetType || !targetId || !type) {
       return NextResponse.json(
         { error: "targetType, targetId, type are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -168,7 +174,7 @@ export async function DELETE(request: Request) {
     console.error("Reaction delete error:", error);
     return NextResponse.json(
       { error: "リアクションの削除に失敗しました" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

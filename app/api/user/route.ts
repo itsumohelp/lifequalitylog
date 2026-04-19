@@ -89,21 +89,25 @@ export async function PATCH(request: Request) {
   const body = await request.json();
   const { displayName, imageOptOut, autoTagEnabled } = body;
 
-  const updateData: { displayName?: string; image?: null; autoTagEnabled?: boolean } = {};
+  const updateData: {
+    displayName?: string;
+    image?: null;
+    autoTagEnabled?: boolean;
+  } = {};
 
   // 表示名の更新
   if (displayName !== undefined) {
     if (typeof displayName !== "string" || displayName.trim().length === 0) {
       return NextResponse.json(
         { error: "表示名を入力してください" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (displayName.length > 50) {
       return NextResponse.json(
         { error: "表示名は50文字以内で入力してください" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -123,7 +127,7 @@ export async function PATCH(request: Request) {
   if (Object.keys(updateData).length === 0) {
     return NextResponse.json(
       { error: "更新する項目がありません" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 

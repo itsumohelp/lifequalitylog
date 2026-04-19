@@ -27,7 +27,10 @@ export async function GET(request: Request) {
 
     // 特定のサークルが指定されていて、ユーザーがメンバーでない場合はエラー
     if (targetCircleId && !memberCircleIds.includes(targetCircleId)) {
-      return NextResponse.json({ error: "Not a member of this circle" }, { status: 403 });
+      return NextResponse.json(
+        { error: "Not a member of this circle" },
+        { status: 403 },
+      );
     }
 
     // 集計対象のサークルID（指定があればそれ、なければ全サークル）
@@ -58,9 +61,27 @@ export async function GET(request: Request) {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     // 全期間のサークル×タグ別集計
-    const allTimeTagMap = new Map<string, { circleId: string; circleName: string; tag: string; total: number; count: number }>();
+    const allTimeTagMap = new Map<
+      string,
+      {
+        circleId: string;
+        circleName: string;
+        tag: string;
+        total: number;
+        count: number;
+      }
+    >();
     // 今月のサークル×タグ別集計
-    const monthlyTagMap = new Map<string, { circleId: string; circleName: string; tag: string; total: number; count: number }>();
+    const monthlyTagMap = new Map<
+      string,
+      {
+        circleId: string;
+        circleName: string;
+        tag: string;
+        total: number;
+        count: number;
+      }
+    >();
 
     for (const e of allExpenses) {
       if (e.tags && e.tags.length > 0) {
@@ -119,7 +140,7 @@ export async function GET(request: Request) {
     console.error("Summary error:", error);
     return NextResponse.json(
       { error: "集計の取得に失敗しました" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

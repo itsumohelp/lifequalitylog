@@ -12,7 +12,9 @@ export default function iOSAuthCompletePage() {
 
   return (
     <main className="min-h-screen bg-slate-50 flex items-center justify-center">
-      <p className="text-slate-500 text-sm">ログイン完了。アプリに戻っています...</p>
+      <p className="text-slate-500 text-sm">
+        ログイン完了。アプリに戻っています...
+      </p>
     </main>
   );
 }

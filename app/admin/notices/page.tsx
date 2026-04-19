@@ -29,7 +29,9 @@ export default function AdminNoticesPage() {
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,16 +72,25 @@ export default function AdminNoticesPage() {
 
   return (
     <div className="max-w-xl mx-auto px-4 py-8">
-      <h1 className="text-xl font-bold text-slate-900 mb-6">運営からのお知らせ 管理</h1>
+      <h1 className="text-xl font-bold text-slate-900 mb-6">
+        運営からのお知らせ 管理
+      </h1>
 
       {/* 作成フォーム */}
-      <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-xl p-4 mb-8 space-y-3">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white border border-slate-200 rounded-xl p-4 mb-8 space-y-3"
+      >
         <h2 className="text-sm font-semibold text-slate-700">新規作成</h2>
         {error && (
-          <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
+          <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+            {error}
+          </p>
         )}
         <div>
-          <label className="block text-xs text-slate-500 mb-1">タイトル <span className="text-red-500">*</span></label>
+          <label className="block text-xs text-slate-500 mb-1">
+            タイトル <span className="text-red-500">*</span>
+          </label>
           <input
             type="text"
             value={title}
@@ -89,7 +100,9 @@ export default function AdminNoticesPage() {
           />
         </div>
         <div>
-          <label className="block text-xs text-slate-500 mb-1">本文（任意）</label>
+          <label className="block text-xs text-slate-500 mb-1">
+            本文（任意）
+          </label>
           <textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
@@ -99,7 +112,9 @@ export default function AdminNoticesPage() {
           />
         </div>
         <div>
-          <label className="block text-xs text-slate-500 mb-1">リンクURL（任意）</label>
+          <label className="block text-xs text-slate-500 mb-1">
+            リンクURL（任意）
+          </label>
           <input
             type="url"
             value={link}
@@ -119,18 +134,33 @@ export default function AdminNoticesPage() {
 
       {/* 一覧 */}
       <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-slate-700">投稿済み（{notices.length}件）</h2>
+        <h2 className="text-sm font-semibold text-slate-700">
+          投稿済み（{notices.length}件）
+        </h2>
         {notices.length === 0 && (
-          <p className="text-sm text-slate-400 text-center py-6">まだお知らせがありません</p>
+          <p className="text-sm text-slate-400 text-center py-6">
+            まだお知らせがありません
+          </p>
         )}
         {notices.map((notice) => (
-          <div key={notice.id} className={`bg-white border rounded-xl p-4 ${notice.isActive ? "border-slate-200" : "border-slate-100 opacity-50"}`}>
+          <div
+            key={notice.id}
+            className={`bg-white border rounded-xl p-4 ${notice.isActive ? "border-slate-200" : "border-slate-100 opacity-50"}`}
+          >
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-900 truncate">{notice.title}</p>
-                {notice.body && <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{notice.body}</p>}
+                <p className="text-sm font-medium text-slate-900 truncate">
+                  {notice.title}
+                </p>
+                {notice.body && (
+                  <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">
+                    {notice.body}
+                  </p>
+                )}
                 {notice.link && (
-                  <p className="text-[10px] text-sky-500 mt-0.5 truncate">🔗 {notice.link}</p>
+                  <p className="text-[10px] text-sky-500 mt-0.5 truncate">
+                    🔗 {notice.link}
+                  </p>
                 )}
                 <p className="text-[10px] text-slate-400 mt-1">
                   {new Date(notice.createdAt).toLocaleString("ja-JP")}

@@ -15,9 +15,8 @@ function extractTags(
     }
   }
 
-  const threshold = Math.ceil(matches.length * 0.6);
   return [...tagCounts.entries()]
-    .filter(([, count]) => count >= threshold)
+    .filter(([, count]) => count >= minMatches)
     .map(([tag]) => tag)
     .sort();
 }

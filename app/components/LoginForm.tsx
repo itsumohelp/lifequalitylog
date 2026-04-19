@@ -14,7 +14,9 @@ export default function LoginForm({ action, callbackUrl }: Props) {
   const [isCapacitor, setIsCapacitor] = useState(false);
 
   useEffect(() => {
-    setIsCapacitor(typeof window !== "undefined" && !!(window as any).Capacitor);
+    setIsCapacitor(
+      typeof window !== "undefined" && !!(window as any).Capacitor,
+    );
   }, []);
 
   return (

@@ -63,7 +63,10 @@ export default async function CirclesPage() {
         {/* ヘッダー */}
         <header className="mb-4">
           <div className="flex items-center justify-between mb-2">
-            <Link href="/dashboard" className="text-xs text-slate-500 hover:text-slate-700">
+            <Link
+              href="/dashboard"
+              className="text-xs text-slate-500 hover:text-slate-700"
+            >
               ← ダッシュボード
             </Link>
             <h1 className="text-sm font-semibold text-slate-900">

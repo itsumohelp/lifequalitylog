@@ -10,17 +10,20 @@ export default function CapacitorDeepLink() {
     let cleanup: (() => void) | null = null;
 
     import("@capacitor/app").then(({ App }) => {
-      const listener = App.addListener("appUrlOpen", (event: { url: string }) => {
-        try {
-          const url = new URL(event.url);
-          const dest = url.pathname + url.search;
-          if (dest && dest !== "/") {
-            window.location.href = dest;
+      const listener = App.addListener(
+        "appUrlOpen",
+        (event: { url: string }) => {
+          try {
+            const url = new URL(event.url);
+            const dest = url.pathname + url.search;
+            if (dest && dest !== "/") {
+              window.location.href = dest;
+            }
+          } catch {
+            // URLパースエラーは無視
           }
-        } catch {
-          // URLパースエラーは無視
-        }
-      });
+        },
+      );
 
       cleanup = () => {
         listener.then((h: { remove: () => void }) => h.remove());

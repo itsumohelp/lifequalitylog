@@ -1,21 +1,156 @@
 import Link from "next/link";
 
 const directDependencies = [
-  { name: "Next.js", version: "16.0.7", license: "MIT", url: "https://github.com/vercel/next.js" },
-  { name: "React", version: "19.2.0", license: "MIT", url: "https://github.com/facebook/react" },
-  { name: "React DOM", version: "19.2.0", license: "MIT", url: "https://github.com/facebook/react" },
-  { name: "NextAuth.js", version: "5.0.0-beta.30", license: "ISC", url: "https://github.com/nextauthjs/next-auth" },
-  { name: "Prisma Client", version: "7.1.0", license: "Apache-2.0", url: "https://github.com/prisma/prisma" },
-  { name: "@auth/prisma-adapter", version: "2.11.1", license: "ISC", url: "https://github.com/nextauthjs/next-auth" },
-  { name: "Recharts", version: "3.6.0", license: "MIT", url: "https://github.com/recharts/recharts" },
-  { name: "Tailwind CSS", version: "4.x", license: "MIT", url: "https://github.com/tailwindlabs/tailwindcss" },
-  { name: "Lucide React", version: "0.555.0", license: "ISC", url: "https://github.com/lucide-icons/lucide" },
-  { name: "TypeScript", version: "5.x", license: "Apache-2.0", url: "https://github.com/microsoft/TypeScript" },
-  { name: "ESLint", version: "9.x", license: "MIT", url: "https://github.com/eslint/eslint" },
-  { name: "node-postgres (pg)", version: "8.16.3", license: "MIT", url: "https://github.com/brianc/node-postgres" },
-  { name: "dotenv", version: "17.2.3", license: "BSD-2-Clause", url: "https://github.com/motdotla/dotenv" },
-  { name: "LightningCSS", version: "1.30.2", license: "MPL-2.0", url: "https://github.com/parcel-bundler/lightningcss" },
-  { name: "sharp (libvips)", version: "1.2.4", license: "LGPL-3.0-or-later", url: "https://github.com/lovell/sharp" },
+  {
+    name: "Next.js",
+    version: "16.0.7",
+    license: "MIT",
+    url: "https://github.com/vercel/next.js",
+  },
+  {
+    name: "React",
+    version: "19.2.0",
+    license: "MIT",
+    url: "https://github.com/facebook/react",
+  },
+  {
+    name: "React DOM",
+    version: "19.2.0",
+    license: "MIT",
+    url: "https://github.com/facebook/react",
+  },
+  {
+    name: "NextAuth.js",
+    version: "5.0.0-beta.30",
+    license: "ISC",
+    url: "https://github.com/nextauthjs/next-auth",
+  },
+  {
+    name: "Prisma Client",
+    version: "7.1.0",
+    license: "Apache-2.0",
+    url: "https://github.com/prisma/prisma",
+  },
+  {
+    name: "@auth/prisma-adapter",
+    version: "2.11.1",
+    license: "ISC",
+    url: "https://github.com/nextauthjs/next-auth",
+  },
+  {
+    name: "Recharts",
+    version: "3.6.0",
+    license: "MIT",
+    url: "https://github.com/recharts/recharts",
+  },
+  {
+    name: "Tailwind CSS",
+    version: "4.x",
+    license: "MIT",
+    url: "https://github.com/tailwindlabs/tailwindcss",
+  },
+  {
+    name: "Lucide React",
+    version: "0.555.0",
+    license: "ISC",
+    url: "https://github.com/lucide-icons/lucide",
+  },
+  {
+    name: "TypeScript",
+    version: "5.x",
+    license: "Apache-2.0",
+    url: "https://github.com/microsoft/TypeScript",
+  },
+  {
+    name: "ESLint",
+    version: "9.x",
+    license: "MIT",
+    url: "https://github.com/eslint/eslint",
+  },
+  {
+    name: "node-postgres (pg)",
+    version: "8.16.3",
+    license: "MIT",
+    url: "https://github.com/brianc/node-postgres",
+  },
+  {
+    name: "dotenv",
+    version: "17.2.3",
+    license: "BSD-2-Clause",
+    url: "https://github.com/motdotla/dotenv",
+  },
+  {
+    name: "LightningCSS",
+    version: "1.30.2",
+    license: "MPL-2.0",
+    url: "https://github.com/parcel-bundler/lightningcss",
+  },
+  {
+    name: "sharp (libvips)",
+    version: "1.2.4",
+    license: "LGPL-3.0-or-later",
+    url: "https://github.com/lovell/sharp",
+  },
+  {
+    name: "qrcode.react",
+    version: "4.2.0",
+    license: "MIT",
+    url: "https://github.com/zpao/qrcode.react",
+  },
+  {
+    name: "Prettier",
+    version: "3.7.4",
+    license: "MIT",
+    url: "https://github.com/prettier/prettier",
+  },
+  {
+    name: "@capacitor/core",
+    version: "8.3.0",
+    license: "MIT",
+    url: "https://github.com/ionic-team/capacitor",
+  },
+  {
+    name: "@capacitor/ios",
+    version: "8.3.0",
+    license: "MIT",
+    url: "https://github.com/ionic-team/capacitor",
+  },
+  {
+    name: "@capacitor/app",
+    version: "8.1.0",
+    license: "MIT",
+    url: "https://github.com/ionic-team/capacitor-plugins",
+  },
+  {
+    name: "@capacitor/browser",
+    version: "8.0.3",
+    license: "MIT",
+    url: "https://github.com/ionic-team/capacitor-plugins",
+  },
+  {
+    name: "@google-cloud/vertexai",
+    version: "1.12.0",
+    license: "Apache-2.0",
+    url: "https://github.com/googleapis/nodejs-vertexai",
+  },
+  {
+    name: "@google/genai",
+    version: "1.50.1",
+    license: "Apache-2.0",
+    url: "https://github.com/googleapis/js-genai",
+  },
+  {
+    name: "@next/third-parties",
+    version: "16.0.7",
+    license: "MIT",
+    url: "https://github.com/vercel/next.js",
+  },
+  {
+    name: "@prisma/adapter-pg",
+    version: "7.0.1",
+    license: "Apache-2.0",
+    url: "https://github.com/prisma/prisma",
+  },
 ];
 
 const licenseSummary = [
@@ -57,13 +192,20 @@ export default function LicensesPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="text-left px-3 py-2 font-medium text-slate-600">パッケージ</th>
-                  <th className="text-left px-3 py-2 font-medium text-slate-600">ライセンス</th>
+                  <th className="text-left px-3 py-2 font-medium text-slate-600">
+                    パッケージ
+                  </th>
+                  <th className="text-left px-3 py-2 font-medium text-slate-600">
+                    ライセンス
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {directDependencies.map((dep) => (
-                  <tr key={dep.name} className="border-b border-slate-100 last:border-0">
+                  <tr
+                    key={dep.name}
+                    className="border-b border-slate-100 last:border-0"
+                  >
                     <td className="px-3 py-2">
                       <a
                         href={dep.url}
@@ -73,7 +215,9 @@ export default function LicensesPage() {
                       >
                         {dep.name}
                       </a>
-                      <span className="text-slate-400 ml-1 text-xs">{dep.version}</span>
+                      <span className="text-slate-400 ml-1 text-xs">
+                        {dep.version}
+                      </span>
                     </td>
                     <td className="px-3 py-2 text-slate-600">{dep.license}</td>
                   </tr>
@@ -95,15 +239,24 @@ export default function LicensesPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="text-left px-3 py-2 font-medium text-slate-600">ライセンス</th>
-                  <th className="text-right px-3 py-2 font-medium text-slate-600">件数</th>
+                  <th className="text-left px-3 py-2 font-medium text-slate-600">
+                    ライセンス
+                  </th>
+                  <th className="text-right px-3 py-2 font-medium text-slate-600">
+                    件数
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {licenseSummary.map((item) => (
-                  <tr key={item.license} className="border-b border-slate-100 last:border-0">
+                  <tr
+                    key={item.license}
+                    className="border-b border-slate-100 last:border-0"
+                  >
                     <td className="px-3 py-2 text-slate-700">{item.license}</td>
-                    <td className="px-3 py-2 text-right text-slate-600">{item.count}</td>
+                    <td className="px-3 py-2 text-right text-slate-600">
+                      {item.count}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -122,27 +275,52 @@ export default function LicensesPage() {
           </p>
           <ul className="mt-3 space-y-1 text-sm">
             <li>
-              <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:text-sky-700 underline">
+              <a
+                href="https://opensource.org/licenses/MIT"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sky-600 hover:text-sky-700 underline"
+              >
                 MIT License
               </a>
             </li>
             <li>
-              <a href="https://opensource.org/licenses/Apache-2.0" target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:text-sky-700 underline">
+              <a
+                href="https://opensource.org/licenses/Apache-2.0"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sky-600 hover:text-sky-700 underline"
+              >
                 Apache License 2.0
               </a>
             </li>
             <li>
-              <a href="https://opensource.org/licenses/ISC" target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:text-sky-700 underline">
+              <a
+                href="https://opensource.org/licenses/ISC"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sky-600 hover:text-sky-700 underline"
+              >
                 ISC License
               </a>
             </li>
             <li>
-              <a href="https://opensource.org/licenses/MPL-2.0" target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:text-sky-700 underline">
+              <a
+                href="https://opensource.org/licenses/MPL-2.0"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sky-600 hover:text-sky-700 underline"
+              >
                 Mozilla Public License 2.0
               </a>
             </li>
             <li>
-              <a href="https://opensource.org/licenses/LGPL-3.0" target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:text-sky-700 underline">
+              <a
+                href="https://opensource.org/licenses/LGPL-3.0"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sky-600 hover:text-sky-700 underline"
+              >
                 GNU Lesser General Public License v3.0
               </a>
             </li>

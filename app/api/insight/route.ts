@@ -14,7 +14,10 @@ export async function POST(req: NextRequest) {
   const { circleId } = body as { circleId: string };
 
   if (!circleId) {
-    return NextResponse.json({ error: "circleId is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "circleId is required" },
+      { status: 400 },
+    );
   }
 
   // サークルメンバーか確認
@@ -75,20 +78,27 @@ export async function POST(req: NextRequest) {
       }),
     ]);
 
-  const [[prevExpenses, prevIncomes, prevSnapshots], [recentExpenses, recentIncomes, recentSnapshots]] =
-    await Promise.all([
-      fetchPeriod(twoWeeksAgo, oneWeekAgo),
-      fetchPeriod(oneWeekAgo, now),
-    ]);
+  const [
+    [prevExpenses, prevIncomes, prevSnapshots],
+    [recentExpenses, recentIncomes, recentSnapshots],
+  ] = await Promise.all([
+    fetchPeriod(twoWeeksAgo, oneWeekAgo),
+    fetchPeriod(oneWeekAgo, now),
+  ]);
 
   const hasAnyData =
-    prevExpenses.length + prevIncomes.length + prevSnapshots.length +
-    recentExpenses.length + recentIncomes.length + recentSnapshots.length > 0;
+    prevExpenses.length +
+      prevIncomes.length +
+      prevSnapshots.length +
+      recentExpenses.length +
+      recentIncomes.length +
+      recentSnapshots.length >
+    0;
 
   if (!hasAnyData) {
     return NextResponse.json(
       { error: "直近2週間のデータがありません" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -98,13 +108,16 @@ export async function POST(req: NextRequest) {
     try {
       const metaRes = await fetch(
         "http://metadata.google.internal/computeMetadata/v1/project/project-id",
-        { headers: { "Metadata-Flavor": "Google" } }
+        { headers: { "Metadata-Flavor": "Google" } },
       );
       if (metaRes.ok) projectId = await metaRes.text();
     } catch {}
   }
   if (!projectId) {
-    return NextResponse.json({ error: "GOOGLE_CLOUD_PROJECT is not configured" }, { status: 500 });
+    return NextResponse.json(
+      { error: "GOOGLE_CLOUD_PROJECT is not configured" },
+      { status: 500 },
+    );
   }
 
   // Google Gen AI SDK (Vertex AI バックエンド)
@@ -117,13 +130,18 @@ export async function POST(req: NextRequest) {
   const summarizePeriod = (
     expenses: typeof prevExpenses,
     incomes: typeof prevIncomes,
-    snapshots: typeof prevSnapshots
+    snapshots: typeof prevSnapshots,
   ) => {
     const lines: string[] = [];
     if (expenses.length > 0) {
       const total = expenses.reduce((s, e) => s + e.amount, 0);
-      const detail = expenses.slice(0, 10).map((e) => `${e.description}(${e.amount}円)`).join("、");
-      lines.push(`支出: ${total.toLocaleString()}円/${expenses.length}件 [${detail}]`);
+      const detail = expenses
+        .slice(0, 10)
+        .map((e) => `${e.description}(${e.amount}円)`)
+        .join("、");
+      lines.push(
+        `支出: ${total.toLocaleString()}円/${expenses.length}件 [${detail}]`,
+      );
     }
     if (incomes.length > 0) {
       const total = incomes.reduce((s, i) => s + i.amount, 0);
@@ -131,13 +149,19 @@ export async function POST(req: NextRequest) {
     }
     if (snapshots.length > 0) {
       const latest = snapshots[0];
-      lines.push(`残高: ${latest.amount.toLocaleString()}円${latest.diffFromPrev != null ? `(前週比${latest.diffFromPrev >= 0 ? "+" : ""}${latest.diffFromPrev.toLocaleString()}円)` : ""}`);
+      lines.push(
+        `残高: ${latest.amount.toLocaleString()}円${latest.diffFromPrev != null ? `(前週比${latest.diffFromPrev >= 0 ? "+" : ""}${latest.diffFromPrev.toLocaleString()}円)` : ""}`,
+      );
     }
     return lines.length > 0 ? lines.join("\n") : "記録なし";
   };
 
   const prevSummary = summarizePeriod(prevExpenses, prevIncomes, prevSnapshots);
-  const recentSummary = summarizePeriod(recentExpenses, recentIncomes, recentSnapshots);
+  const recentSummary = summarizePeriod(
+    recentExpenses,
+    recentIncomes,
+    recentSnapshots,
+  );
 
   const prompt = `あなたは家計アドバイザーです。以下はサークルメンバーが記録した家計データです。
 前の週と直近1週間を比較して、変化や傾向に触れた一言コメントをしてください。日本語50文字以内で返してください。
@@ -169,7 +193,7 @@ ${recentSummary}
   if (!insight) {
     return NextResponse.json(
       { error: "インサイトを生成できませんでした" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 

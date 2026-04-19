@@ -17,7 +17,11 @@ export async function GET() {
     });
 
     if (memberships.length === 0) {
-      return NextResponse.json({ summary: [], currentYearMonth: "", prevYearMonth: "" });
+      return NextResponse.json({
+        summary: [],
+        currentYearMonth: "",
+        prevYearMonth: "",
+      });
     }
 
     const circleIds = memberships.map((m) => m.circleId);
@@ -36,31 +40,45 @@ export async function GET() {
     const startOfPrevMonth = new Date(currentYear, currentMonth - 1, 1);
     const endOfPrevMonth = startOfCurrentMonth;
 
-    const [currentExpenses, currentIncomes, prevExpenses, prevIncomes] = await Promise.all([
-      prisma.expense.groupBy({
-        by: ["circleId"],
-        where: { circleId: { in: circleIds }, expenseDate: { gte: startOfCurrentMonth } },
-        _sum: { amount: true },
-      }),
-      prisma.income.groupBy({
-        by: ["circleId"],
-        where: { circleId: { in: circleIds }, incomeDate: { gte: startOfCurrentMonth } },
-        _sum: { amount: true },
-      }),
-      prisma.expense.groupBy({
-        by: ["circleId"],
-        where: { circleId: { in: circleIds }, expenseDate: { gte: startOfPrevMonth, lt: endOfPrevMonth } },
-        _sum: { amount: true },
-      }),
-      prisma.income.groupBy({
-        by: ["circleId"],
-        where: { circleId: { in: circleIds }, incomeDate: { gte: startOfPrevMonth, lt: endOfPrevMonth } },
-        _sum: { amount: true },
-      }),
-    ]);
+    const [currentExpenses, currentIncomes, prevExpenses, prevIncomes] =
+      await Promise.all([
+        prisma.expense.groupBy({
+          by: ["circleId"],
+          where: {
+            circleId: { in: circleIds },
+            expenseDate: { gte: startOfCurrentMonth },
+          },
+          _sum: { amount: true },
+        }),
+        prisma.income.groupBy({
+          by: ["circleId"],
+          where: {
+            circleId: { in: circleIds },
+            incomeDate: { gte: startOfCurrentMonth },
+          },
+          _sum: { amount: true },
+        }),
+        prisma.expense.groupBy({
+          by: ["circleId"],
+          where: {
+            circleId: { in: circleIds },
+            expenseDate: { gte: startOfPrevMonth, lt: endOfPrevMonth },
+          },
+          _sum: { amount: true },
+        }),
+        prisma.income.groupBy({
+          by: ["circleId"],
+          where: {
+            circleId: { in: circleIds },
+            incomeDate: { gte: startOfPrevMonth, lt: endOfPrevMonth },
+          },
+          _sum: { amount: true },
+        }),
+      ]);
 
-    const toMap = (rows: { circleId: string; _sum: { amount: number | null } }[]) =>
-      new Map(rows.map((r) => [r.circleId, r._sum.amount ?? 0]));
+    const toMap = (
+      rows: { circleId: string; _sum: { amount: number | null } }[],
+    ) => new Map(rows.map((r) => [r.circleId, r._sum.amount ?? 0]));
 
     const curExpMap = toMap(currentExpenses);
     const curIncMap = toMap(currentIncomes);
@@ -79,7 +97,11 @@ export async function GET() {
         currentBalance: c.currentBalance,
         current: { expense: curExp, income: curInc, net: curInc - curExp },
         prev: { expense: prvExp, income: prvInc, net: prvInc - prvExp },
-        diff: { expense: curExp - prvExp, income: curInc - prvInc, net: (curInc - curExp) - (prvInc - prvExp) },
+        diff: {
+          expense: curExp - prvExp,
+          income: curInc - prvInc,
+          net: curInc - curExp - (prvInc - prvExp),
+        },
       };
     });
 
@@ -89,6 +111,9 @@ export async function GET() {
     return NextResponse.json({ summary, currentYearMonth, prevYearMonth });
   } catch (error) {
     console.error("Monthly summary error:", error);
-    return NextResponse.json({ error: "集計の取得に失敗しました" }, { status: 500 });
+    return NextResponse.json(
+      { error: "集計の取得に失敗しました" },
+      { status: 500 },
+    );
   }
 }

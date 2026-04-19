@@ -28,7 +28,14 @@ function getDateKey(date: Date, period: Period): string {
 
 function getPeriodRange(period: Period): { start: Date; end: Date } {
   const now = new Date();
-  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+  const end = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    23,
+    59,
+    59,
+  );
   let start: Date;
 
   if (period === "daily") {
@@ -147,10 +154,14 @@ export async function GET(request: Request) {
       if (latestSnapshotBeforeStart) {
         const snapshotDate = new Date(latestSnapshotBeforeStart.createdAt);
         const expensesBefore = circleExpenses.filter(
-          (e) => new Date(e.createdAt) > snapshotDate && new Date(e.createdAt) < start
+          (e) =>
+            new Date(e.createdAt) > snapshotDate &&
+            new Date(e.createdAt) < start,
         );
         const incomesBefore = circleIncomes.filter(
-          (i) => new Date(i.createdAt) > snapshotDate && new Date(i.createdAt) < start
+          (i) =>
+            new Date(i.createdAt) > snapshotDate &&
+            new Date(i.createdAt) < start,
         );
         runningBalance -= expensesBefore.reduce((sum, e) => sum + e.amount, 0);
         runningBalance += incomesBefore.reduce((sum, i) => sum + i.amount, 0);
@@ -246,10 +257,14 @@ export async function GET(request: Request) {
       if (latestSnapshotBeforeStart) {
         const snapshotDate = new Date(latestSnapshotBeforeStart.createdAt);
         const expensesBefore = circleExpenses.filter(
-          (e) => new Date(e.createdAt) > snapshotDate && new Date(e.createdAt) < start
+          (e) =>
+            new Date(e.createdAt) > snapshotDate &&
+            new Date(e.createdAt) < start,
         );
         const incomesBefore = circleIncomes.filter(
-          (i) => new Date(i.createdAt) > snapshotDate && new Date(i.createdAt) < start
+          (i) =>
+            new Date(i.createdAt) > snapshotDate &&
+            new Date(i.createdAt) < start,
         );
         runningBalance -= expensesBefore.reduce((sum, e) => sum + e.amount, 0);
         runningBalance += incomesBefore.reduce((sum, i) => sum + i.amount, 0);
@@ -293,7 +308,9 @@ export async function GET(request: Request) {
     }
 
     for (const dateKey of Array.from(dateKeys).sort()) {
-      const entry: { date: string; [key: string]: string | number } = { date: dateKey };
+      const entry: { date: string; [key: string]: string | number } = {
+        date: dateKey,
+      };
       const balances = circleBalancesByDate.get(dateKey);
       if (balances) {
         balances.forEach((balance, circleName) => {
@@ -303,11 +320,18 @@ export async function GET(request: Request) {
       result.push(entry);
     }
 
-    return NextResponse.json({ data: result, circles, tags: Array.from(allTags) });
+    return NextResponse.json({
+      data: result,
+      circles,
+      tags: Array.from(allTags),
+    });
   } else if (viewType === "tag") {
     // タグ別の支出推移（特定サークル）
     if (!circleId) {
-      return NextResponse.json({ error: "circleId is required for tag view" }, { status: 400 });
+      return NextResponse.json(
+        { error: "circleId is required for tag view" },
+        { status: 400 },
+      );
     }
 
     const circleExpenses = expenses.filter((e) => e.circleId === circleId);
@@ -347,7 +371,9 @@ export async function GET(request: Request) {
     });
 
     for (const dateKey of Array.from(dateKeys).sort()) {
-      const entry: { date: string; [key: string]: string | number } = { date: dateKey };
+      const entry: { date: string; [key: string]: string | number } = {
+        date: dateKey,
+      };
       const tagMap = tagExpensesByDate.get(dateKey);
 
       // すべてのタグに対して値を設定（なければ0）
@@ -361,7 +387,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       data: result,
       circles,
-      tags: Array.from(allTagsInCircle)
+      tags: Array.from(allTagsInCircle),
     });
   }
 

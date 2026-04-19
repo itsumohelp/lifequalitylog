@@ -33,7 +33,10 @@ export default function Header({ session }: HeaderProps) {
     <header className="bg-sky-200">
       <div className="mx-auto max-w-md px-4 py-2 flex items-center justify-between">
         {/* 左：ロゴ + アイコン */}
-        <Link href="/dashboard" className="text-sm font-extrabold text-slate-900 tracking-tight">
+        <Link
+          href="/dashboard"
+          className="text-sm font-extrabold text-slate-900 tracking-tight"
+        >
           Circlerun
         </Link>
 

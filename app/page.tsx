@@ -46,13 +46,29 @@ export default async function HomePage({ searchParams }: HomePageProps) {
               viewBox="0 0 512 512"
               xmlns="http://www.w3.org/2000/svg"
             >
-              <rect width="512" height="512" fill="#ffffff"/>
-              <text x="256" y="262" textAnchor="middle"
-                    fontFamily="'Helvetica Neue', Arial, sans-serif"
-                    fontSize="182" fontWeight="800" fill="#0f172a">circle</text>
-              <text x="256" y="384" textAnchor="middle"
-                    fontFamily="'Helvetica Neue', Arial, sans-serif"
-                    fontSize="182" fontWeight="800" fill="#0f172a">run</text>
+              <rect width="512" height="512" fill="#ffffff" />
+              <text
+                x="256"
+                y="262"
+                textAnchor="middle"
+                fontFamily="'Helvetica Neue', Arial, sans-serif"
+                fontSize="182"
+                fontWeight="800"
+                fill="#0f172a"
+              >
+                circle
+              </text>
+              <text
+                x="256"
+                y="384"
+                textAnchor="middle"
+                fontFamily="'Helvetica Neue', Arial, sans-serif"
+                fontSize="182"
+                fontWeight="800"
+                fill="#0f172a"
+              >
+                run
+              </text>
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-slate-950">CircleRun</h1>

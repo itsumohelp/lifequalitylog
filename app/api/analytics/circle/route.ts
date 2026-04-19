@@ -43,8 +43,12 @@ export async function GET(request: Request) {
     }),
   ]);
 
-  const expCountMap = new Map(expenseCounts.map((r) => [r.circleId, r._count.id]));
-  const incCountMap = new Map(incomeCounts.map((r) => [r.circleId, r._count.id]));
+  const expCountMap = new Map(
+    expenseCounts.map((r) => [r.circleId, r._count.id]),
+  );
+  const incCountMap = new Map(
+    incomeCounts.map((r) => [r.circleId, r._count.id]),
+  );
 
   const circleList = circles
     .map((c) => ({
@@ -78,7 +82,13 @@ export async function GET(request: Request) {
   const endOfToday = new Date(now);
   endOfToday.setHours(23, 59, 59, 999);
 
-  const [monthlyExpenses, monthlyIncomeAgg, dailyExpenses, dailyIncomes, dailySnapshots] = await Promise.all([
+  const [
+    monthlyExpenses,
+    monthlyIncomeAgg,
+    dailyExpenses,
+    dailyIncomes,
+    dailySnapshots,
+  ] = await Promise.all([
     // 当月の支出（タグ付きで全件返す → クライアントでフィルタ）
     prisma.expense.findMany({
       where: { circleId, expenseDate: { gte: startOfMonth } },
@@ -103,14 +113,19 @@ export async function GET(request: Request) {
     }),
     // 過去30日の残高スナップショット
     prisma.circleSnapshot.findMany({
-      where: { circleId, snapshotDate: { gte: thirtyDaysAgo, lte: endOfToday } },
+      where: {
+        circleId,
+        snapshotDate: { gte: thirtyDaysAgo, lte: endOfToday },
+      },
       select: { amount: true, snapshotDate: true },
       orderBy: { snapshotDate: "asc" },
     }),
   ]);
 
   // 全タグ一覧（当月のみ対象、手動+自動タグを合算）
-  const allTags = [...new Set(monthlyExpenses.flatMap((e) => [...e.tags, ...e.autoTags]))].sort();
+  const allTags = [
+    ...new Set(monthlyExpenses.flatMap((e) => [...e.tags, ...e.autoTags])),
+  ].sort();
 
   // 日付キー生成（YYYY-MM-DD）
   const toDateKey = (d: Date) =>
@@ -120,7 +135,10 @@ export async function GET(request: Request) {
     circles: circleList,
     balance,
     tags: allTags,
-    monthlyExpenses: monthlyExpenses.map((e) => ({ amount: e.amount, tags: [...e.tags, ...e.autoTags] })),
+    monthlyExpenses: monthlyExpenses.map((e) => ({
+      amount: e.amount,
+      tags: [...e.tags, ...e.autoTags],
+    })),
     monthlyIncomeTotal: monthlyIncomeAgg._sum.amount ?? 0,
     dailyExpenses: dailyExpenses.map((e) => ({
       date: toDateKey(new Date(e.expenseDate)),

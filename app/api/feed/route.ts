@@ -95,7 +95,9 @@ export async function GET(request: NextRequest) {
       category: e.category,
       createdAt: e.createdAt.toISOString(),
     })),
-  ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  ].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
 
   return NextResponse.json({
     feed: feed.slice(0, 50),

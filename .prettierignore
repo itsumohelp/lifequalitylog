@@ -1,0 +1,9 @@
+.next
+node_modules
+out
+build
+public
+app/generated
+prisma/migrations
+ios
+*.md

@@ -4,9 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "HOST=0.0.0.0 next dev",
+    "prebuild": "prettier --write \"**/*.{ts,tsx,js,mjs,json}\"",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint .",
+    "format": "prettier --write \"**/*.{ts,tsx,js,mjs,json}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,json}\""
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
