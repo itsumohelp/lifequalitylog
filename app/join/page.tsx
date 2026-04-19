@@ -71,7 +71,22 @@ export async function joinCircle(formData: FormData) {
     data: {
       circleId,
       userId,
-      role: "EDITOR", // 招待参加は EDITOR として参加
+      role: "EDITOR",
+    },
+  });
+
+  // 参加通知を作成
+  const joinedUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { displayName: true, name: true },
+  });
+  const displayName = joinedUser?.displayName || joinedUser?.name || "メンバー";
+  await prisma.notification.create({
+    data: {
+      circleId,
+      type: "MEMBER_JOINED",
+      actorUserId: userId,
+      message: `${displayName}さんが参加しました`,
     },
   });
 

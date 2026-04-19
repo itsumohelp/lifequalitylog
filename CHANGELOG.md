@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.53] - 2026-04-20
+
+### Added
+- **In-app notifications**: Added `Notification` model (`notifications` table) for circle-scoped events. When a user joins via invite link, a "○○さんが参加しました" notification record is created automatically.
+- **Notification feed items**: Notifications appear in the timeline feed with a 🔔 header and message body. No reactions or delete buttons.
+- **Notification filter**: The existing bell icon filter (timeline view) now filters to both admin notices (`notice`) and circle notifications (`notification`) simultaneously.
+
+### 追加
+- **アプリ内通知**: サークル単位のイベントを記録する `Notification` モデル（`notifications` テーブル）を追加。招待リンクからユーザーが参加した際に「○○さんが参加しました」の通知レコードを自動作成。
+- **通知フィード表示**: 通知はタイムラインフィードに🔔ヘッダー＋メッセージ本文で表示。リアクション・削除ボタンはなし。
+- **通知フィルター拡張**: タイムラインのベルアイコンフィルターを押すと、運営からのお知らせ（`notice`）とサークル通知（`notification`）の両方に絞り込まれるよう拡張。
+
+---
+
 ## [0.0.52] - 2026-04-19
 
 ### Added

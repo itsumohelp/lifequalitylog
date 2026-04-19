@@ -7,7 +7,13 @@ import IOSAuthCallback from "../components/IOSAuthCallback";
 
 type FeedItem = {
   id: string;
-  kind: "snapshot" | "expense" | "income" | "notice" | "insight";
+  kind:
+    | "snapshot"
+    | "expense"
+    | "income"
+    | "notice"
+    | "insight"
+    | "notification";
   circleId: string;
   circleName: string;
   userId: string;
@@ -27,6 +33,7 @@ type FeedItem = {
   noticeBody?: string | null;
   noticeLink?: string | null;
   insightText?: string;
+  notificationMessage?: string;
   createdAt: string;
 };
 
@@ -149,6 +156,19 @@ export default async function DashboardPage() {
             email: true,
             image: true,
           },
+        },
+      },
+    });
+
+    // 通知を取得（全サークル分）
+    const notifications = await prisma.notification.findMany({
+      where: { circleId: { in: circleIds } },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+      include: {
+        circle: { select: { name: true } },
+        actor: {
+          select: { id: true, name: true, displayName: true, image: true },
         },
       },
     });
@@ -365,6 +385,20 @@ export default async function DashboardPage() {
           tags: i.tags,
           autoTags: i.autoTags,
           createdAt: i.createdAt.toISOString(),
+        })),
+      ...notifications
+        .filter((n) => new Date(n.createdAt) >= sevenDaysAgo)
+        .map((n) => ({
+          id: `notification-${n.id}`,
+          kind: "notification" as const,
+          circleId: n.circleId,
+          circleName: n.circle.name,
+          userId: n.actorUserId,
+          userName: n.actor?.displayName || n.actor?.name || "メンバー",
+          userImage: n.actor?.image || null,
+          amount: 0,
+          notificationMessage: n.message,
+          createdAt: n.createdAt.toISOString(),
         })),
     ].sort(
       (a, b) =>

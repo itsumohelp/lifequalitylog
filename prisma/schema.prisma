@@ -93,6 +93,7 @@ model User {
   incomes       Income[]
   reactions     Reaction[]
   balanceTransactions BalanceTransaction[]
+  notifications Notification[]
   @@map("users")
 }
 
@@ -122,6 +123,7 @@ model Circle {
   incomes        Income[]
   monthlySnapshots MonthlySnapshot[]
   balanceTransactions BalanceTransaction[]
+  notifications  Notification[]
 }
 
 model CircleMember {
@@ -308,6 +310,20 @@ model UserInsight {
   generatedAt DateTime @default(now()) @map("generated_at")
   @@index([userId, circleId, generatedAt])
   @@map("user_insights")
+}
+
+// サークル内通知（メンバー参加など）
+model Notification {
+  id          String   @id @default(cuid())
+  circleId    String
+  circle      Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  type        String   // "MEMBER_JOINED" etc.
+  actorUserId String
+  actor       User     @relation(fields: [actorUserId], references: [id], onDelete: Cascade)
+  message     String   @db.Text
+  createdAt   DateTime @default(now())
+  @@index([circleId, createdAt])
+  @@map("notifications")
 }
 
 // 運営からのお知らせ

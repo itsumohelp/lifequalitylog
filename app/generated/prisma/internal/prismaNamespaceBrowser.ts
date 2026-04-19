@@ -69,6 +69,7 @@ export const ModelName = {
   Reaction: 'Reaction',
   IosAuthToken: 'IosAuthToken',
   UserInsight: 'UserInsight',
+  Notification: 'Notification',
   Notice: 'Notice'
 } as const
 
@@ -326,6 +327,18 @@ export const UserInsightScalarFieldEnum = {
 } as const
 
 export type UserInsightScalarFieldEnum = (typeof UserInsightScalarFieldEnum)[keyof typeof UserInsightScalarFieldEnum]
+
+
+export const NotificationScalarFieldEnum = {
+  id: 'id',
+  circleId: 'circleId',
+  type: 'type',
+  actorUserId: 'actorUserId',
+  message: 'message',
+  createdAt: 'createdAt'
+} as const
+
+export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
 
 
 export const NoticeScalarFieldEnum = {

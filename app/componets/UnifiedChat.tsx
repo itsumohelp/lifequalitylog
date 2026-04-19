@@ -43,6 +43,7 @@ type FeedItem = {
     | "invite"
     | "help"
     | "notice"
+    | "notification"
     | "insight";
   circleId: string;
   circleName?: string;
@@ -68,6 +69,7 @@ type FeedItem = {
   noticeBody?: string | null;
   noticeLink?: string | null;
   insightText?: string;
+  notificationMessage?: string;
   createdAt: string;
 };
 
@@ -81,14 +83,35 @@ const CATEGORY_TAGS_BY_HOUR: Record<string, string[]> = {
 };
 
 const ALL_CATEGORY_TAGS = [
-  "朝食", "ランチ", "夕食", "外食", "カフェ", "コンビニ", "スーパー", "飲み会", "おやつ",
-  "電車", "バス", "タクシー", "ガソリン",
-  "日用品", "消耗品",
-  "娯楽", "映画", "ゲーム", "本",
-  "美容院", "薬", "ジム", "医療",
+  "朝食",
+  "ランチ",
+  "夕食",
+  "外食",
+  "カフェ",
+  "コンビニ",
+  "スーパー",
+  "飲み会",
+  "おやつ",
+  "電車",
+  "バス",
+  "タクシー",
+  "ガソリン",
+  "日用品",
+  "消耗品",
+  "娯楽",
+  "映画",
+  "ゲーム",
+  "本",
+  "美容院",
+  "薬",
+  "ジム",
+  "医療",
   "衣料",
-  "スマホ", "通信",
-  "給与", "ボーナス", "副収入",
+  "スマホ",
+  "通信",
+  "給与",
+  "ボーナス",
+  "副収入",
 ];
 
 function getTimeSlotKey(hour: number): string {
@@ -1192,7 +1215,9 @@ export default function UnifiedChat({
   const filteredFeed = isTimeline
     ? filterNoticesOnly
       ? feed
-          .filter((item) => item.kind === "notice")
+          .filter(
+            (item) => item.kind === "notice" || item.kind === "notification",
+          )
           .sort(
             (a, b) =>
               new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
@@ -1426,7 +1451,7 @@ export default function UnifiedChat({
           <button
             type="button"
             onClick={() => setFilterNoticesOnly((v) => !v)}
-            title={filterNoticesOnly ? "全て表示" : "お知らせのみ表示"}
+            title={filterNoticesOnly ? "全て表示" : "お知らせ・通知のみ表示"}
             className={`absolute bottom-3 left-3 z-10 w-10 h-10 rounded-full flex items-center justify-center transition ${
               filterNoticesOnly
                 ? "bg-sky-500/80 text-white"
@@ -1575,6 +1600,8 @@ export default function UnifiedChat({
                               >
                                 {item.kind === "notice" ? (
                                   `📣 ${item.noticeTitle}`
+                                ) : item.kind === "notification" ? (
+                                  `🔔 ${item.circleName}`
                                 ) : item.kind === "insight" ? (
                                   <>
                                     {item.circleName && (
@@ -1843,6 +1870,13 @@ export default function UnifiedChat({
                                     🔗 詳細を見る
                                   </a>
                                 )}
+                              </>
+                            ) : item.kind === "notification" ? (
+                              <>
+                                {/* サークル内通知 */}
+                                <p className="text-[11px] text-slate-600">
+                                  {item.notificationMessage}
+                                </p>
                               </>
                             ) : item.kind === "help" ? (
                               <>

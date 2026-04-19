@@ -207,6 +207,7 @@ export type UserWhereInput = {
   incomes?: Prisma.IncomeListRelationFilter
   reactions?: Prisma.ReactionListRelationFilter
   balanceTransactions?: Prisma.BalanceTransactionListRelationFilter
+  notifications?: Prisma.NotificationListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -226,6 +227,7 @@ export type UserOrderByWithRelationInput = {
   incomes?: Prisma.IncomeOrderByRelationAggregateInput
   reactions?: Prisma.ReactionOrderByRelationAggregateInput
   balanceTransactions?: Prisma.BalanceTransactionOrderByRelationAggregateInput
+  notifications?: Prisma.NotificationOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -248,6 +250,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   incomes?: Prisma.IncomeListRelationFilter
   reactions?: Prisma.ReactionListRelationFilter
   balanceTransactions?: Prisma.BalanceTransactionListRelationFilter
+  notifications?: Prisma.NotificationListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -293,6 +296,7 @@ export type UserCreateInput = {
   incomes?: Prisma.IncomeCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -312,6 +316,7 @@ export type UserUncheckedCreateInput = {
   incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionUncheckedCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserUpdateInput = {
@@ -331,6 +336,7 @@ export type UserUpdateInput = {
   incomes?: Prisma.IncomeUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -350,6 +356,7 @@ export type UserUncheckedUpdateInput = {
   incomes?: Prisma.IncomeUncheckedUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUncheckedUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -547,6 +554,20 @@ export type UserUpdateOneRequiredWithoutReactionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutReactionsInput, Prisma.UserUpdateWithoutReactionsInput>, Prisma.UserUncheckedUpdateWithoutReactionsInput>
 }
 
+export type UserCreateNestedOneWithoutNotificationsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutNotificationsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationsInput
+  upsert?: Prisma.UserUpsertWithoutNotificationsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutNotificationsInput, Prisma.UserUpdateWithoutNotificationsInput>, Prisma.UserUncheckedUpdateWithoutNotificationsInput>
+}
+
 export type UserCreateWithoutAccountsInput = {
   id?: string
   name?: string | null
@@ -563,6 +584,7 @@ export type UserCreateWithoutAccountsInput = {
   incomes?: Prisma.IncomeCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -581,6 +603,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionUncheckedCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -615,6 +638,7 @@ export type UserUpdateWithoutAccountsInput = {
   incomes?: Prisma.IncomeUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -633,6 +657,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   incomes?: Prisma.IncomeUncheckedUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUncheckedUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutSessionsInput = {
@@ -651,6 +676,7 @@ export type UserCreateWithoutSessionsInput = {
   incomes?: Prisma.IncomeCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -669,6 +695,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionUncheckedCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -703,6 +730,7 @@ export type UserUpdateWithoutSessionsInput = {
   incomes?: Prisma.IncomeUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -721,6 +749,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   incomes?: Prisma.IncomeUncheckedUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUncheckedUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutCircleMembersInput = {
@@ -739,6 +768,7 @@ export type UserCreateWithoutCircleMembersInput = {
   incomes?: Prisma.IncomeCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutCircleMembersInput = {
@@ -757,6 +787,7 @@ export type UserUncheckedCreateWithoutCircleMembersInput = {
   incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionUncheckedCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutCircleMembersInput = {
@@ -791,6 +822,7 @@ export type UserUpdateWithoutCircleMembersInput = {
   incomes?: Prisma.IncomeUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCircleMembersInput = {
@@ -809,6 +841,7 @@ export type UserUncheckedUpdateWithoutCircleMembersInput = {
   incomes?: Prisma.IncomeUncheckedUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUncheckedUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutSnapshotsInput = {
@@ -827,6 +860,7 @@ export type UserCreateWithoutSnapshotsInput = {
   incomes?: Prisma.IncomeCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutSnapshotsInput = {
@@ -845,6 +879,7 @@ export type UserUncheckedCreateWithoutSnapshotsInput = {
   incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionUncheckedCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutSnapshotsInput = {
@@ -879,6 +914,7 @@ export type UserUpdateWithoutSnapshotsInput = {
   incomes?: Prisma.IncomeUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSnapshotsInput = {
@@ -897,6 +933,7 @@ export type UserUncheckedUpdateWithoutSnapshotsInput = {
   incomes?: Prisma.IncomeUncheckedUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUncheckedUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutCircleSnapshotsInput = {
@@ -915,6 +952,7 @@ export type UserCreateWithoutCircleSnapshotsInput = {
   incomes?: Prisma.IncomeCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutCircleSnapshotsInput = {
@@ -933,6 +971,7 @@ export type UserUncheckedCreateWithoutCircleSnapshotsInput = {
   incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionUncheckedCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutCircleSnapshotsInput = {
@@ -967,6 +1006,7 @@ export type UserUpdateWithoutCircleSnapshotsInput = {
   incomes?: Prisma.IncomeUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCircleSnapshotsInput = {
@@ -985,6 +1025,7 @@ export type UserUncheckedUpdateWithoutCircleSnapshotsInput = {
   incomes?: Prisma.IncomeUncheckedUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUncheckedUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutExpensesInput = {
@@ -1003,6 +1044,7 @@ export type UserCreateWithoutExpensesInput = {
   incomes?: Prisma.IncomeCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutExpensesInput = {
@@ -1021,6 +1063,7 @@ export type UserUncheckedCreateWithoutExpensesInput = {
   incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionUncheckedCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutExpensesInput = {
@@ -1055,6 +1098,7 @@ export type UserUpdateWithoutExpensesInput = {
   incomes?: Prisma.IncomeUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutExpensesInput = {
@@ -1073,6 +1117,7 @@ export type UserUncheckedUpdateWithoutExpensesInput = {
   incomes?: Prisma.IncomeUncheckedUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUncheckedUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutIncomesInput = {
@@ -1091,6 +1136,7 @@ export type UserCreateWithoutIncomesInput = {
   expenses?: Prisma.ExpenseCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutIncomesInput = {
@@ -1109,6 +1155,7 @@ export type UserUncheckedCreateWithoutIncomesInput = {
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionUncheckedCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutIncomesInput = {
@@ -1143,6 +1190,7 @@ export type UserUpdateWithoutIncomesInput = {
   expenses?: Prisma.ExpenseUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutIncomesInput = {
@@ -1161,6 +1209,7 @@ export type UserUncheckedUpdateWithoutIncomesInput = {
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUncheckedUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutBalanceTransactionsInput = {
@@ -1179,6 +1228,7 @@ export type UserCreateWithoutBalanceTransactionsInput = {
   expenses?: Prisma.ExpenseCreateNestedManyWithoutUserInput
   incomes?: Prisma.IncomeCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutBalanceTransactionsInput = {
@@ -1197,6 +1247,7 @@ export type UserUncheckedCreateWithoutBalanceTransactionsInput = {
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutUserInput
   incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutBalanceTransactionsInput = {
@@ -1231,6 +1282,7 @@ export type UserUpdateWithoutBalanceTransactionsInput = {
   expenses?: Prisma.ExpenseUpdateManyWithoutUserNestedInput
   incomes?: Prisma.IncomeUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutBalanceTransactionsInput = {
@@ -1249,6 +1301,7 @@ export type UserUncheckedUpdateWithoutBalanceTransactionsInput = {
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutUserNestedInput
   incomes?: Prisma.IncomeUncheckedUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutReactionsInput = {
@@ -1267,6 +1320,7 @@ export type UserCreateWithoutReactionsInput = {
   expenses?: Prisma.ExpenseCreateNestedManyWithoutUserInput
   incomes?: Prisma.IncomeCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutReactionsInput = {
@@ -1285,6 +1339,7 @@ export type UserUncheckedCreateWithoutReactionsInput = {
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutUserInput
   incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutReactionsInput = {
@@ -1319,6 +1374,7 @@ export type UserUpdateWithoutReactionsInput = {
   expenses?: Prisma.ExpenseUpdateManyWithoutUserNestedInput
   incomes?: Prisma.IncomeUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReactionsInput = {
@@ -1337,6 +1393,99 @@ export type UserUncheckedUpdateWithoutReactionsInput = {
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutUserNestedInput
   incomes?: Prisma.IncomeUncheckedUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
+}
+
+export type UserCreateWithoutNotificationsInput = {
+  id?: string
+  name?: string | null
+  displayName?: string | null
+  email?: string | null
+  emailVerified?: Date | string | null
+  image?: string | null
+  autoTagEnabled?: boolean
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
+  snapshots?: Prisma.SnapshotCreateNestedManyWithoutUserInput
+  circleSnapshots?: Prisma.CircleSnapshotCreateNestedManyWithoutUserInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutUserInput
+  incomes?: Prisma.IncomeCreateNestedManyWithoutUserInput
+  reactions?: Prisma.ReactionCreateNestedManyWithoutUserInput
+  balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutNotificationsInput = {
+  id?: string
+  name?: string | null
+  displayName?: string | null
+  email?: string | null
+  emailVerified?: Date | string | null
+  image?: string | null
+  autoTagEnabled?: boolean
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
+  snapshots?: Prisma.SnapshotUncheckedCreateNestedManyWithoutUserInput
+  circleSnapshots?: Prisma.CircleSnapshotUncheckedCreateNestedManyWithoutUserInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutUserInput
+  incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutUserInput
+  reactions?: Prisma.ReactionUncheckedCreateNestedManyWithoutUserInput
+  balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutNotificationsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+}
+
+export type UserUpsertWithoutNotificationsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutNotificationsInput, Prisma.UserUncheckedUpdateWithoutNotificationsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutNotificationsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutNotificationsInput, Prisma.UserUncheckedUpdateWithoutNotificationsInput>
+}
+
+export type UserUpdateWithoutNotificationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
+  snapshots?: Prisma.SnapshotUpdateManyWithoutUserNestedInput
+  circleSnapshots?: Prisma.CircleSnapshotUpdateManyWithoutUserNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutUserNestedInput
+  incomes?: Prisma.IncomeUpdateManyWithoutUserNestedInput
+  reactions?: Prisma.ReactionUpdateManyWithoutUserNestedInput
+  balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutNotificationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
+  snapshots?: Prisma.SnapshotUncheckedUpdateManyWithoutUserNestedInput
+  circleSnapshots?: Prisma.CircleSnapshotUncheckedUpdateManyWithoutUserNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutUserNestedInput
+  incomes?: Prisma.IncomeUncheckedUpdateManyWithoutUserNestedInput
+  reactions?: Prisma.ReactionUncheckedUpdateManyWithoutUserNestedInput
+  balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -1354,6 +1503,7 @@ export type UserCountOutputType = {
   incomes: number
   reactions: number
   balanceTransactions: number
+  notifications: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1366,6 +1516,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   incomes?: boolean | UserCountOutputTypeCountIncomesArgs
   reactions?: boolean | UserCountOutputTypeCountReactionsArgs
   balanceTransactions?: boolean | UserCountOutputTypeCountBalanceTransactionsArgs
+  notifications?: boolean | UserCountOutputTypeCountNotificationsArgs
 }
 
 /**
@@ -1441,6 +1592,13 @@ export type UserCountOutputTypeCountBalanceTransactionsArgs<ExtArgs extends runt
   where?: Prisma.BalanceTransactionWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountNotificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.NotificationWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1459,6 +1617,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   incomes?: boolean | Prisma.User$incomesArgs<ExtArgs>
   reactions?: boolean | Prisma.User$reactionsArgs<ExtArgs>
   balanceTransactions?: boolean | Prisma.User$balanceTransactionsArgs<ExtArgs>
+  notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1503,6 +1662,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   incomes?: boolean | Prisma.User$incomesArgs<ExtArgs>
   reactions?: boolean | Prisma.User$reactionsArgs<ExtArgs>
   balanceTransactions?: boolean | Prisma.User$balanceTransactionsArgs<ExtArgs>
+  notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1520,6 +1680,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     incomes: Prisma.$IncomePayload<ExtArgs>[]
     reactions: Prisma.$ReactionPayload<ExtArgs>[]
     balanceTransactions: Prisma.$BalanceTransactionPayload<ExtArgs>[]
+    notifications: Prisma.$NotificationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1932,6 +2093,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   incomes<T extends Prisma.User$incomesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$incomesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IncomePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reactions<T extends Prisma.User$reactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   balanceTransactions<T extends Prisma.User$balanceTransactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$balanceTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BalanceTransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  notifications<T extends Prisma.User$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2569,6 +2731,30 @@ export type User$balanceTransactionsArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.BalanceTransactionScalarFieldEnum | Prisma.BalanceTransactionScalarFieldEnum[]
+}
+
+/**
+ * User.notifications
+ */
+export type User$notificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Notification
+   */
+  select?: Prisma.NotificationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Notification
+   */
+  omit?: Prisma.NotificationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.NotificationInclude<ExtArgs> | null
+  where?: Prisma.NotificationWhereInput
+  orderBy?: Prisma.NotificationOrderByWithRelationInput | Prisma.NotificationOrderByWithRelationInput[]
+  cursor?: Prisma.NotificationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.NotificationScalarFieldEnum | Prisma.NotificationScalarFieldEnum[]
 }
 
 /**
