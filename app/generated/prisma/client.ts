@@ -130,6 +130,11 @@ export type IosAuthToken = Prisma.IosAuthTokenModel
  */
 export type UserInsight = Prisma.UserInsightModel
 /**
+ * Model Notification
+ * 
+ */
+export type Notification = Prisma.NotificationModel
+/**
  * Model Notice
  * 
  */
