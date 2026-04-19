@@ -29,7 +29,7 @@ export async function DELETE(_request: Request, { params }: Params) {
   if (!membership) {
     return NextResponse.json(
       { error: "このサークルのメンバーではありません" },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
@@ -37,7 +37,7 @@ export async function DELETE(_request: Request, { params }: Params) {
   if (membership.role === "ADMIN") {
     return NextResponse.json(
       { error: "管理者はサークルから離脱できません" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 

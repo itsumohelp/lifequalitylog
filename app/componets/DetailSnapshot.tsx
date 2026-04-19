@@ -245,7 +245,9 @@ export default function DetailSnapshot({
                                   残高更新
                                 </span>
 
-                                <p className="text-xs text-slate-700">{e.memo}</p>
+                                <p className="text-xs text-slate-700">
+                                  {e.memo}
+                                </p>
                               </>
                             )}
 

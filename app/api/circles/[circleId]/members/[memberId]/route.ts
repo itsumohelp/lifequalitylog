@@ -29,7 +29,7 @@ export async function DELETE(_request: Request, { params }: Params) {
   if (!adminMembership || adminMembership.role !== "ADMIN") {
     return NextResponse.json(
       { error: "このサークルの管理権限がありません" },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
@@ -37,7 +37,7 @@ export async function DELETE(_request: Request, { params }: Params) {
   if (memberId === userId) {
     return NextResponse.json(
       { error: "自分自身は削除できません" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -54,7 +54,7 @@ export async function DELETE(_request: Request, { params }: Params) {
   if (!targetMembership) {
     return NextResponse.json(
       { error: "このメンバーはサークルに参加していません" },
-      { status: 404 }
+      { status: 404 },
     );
   }
 

@@ -61,8 +61,20 @@ export default async function DashboardPage() {
   const hasCircles = circleIds.length > 0;
 
   let feed: FeedItem[] = [];
-  let circles: { id: string; name: string; adminName: string; isPublic: boolean; allowNewMembers: boolean }[] = [];
-  let circleBalances: { circleId: string; circleName: string; balance: number; monthlyExpense: number; allTimeExpense: number }[] = [];
+  let circles: {
+    id: string;
+    name: string;
+    adminName: string;
+    isPublic: boolean;
+    allowNewMembers: boolean;
+  }[] = [];
+  let circleBalances: {
+    circleId: string;
+    circleName: string;
+    balance: number;
+    monthlyExpense: number;
+    allTimeExpense: number;
+  }[] = [];
   let totalBalance = 0;
   let monthlyExpense = 0;
   let dailyExpense = 0;
@@ -96,7 +108,8 @@ export default async function DashboardPage() {
     circles = circlesWithAdmin.map((c) => ({
       id: c.id,
       name: c.name,
-      adminName: c.members[0]?.user?.displayName || c.members[0]?.user?.name || "未設定",
+      adminName:
+        c.members[0]?.user?.displayName || c.members[0]?.user?.name || "未設定",
       isPublic: c.isPublic,
       allowNewMembers: c.allowNewMembers,
     }));
@@ -108,7 +121,15 @@ export default async function DashboardPage() {
       take: 200,
       include: {
         circle: { select: { name: true } },
-        user: { select: { id: true, name: true, displayName: true, email: true, image: true } },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            displayName: true,
+            email: true,
+            image: true,
+          },
+        },
       },
     });
 
@@ -119,7 +140,15 @@ export default async function DashboardPage() {
       take: 200,
       include: {
         circle: { select: { name: true } },
-        user: { select: { id: true, name: true, displayName: true, email: true, image: true } },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            displayName: true,
+            email: true,
+            image: true,
+          },
+        },
       },
     });
 
@@ -130,7 +159,15 @@ export default async function DashboardPage() {
       take: 200,
       include: {
         circle: { select: { name: true } },
-        user: { select: { id: true, name: true, displayName: true, email: true, image: true } },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            displayName: true,
+            email: true,
+            image: true,
+          },
+        },
       },
     });
 
@@ -169,7 +206,9 @@ export default async function DashboardPage() {
     }
 
     // 当日の支出を集計（管理者サークルのみ）JSTの0:00をUTCに変換
-    const startOfToday = new Date(Date.UTC(jstYear, jstMonth, jstDate) - 9 * 60 * 60 * 1000);
+    const startOfToday = new Date(
+      Date.UTC(jstYear, jstMonth, jstDate) - 9 * 60 * 60 * 1000,
+    );
     const dailyExpenseResult = await prisma.expense.aggregate({
       where: {
         circleId: { in: adminCircleIds },
@@ -207,11 +246,18 @@ export default async function DashboardPage() {
     for (const circleId of circleIds) {
       // このサークルの最新スナップショットを取得
       const latestSnapshot = snapshots.find((s) => s.circleId === circleId);
-      const snapshotDate = latestSnapshot ? new Date(latestSnapshot.createdAt) : null;
+      const snapshotDate = latestSnapshot
+        ? new Date(latestSnapshot.createdAt)
+        : null;
       const snapshotAmount = latestSnapshot?.amount || 0;
 
       // スナップショット以降のトランザクションを時系列順に取得
-      type Transaction = { id: string; type: "expense" | "income" | "snapshot"; amount: number; createdAt: Date };
+      type Transaction = {
+        id: string;
+        type: "expense" | "income" | "snapshot";
+        amount: number;
+        createdAt: Date;
+      };
       const transactions: Transaction[] = [];
 
       // スナップショット自体も追加
@@ -245,7 +291,9 @@ export default async function DashboardPage() {
       }
 
       // 時系列順にソート
-      transactions.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+      transactions.sort(
+        (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
+      );
 
       // 残高を計算しながら処理
       let runningBalance = 0;
@@ -316,8 +364,10 @@ export default async function DashboardPage() {
           tags: i.tags,
           createdAt: i.createdAt.toISOString(),
         })),
-    ]
-      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    ].sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    );
 
     // 過去7日分のインサイトをフィードに追加（サークル単位）
     const insights = await prisma.userInsight.findMany({
@@ -345,26 +395,32 @@ export default async function DashboardPage() {
     }));
 
     feed = [...feed, ...insightItems].sort(
-      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
     );
   }
 
   return (
     <div className="flex-1 bg-white flex flex-col min-h-0 overflow-hidden">
-      <Suspense fallback={null}><IOSAuthCallback /></Suspense>
+      <Suspense fallback={null}>
+        <IOSAuthCallback />
+      </Suspense>
       <div className="mx-auto max-w-md flex flex-col flex-1 w-full min-h-0">
         {/* メインコンテンツ */}
         <UnifiedChat
-            initialFeed={feed}
-            circles={circles}
-            circleBalances={circleBalances}
-            currentUserId={userId}
-            userRoles={memberships.map((m) => ({ circleId: m.circleId, role: m.role }))}
-            initialTotalBalance={totalBalance}
-            initialMonthlyExpense={monthlyExpense}
-            initialDailyExpense={dailyExpense}
-            adminCircleIds={adminCircleIds}
-          />
+          initialFeed={feed}
+          circles={circles}
+          circleBalances={circleBalances}
+          currentUserId={userId}
+          userRoles={memberships.map((m) => ({
+            circleId: m.circleId,
+            role: m.role,
+          }))}
+          initialTotalBalance={totalBalance}
+          initialMonthlyExpense={monthlyExpense}
+          initialDailyExpense={dailyExpense}
+          adminCircleIds={adminCircleIds}
+        />
       </div>
     </div>
   );

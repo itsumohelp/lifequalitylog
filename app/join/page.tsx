@@ -177,7 +177,10 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
                   />
                 ) : (
                   <div className="w-12 h-12 flex items-center justify-center text-lg text-slate-500">
-                    {(adminUser.displayName || adminUser.name || "?").slice(0, 1)}
+                    {(adminUser.displayName || adminUser.name || "?").slice(
+                      0,
+                      1,
+                    )}
                   </div>
                 )}
               </div>

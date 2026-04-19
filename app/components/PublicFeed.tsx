@@ -224,7 +224,9 @@ export default function PublicFeed({
   // リアクションをトグル（ログイン時のみ）
   const toggleReaction = async (item: FeedItem, reactionType: ReactionType) => {
     if (!isLoggedIn) {
-      const callbackUrl = encodeURIComponent(window.location.pathname + window.location.search);
+      const callbackUrl = encodeURIComponent(
+        window.location.pathname + window.location.search,
+      );
       window.location.href = `/?callbackUrl=${callbackUrl}`;
       return;
     }
@@ -582,7 +584,8 @@ export default function PublicFeed({
                               type="button"
                               onClick={() => toggleReaction(item, type)}
                               disabled={
-                                (isLoggedIn && (reactionsLoading || !!togglingReaction))
+                                isLoggedIn &&
+                                (reactionsLoading || !!togglingReaction)
                               }
                               className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs transition ${
                                 hasReacted

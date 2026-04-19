@@ -20,7 +20,8 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://crun.click";
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: "CircleRun - サークル支出管理",
-  description: "支出や収入をチャット感覚でサクッと記録。家族・友人・サークルでお金の動きを共有。",
+  description:
+    "支出や収入をチャット感覚でサクッと記録。家族・友人・サークルでお金の動きを共有。",
   openGraph: {
     siteName: "CircleRun",
     type: "website",
@@ -46,7 +47,9 @@ export default async function RootLayout({
       <body className="text-slate-50 bg-slate-50">
         <div className="h-dvh flex flex-col bg-slate-50 overflow-hidden">
           <Header session={session} />
-          <main className="flex-1 bg-slate-50 overflow-auto flex flex-col min-h-0">{children}</main>
+          <main className="flex-1 bg-slate-50 overflow-auto flex flex-col min-h-0">
+            {children}
+          </main>
         </div>
         <CapacitorDeepLink />
       </body>

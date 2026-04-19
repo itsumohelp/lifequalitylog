@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     if (!name || typeof name !== "string" || !name.trim()) {
       return NextResponse.json(
         { error: "サークル名を入力してください" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     if (adminCircleCount >= 5) {
       return NextResponse.json(
         { error: "サークルは5個まで作成できます" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
     if (existingCircle) {
       return NextResponse.json(
         { error: "同じ名前のサークルが既に存在します" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -77,7 +77,7 @@ export async function POST(request: Request) {
     console.error("Circle creation error:", error);
     return NextResponse.json(
       { error: "サークルの作成に失敗しました" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

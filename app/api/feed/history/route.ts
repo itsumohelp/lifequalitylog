@@ -36,7 +36,10 @@ export async function GET(request: NextRequest) {
   const limit = parseInt(searchParams.get("limit") || "20", 10);
 
   if (!circleId) {
-    return NextResponse.json({ error: "circleId is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "circleId is required" },
+      { status: 400 },
+    );
   }
 
   // ユーザーがこのサークルに参加しているか確認
@@ -47,7 +50,10 @@ export async function GET(request: NextRequest) {
   });
 
   if (!membership) {
-    return NextResponse.json({ error: "Not a member of this circle" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Not a member of this circle" },
+      { status: 403 },
+    );
   }
 
   // サークル情報を取得
@@ -71,7 +77,15 @@ export async function GET(request: NextRequest) {
     orderBy: { createdAt: "desc" },
     take: limit + 1, // +1 for checking if there are more
     include: {
-      user: { select: { id: true, name: true, displayName: true, email: true, image: true } },
+      user: {
+        select: {
+          id: true,
+          name: true,
+          displayName: true,
+          email: true,
+          image: true,
+        },
+      },
     },
   });
 
@@ -84,7 +98,15 @@ export async function GET(request: NextRequest) {
     orderBy: { createdAt: "desc" },
     take: limit + 1,
     include: {
-      user: { select: { id: true, name: true, displayName: true, email: true, image: true } },
+      user: {
+        select: {
+          id: true,
+          name: true,
+          displayName: true,
+          email: true,
+          image: true,
+        },
+      },
     },
   });
 
@@ -97,7 +119,15 @@ export async function GET(request: NextRequest) {
     orderBy: { createdAt: "desc" },
     take: limit + 1,
     include: {
-      user: { select: { id: true, name: true, displayName: true, email: true, image: true } },
+      user: {
+        select: {
+          id: true,
+          name: true,
+          displayName: true,
+          email: true,
+          image: true,
+        },
+      },
     },
   });
 
@@ -146,7 +176,9 @@ export async function GET(request: NextRequest) {
       tags: i.tags,
       createdAt: i.createdAt.toISOString(),
     })),
-  ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  ].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
 
   // limitを超える分があるかチェック
   const hasMore = allItems.length > limit;

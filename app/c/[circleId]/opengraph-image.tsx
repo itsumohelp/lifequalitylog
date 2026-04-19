@@ -32,24 +32,26 @@ export default async function Image({ params }: Props) {
   // 非公開または存在しない場合はデフォルト画像
   if (!circle || !circle.isPublic) {
     return new ImageResponse(
-      (
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "#e2e8f0",
-            lineHeight: 1,
-          }}
-        >
-          <span style={{ fontSize: 80, fontWeight: 800, color: "#0f172a" }}>circle</span>
-          <span style={{ fontSize: 80, fontWeight: 800, color: "#0f172a" }}>run</span>
-        </div>
-      ),
-      { ...size }
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#e2e8f0",
+          lineHeight: 1,
+        }}
+      >
+        <span style={{ fontSize: 80, fontWeight: 800, color: "#0f172a" }}>
+          circle
+        </span>
+        <span style={{ fontSize: 80, fontWeight: 800, color: "#0f172a" }}>
+          run
+        </span>
+      </div>,
+      { ...size },
     );
   }
 
@@ -100,144 +102,154 @@ export default async function Image({ params }: Props) {
   const latest = items[0];
 
   return new ImageResponse(
-    (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: "#e2e8f0",
+        padding: "48px 64px",
+      }}
+    >
+      {/* サークル名 + の支出管理（左寄せ） */}
       <div
         style={{
-          width: "100%",
-          height: "100%",
           display: "flex",
-          flexDirection: "column",
-          backgroundColor: "#e2e8f0",
-          padding: "48px 64px",
+          alignItems: "baseline",
+          marginBottom: 24,
         }}
       >
-        {/* サークル名 + の支出管理（左寄せ） */}
+        <span
+          style={{
+            fontSize: 48,
+            fontWeight: 700,
+            color: "#0f172a",
+          }}
+        >
+          {circle.name}
+        </span>
+        <span
+          style={{
+            fontSize: 32,
+            color: "#64748b",
+            marginLeft: 8,
+          }}
+        >
+          の支出管理
+        </span>
+      </div>
+
+      {/* メインコンテンツ（中央寄せ） */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {/* 残高 */}
         <div
           style={{
             display: "flex",
-            alignItems: "baseline",
-            marginBottom: 24,
+            alignItems: "center",
+            gap: 16,
+            marginBottom: 32,
           }}
         >
           <span
             style={{
               fontSize: 48,
+              color: "#64748b",
+            }}
+          >
+            合計
+          </span>
+          <span
+            style={{
+              fontSize: 160,
               fontWeight: 700,
               color: "#0f172a",
             }}
           >
-            {circle.name}
-          </span>
-          <span
-            style={{
-              fontSize: 32,
-              color: "#64748b",
-              marginLeft: 8,
-            }}
-          >
-            の支出管理
+            ¥{formatYen(circle.currentBalance)}
           </span>
         </div>
 
-        {/* メインコンテンツ（中央寄せ） */}
-        <div style={{ display: "flex", flexDirection: "column", flex: 1, alignItems: "center", justifyContent: "center" }}>
-          {/* 残高 */}
+        {/* 最新の取引 */}
+        {latest && (
           <div
             style={{
               display: "flex",
               alignItems: "center",
+              backgroundColor: "#fff",
+              padding: "20px 28px",
+              borderRadius: 16,
+              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
               gap: 16,
-              marginBottom: 32,
             }}
           >
             <span
               style={{
-                fontSize: 48,
+                fontSize: 24,
                 color: "#64748b",
               }}
             >
-              合計
+              最新の収入支出
             </span>
+            {/* 金額 */}
             <span
               style={{
-                fontSize: 160,
+                fontSize: 36,
                 fontWeight: 700,
-                color: "#0f172a",
+                color: latest.type === "expense" ? "#dc2626" : "#16a34a",
               }}
             >
-              ¥{formatYen(circle.currentBalance)}
+              {latest.type === "expense" ? "-" : "+"}¥{formatYen(latest.amount)}
             </span>
+            {/* タグ */}
+            {latest.tags.length > 0 && (
+              <div style={{ display: "flex", gap: 8 }}>
+                {latest.tags.slice(0, 3).map((tag, i) => (
+                  <span
+                    key={i}
+                    style={{
+                      display: "flex",
+                      fontSize: 24,
+                      backgroundColor: "#0ea5e9",
+                      color: "#ffffff",
+                      padding: "6px 18px",
+                      borderRadius: 9999,
+                    }}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
-
-          {/* 最新の取引 */}
-          {latest && (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                backgroundColor: "#fff",
-                padding: "20px 28px",
-                borderRadius: 16,
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                gap: 16,
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 24,
-                  color: "#64748b",
-                }}
-              >
-                最新の収入支出
-              </span>
-              {/* 金額 */}
-              <span
-                style={{
-                  fontSize: 36,
-                  fontWeight: 700,
-                  color: latest.type === "expense" ? "#dc2626" : "#16a34a",
-                }}
-              >
-                {latest.type === "expense" ? "-" : "+"}¥{formatYen(latest.amount)}
-              </span>
-              {/* タグ */}
-              {latest.tags.length > 0 && (
-                <div style={{ display: "flex", gap: 8 }}>
-                  {latest.tags.slice(0, 3).map((tag, i) => (
-                    <span
-                      key={i}
-                      style={{
-                        display: "flex",
-                        fontSize: 24,
-                        backgroundColor: "#0ea5e9",
-                        color: "#ffffff",
-                        padding: "6px 18px",
-                        borderRadius: 9999,
-                      }}
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* フッター: ロゴ */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-end",
-            lineHeight: 1,
-          }}
-        >
-          <span style={{ fontSize: 28, fontWeight: 800, color: "#0f172a" }}>circle</span>
-          <span style={{ fontSize: 28, fontWeight: 800, color: "#0f172a" }}>run</span>
-        </div>
+        )}
       </div>
-    ),
-    { ...size }
+
+      {/* フッター: ロゴ */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-end",
+          lineHeight: 1,
+        }}
+      >
+        <span style={{ fontSize: 28, fontWeight: 800, color: "#0f172a" }}>
+          circle
+        </span>
+        <span style={{ fontSize: 28, fontWeight: 800, color: "#0f172a" }}>
+          run
+        </span>
+      </div>
+    </div>,
+    { ...size },
   );
 }

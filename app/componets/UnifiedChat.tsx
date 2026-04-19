@@ -35,7 +35,15 @@ type ShortcutItem = {
 
 type FeedItem = {
   id: string;
-  kind: "snapshot" | "expense" | "income" | "summary" | "invite" | "help" | "notice" | "insight";
+  kind:
+    | "snapshot"
+    | "expense"
+    | "income"
+    | "summary"
+    | "invite"
+    | "help"
+    | "notice"
+    | "insight";
   circleId: string;
   circleName?: string;
   userId: string;
@@ -133,7 +141,6 @@ function isLocalStorageAvailable(): boolean {
 }
 const TIMELINE_VALUE = "__timeline__";
 
-
 export default function UnifiedChat({
   initialFeed,
   circles,
@@ -188,8 +195,13 @@ export default function UnifiedChat({
   const [circlesState, setCirclesState] = useState<Circle[]>(circles);
   const [togglingPublic, setTogglingPublic] = useState(false);
   const [isInsightLoading, setIsInsightLoading] = useState(false);
-  const [insightDialog, setInsightDialog] = useState<{ text: string; circleName: string; createdAt: string } | null>(null);
-  const [showInsightConsentDialog, setShowInsightConsentDialog] = useState(false);
+  const [insightDialog, setInsightDialog] = useState<{
+    text: string;
+    circleName: string;
+    createdAt: string;
+  } | null>(null);
+  const [showInsightConsentDialog, setShowInsightConsentDialog] =
+    useState(false);
   const pendingInsightCircleIdRef = useRef<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -198,45 +210,49 @@ export default function UnifiedChat({
   const selectedCircle = circlesState.find((c) => c.id === selectedCircleId);
 
   // AIインサイト問い合わせ
-  const runInsight = useCallback(async (circleId: string, circleName: string) => {
-    if (isInsightLoading) return;
-    setIsInsightLoading(true);
-    try {
-      const res = await fetch("/api/insight", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ circleId }),
-      });
-      if (!res.ok) {
+  const runInsight = useCallback(
+    async (circleId: string, circleName: string) => {
+      if (isInsightLoading) return;
+      setIsInsightLoading(true);
+      try {
+        const res = await fetch("/api/insight", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ circleId }),
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          setError(data.error || "AIインサイトの取得に失敗しました");
+          return;
+        }
         const data = await res.json();
-        setError(data.error || "AIインサイトの取得に失敗しました");
-        return;
+        const newItem: FeedItem = {
+          id: `insight-${data.id}`,
+          kind: "insight",
+          circleId,
+          circleName,
+          userId: "",
+          userName: "",
+          userImage: null,
+          amount: 0,
+          insightText: data.insight,
+          createdAt: data.generatedAt,
+        };
+        setFeed((prev) => {
+          if (prev.some((item) => item.id === newItem.id)) return prev;
+          return [...prev, newItem].sort(
+            (a, b) =>
+              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+          );
+        });
+      } catch {
+        setError("AIインサイトの取得に失敗しました");
+      } finally {
+        setIsInsightLoading(false);
       }
-      const data = await res.json();
-      const newItem: FeedItem = {
-        id: `insight-${data.id}`,
-        kind: "insight",
-        circleId,
-        circleName,
-        userId: "",
-        userName: "",
-        userImage: null,
-        amount: 0,
-        insightText: data.insight,
-        createdAt: data.generatedAt,
-      };
-      setFeed((prev) => {
-        if (prev.some((item) => item.id === newItem.id)) return prev;
-        return [...prev, newItem].sort(
-          (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        );
-      });
-    } catch {
-      setError("AIインサイトの取得に失敗しました");
-    } finally {
-      setIsInsightLoading(false);
-    }
-  }, [isInsightLoading]);
+    },
+    [isInsightLoading],
+  );
 
   // シェアボタン処理 → メニューを開く
   const handleShare = () => {
@@ -255,7 +271,11 @@ export default function UnifiedChat({
     if (navigator.share) {
       navigator.share({ url });
     } else {
-      window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}`, "_blank", "noopener,noreferrer");
+      window.open(
+        `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}`,
+        "_blank",
+        "noopener,noreferrer",
+      );
     }
     setShowShareMenuDialog(false);
   };
@@ -606,7 +626,9 @@ export default function UnifiedChat({
     if (isTagging) return;
 
     const id = item.id.replace("expense-", "");
-    const updatedAutoTags = (item.autoTags || []).filter((t) => t !== tagToRemove);
+    const updatedAutoTags = (item.autoTags || []).filter(
+      (t) => t !== tagToRemove,
+    );
 
     setIsTagging(true);
     try {
@@ -618,10 +640,14 @@ export default function UnifiedChat({
 
       if (res.ok) {
         setFeed((prev) =>
-          prev.map((f) => (f.id === item.id ? { ...f, autoTags: updatedAutoTags } : f)),
+          prev.map((f) =>
+            f.id === item.id ? { ...f, autoTags: updatedAutoTags } : f,
+          ),
         );
         setSelectedItem((prev) =>
-          prev && prev.id === item.id ? { ...prev, autoTags: updatedAutoTags } : prev,
+          prev && prev.id === item.id
+            ? { ...prev, autoTags: updatedAutoTags }
+            : prev,
         );
       } else {
         const data = await res.json();
@@ -652,7 +678,15 @@ export default function UnifiedChat({
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!data?.notices?.length) return;
-        const items: FeedItem[] = (data.notices as { id: string; title: string; body: string | null; link: string | null; createdAt: string }[]).map((n) => ({
+        const items: FeedItem[] = (
+          data.notices as {
+            id: string;
+            title: string;
+            body: string | null;
+            link: string | null;
+            createdAt: string;
+          }[]
+        ).map((n) => ({
           id: `notice-${n.id}`,
           kind: "notice" as const,
           circleId: "",
@@ -672,7 +706,7 @@ export default function UnifiedChat({
         ]);
       })
       .catch((e) => console.error("Failed to fetch notices:", e));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -1117,9 +1151,19 @@ export default function UnifiedChat({
   // フィルタリング（タイムライン時はお知らせ＋全サークル、それ以外は選択サークルのみ）
   const filteredFeed = isTimeline
     ? filterNoticesOnly
-      ? feed.filter((item) => item.kind === "notice").sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-      : [...feed].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-    : feed.filter((item) => item.kind !== "notice" && item.circleId === filterCircleId);
+      ? feed
+          .filter((item) => item.kind === "notice")
+          .sort(
+            (a, b) =>
+              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+          )
+      : [...feed].sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+        )
+    : feed.filter(
+        (item) => item.kind !== "notice" && item.circleId === filterCircleId,
+      );
 
   // 選択中サークルの直近30日間の残高推移データ（チャート用）
   const miniChartData = useMemo((): BalanceDataPoint[] => {
@@ -1337,612 +1381,683 @@ export default function UnifiedChat({
 
       {/* フィード表示 */}
       <div className="flex-1 relative min-h-0 overflow-hidden">
-      {/* タイムライン時：お知らせフィルタ ベルアイコン（左下） */}
-      {isTimeline && (
-        <button
-          type="button"
-          onClick={() => setFilterNoticesOnly((v) => !v)}
-          title={filterNoticesOnly ? "全て表示" : "お知らせのみ表示"}
-          className={`absolute bottom-3 left-3 z-10 w-10 h-10 rounded-full flex items-center justify-center transition ${
-            filterNoticesOnly
-              ? "bg-sky-500/80 text-white"
-              : "bg-black/20 text-slate-600"
-          }`}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-          </svg>
-        </button>
-      )}
-      <div
-        ref={scrollRef}
-        className="absolute inset-0 overflow-y-auto px-3 py-1 space-y-1 bg-slate-50"
-      >
-        {/* 以前の実績を取得ボタン（特定ウォレット表示時のみ） */}
-        {filterCircleId && hasMoreHistory[filterCircleId] !== false && (
-          <div className="flex justify-center mb-4">
-            <button
-              type="button"
-              onClick={() => loadHistory(filterCircleId)}
-              disabled={isLoadingHistory}
-              className="text-xs text-slate-600 bg-white px-4 py-2 rounded-full border border-slate-300 hover:bg-slate-100 transition disabled:opacity-50"
+        {/* タイムライン時：お知らせフィルタ ベルアイコン（左下） */}
+        {isTimeline && (
+          <button
+            type="button"
+            onClick={() => setFilterNoticesOnly((v) => !v)}
+            title={filterNoticesOnly ? "全て表示" : "お知らせのみ表示"}
+            className={`absolute bottom-3 left-3 z-10 w-10 h-10 rounded-full flex items-center justify-center transition ${
+              filterNoticesOnly
+                ? "bg-sky-500/80 text-white"
+                : "bg-black/20 text-slate-600"
+            }`}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             >
-              {isLoadingHistory ? "読み込み中..." : "以前の実績を取得"}
-            </button>
-          </div>
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+          </button>
         )}
+        <div
+          ref={scrollRef}
+          className="absolute inset-0 overflow-y-auto px-3 py-1 space-y-1 bg-slate-50"
+        >
+          {/* 以前の実績を取得ボタン（特定ウォレット表示時のみ） */}
+          {filterCircleId && hasMoreHistory[filterCircleId] !== false && (
+            <div className="flex justify-center mb-4">
+              <button
+                type="button"
+                onClick={() => loadHistory(filterCircleId)}
+                disabled={isLoadingHistory}
+                className="text-xs text-slate-600 bg-white px-4 py-2 rounded-full border border-slate-300 hover:bg-slate-100 transition disabled:opacity-50"
+              >
+                {isLoadingHistory ? "読み込み中..." : "以前の実績を取得"}
+              </button>
+            </div>
+          )}
 
-        {filteredFeed.length === 0 ? (
-          <div className="text-center text-slate-500 mt-8">
-            <p className="mb-2">最近の記録がありません</p>
-            <p className="text-sm">支出や残高を入力してください</p>
-          </div>
-        ) : (
-          Object.entries(groupedFeed).map(([date, items]) => (
-            <div key={date}>
-              {/* 日付ヘッダー */}
-              <div className="flex justify-center mb-0.5">
-                <span className="text-xs text-slate-500 bg-white px-3 py-1 rounded-full border border-slate-200">
-                  {date}
-                </span>
-              </div>
+          {filteredFeed.length === 0 ? (
+            <div className="text-center text-slate-500 mt-8">
+              <p className="mb-2">最近の記録がありません</p>
+              <p className="text-sm">支出や残高を入力してください</p>
+            </div>
+          ) : (
+            Object.entries(groupedFeed).map(([date, items]) => (
+              <div key={date}>
+                {/* 日付ヘッダー */}
+                <div className="flex justify-center mb-0.5">
+                  <span className="text-xs text-slate-500 bg-white px-3 py-1 rounded-full border border-slate-200">
+                    {date}
+                  </span>
+                </div>
 
-              {/* その日のアイテム */}
-              <div className="space-y-0.5">
-                {items.map((item, idx) => {
-                  const isOwnMessage = item.kind !== "insight" && item.userId === currentUserId;
-                  const prevItem = idx > 0 ? items[idx - 1] : null;
-                  const isSameUserAsPrev =
-                    prevItem && prevItem.userId === item.userId;
+                {/* その日のアイテム */}
+                <div className="space-y-0.5">
+                  {items.map((item, idx) => {
+                    const isOwnMessage =
+                      item.kind !== "insight" && item.userId === currentUserId;
+                    const prevItem = idx > 0 ? items[idx - 1] : null;
+                    const isSameUserAsPrev =
+                      prevItem && prevItem.userId === item.userId;
 
-                  return (
-                    <div
-                      key={item.id}
-                      className={`flex items-start gap-2 ${
-                        isOwnMessage ? "flex-row-reverse" : ""
-                      }`}
-                    >
-                      {/* ユーザーアイコン（連続投稿時は非表示） */}
-                      {isSameUserAsPrev ? (
-                        <div className="w-8 flex-shrink-0" />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
-                          {item.userImage ? (
-                            <Image
-                              src={item.userImage}
-                              alt={item.userName}
-                              width={32}
-                              height={32}
-                              className="w-8 h-8 object-cover"
-                            />
-                          ) : (
+                    return (
+                      <div
+                        key={item.id}
+                        className={`flex items-start gap-2 ${
+                          isOwnMessage ? "flex-row-reverse" : ""
+                        }`}
+                      >
+                        {/* ユーザーアイコン（連続投稿時は非表示） */}
+                        {isSameUserAsPrev ? (
+                          <div className="w-8 flex-shrink-0" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                            {item.userImage ? (
+                              <Image
+                                src={item.userImage}
+                                alt={item.userName}
+                                width={32}
+                                height={32}
+                                className="w-8 h-8 object-cover"
+                              />
+                            ) : (
+                              <div
+                                className="w-8 h-8 flex items-center justify-center text-xs text-white font-medium"
+                                style={{
+                                  backgroundColor:
+                                    item.kind === "insight"
+                                      ? "#0ea5e9"
+                                      : getAvatarColor(item.userId),
+                                }}
+                              >
+                                {item.kind === "insight"
+                                  ? "AI"
+                                  : getAvatarInitial(item.userName)}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* メッセージ部分 */}
+                        <div
+                          className={`max-w-full ${isOwnMessage ? "items-end" : ""}`}
+                        >
+                          {/* 投稿者名（バブルの上、連続投稿時は非表示） */}
+                          {!isSameUserAsPrev && (
                             <div
-                              className="w-8 h-8 flex items-center justify-center text-xs text-white font-medium"
-                              style={{
-                                backgroundColor: item.kind === "insight" ? "#0ea5e9" : getAvatarColor(item.userId),
-                              }}
+                              className={`text-[10px] text-slate-500 mb-0.5 ${
+                                isOwnMessage ? "text-right" : ""
+                              }`}
                             >
-                              {item.kind === "insight" ? "AI" : getAvatarInitial(item.userName)}
+                              {item.kind === "insight" ? "AI" : item.userName}
+                            </div>
+                          )}
+
+                          {/* メッセージバブル */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (item.kind === "insight") {
+                                setInsightDialog({
+                                  text: item.insightText ?? "",
+                                  circleName: item.circleName ?? "",
+                                  createdAt: item.createdAt,
+                                });
+                              } else {
+                                setSelectedItem(item);
+                              }
+                            }}
+                            className={`rounded-2xl px-3 py-1.5 text-left w-full ${
+                              isOwnMessage
+                                ? "bg-slate-900 text-white rounded-tr-sm"
+                                : "bg-white border border-slate-200 rounded-tl-sm"
+                            } active:opacity-80 transition-opacity`}
+                          >
+                            {/* サークル名 + 時刻（バブル内上部） */}
+                            <div className="flex items-center gap-2 mb-1">
+                              <span
+                                className={`text-xs ${item.kind === "notice" ? "font-bold" : "font-medium"} ${
+                                  isOwnMessage
+                                    ? "text-slate-300"
+                                    : "text-slate-700"
+                                }`}
+                              >
+                                {item.kind === "notice" ? (
+                                  `📣 ${item.noticeTitle}`
+                                ) : item.kind === "insight" ? (
+                                  <>
+                                    {item.circleName && (
+                                      <span className="text-sky-500">
+                                        {item.circleName}
+                                      </span>
+                                    )}
+                                    {item.circleName ? "  " : ""}AI インサイト
+                                  </>
+                                ) : (
+                                  item.circleName || "（名前なし）"
+                                )}
+                              </span>
+                              <span
+                                className={`text-[10px] ${
+                                  isOwnMessage
+                                    ? "text-slate-500"
+                                    : "text-slate-400"
+                                }`}
+                              >
+                                {formatTime(item.createdAt)}
+                              </span>
+                            </div>
+
+                            {item.kind === "expense" ? (
+                              <>
+                                {/* カテゴリ絵文字 + 金額 + 累計 + タグバッジ */}
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <TwemojiImg
+                                    emoji={getCategoryEmoji(
+                                      (item.category ||
+                                        "OTHER") as ExpenseCategory,
+                                    )}
+                                    size={16}
+                                  />
+                                  <span
+                                    className={`font-semibold text-sm ${
+                                      isOwnMessage
+                                        ? "text-red-300"
+                                        : "text-red-600"
+                                    }`}
+                                  >
+                                    ¥{formatYen(item.amount)}
+                                  </span>
+                                  {item.circleBalanceAfter !== undefined && (
+                                    <span
+                                      className={`text-xs ${
+                                        isOwnMessage
+                                          ? "text-slate-400"
+                                          : "text-slate-500"
+                                      }`}
+                                    >
+                                      (¥{formatYen(item.circleBalanceAfter)})
+                                    </span>
+                                  )}
+                                  {item.tags && item.tags.length > 0 && (
+                                    <>
+                                      {item.tags.map((tag, idx) => (
+                                        <span
+                                          key={idx}
+                                          className={`text-[10px] px-2 py-0.5 rounded-full ${
+                                            isOwnMessage
+                                              ? "bg-sky-600 text-sky-100"
+                                              : "bg-sky-100 text-sky-700"
+                                          }`}
+                                        >
+                                          {tag}
+                                        </span>
+                                      ))}
+                                    </>
+                                  )}
+                                  {item.autoTags &&
+                                    item.autoTags.length > 0 && (
+                                      <>
+                                        {item.autoTags.map((tag, idx) => (
+                                          <span
+                                            key={`auto-${idx}`}
+                                            className="inline-flex items-center gap-0.5 text-[10px] px-2 py-0.5 rounded-full bg-amber-500 text-white"
+                                            title="自動タグ"
+                                          >
+                                            ✦ {tag}
+                                          </span>
+                                        ))}
+                                      </>
+                                    )}
+                                </div>
+                              </>
+                            ) : item.kind === "income" ? (
+                              <>
+                                {/* 収入 */}
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="text-sm">💰</span>
+                                  <span
+                                    className={`font-semibold text-sm ${
+                                      isOwnMessage
+                                        ? "text-emerald-300"
+                                        : "text-emerald-600"
+                                    }`}
+                                  >
+                                    +¥{formatYen(item.amount)}
+                                  </span>
+                                  {item.tags && item.tags.length > 0 && (
+                                    <>
+                                      {item.tags.map((tag, idx) => (
+                                        <span
+                                          key={idx}
+                                          className={`text-[10px] px-2 py-0.5 rounded-full ${
+                                            isOwnMessage
+                                              ? "bg-emerald-600 text-emerald-100"
+                                              : "bg-emerald-100 text-emerald-700"
+                                          }`}
+                                        >
+                                          {tag}
+                                        </span>
+                                      ))}
+                                    </>
+                                  )}
+                                </div>
+                              </>
+                            ) : item.kind === "invite" ? (
+                              <>
+                                {/* 招待リンク */}
+                                <div className="text-xs font-medium mb-1">
+                                  📨 招待リンクをコピーしました
+                                </div>
+                                <div
+                                  className={`text-[10px] break-all ${
+                                    isOwnMessage
+                                      ? "text-slate-400"
+                                      : "text-slate-500"
+                                  }`}
+                                >
+                                  {item.inviteUrl}
+                                </div>
+                              </>
+                            ) : item.kind === "summary" ? (
+                              <>
+                                {/* 全期間集計 */}
+                                <div className="text-xs font-medium mb-2">
+                                  📊 全期間のタグ別集計
+                                </div>
+                                {item.allTimeSummaryData &&
+                                item.allTimeSummaryData.length > 0 ? (
+                                  <div className="space-y-1.5 mb-4">
+                                    {item.allTimeSummaryData.map((s, idx) => (
+                                      <div
+                                        key={idx}
+                                        className={`flex items-center justify-between text-xs ${
+                                          isOwnMessage
+                                            ? "text-slate-200"
+                                            : "text-slate-700"
+                                        }`}
+                                      >
+                                        <span
+                                          className={`px-2 py-0.5 rounded-full ${
+                                            isOwnMessage
+                                              ? "bg-sky-600 text-sky-100"
+                                              : "bg-sky-100 text-sky-700"
+                                          }`}
+                                        >
+                                          {s.tag}
+                                        </span>
+                                        <span
+                                          className={`font-medium ${
+                                            isOwnMessage
+                                              ? "text-red-300"
+                                              : "text-red-600"
+                                          }`}
+                                        >
+                                          -¥{formatYen(s.total)}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div
+                                    className={`text-[10px] mb-4 ${
+                                      isOwnMessage
+                                        ? "text-slate-400"
+                                        : "text-slate-500"
+                                    }`}
+                                  >
+                                    タグ付き支出がありません
+                                  </div>
+                                )}
+
+                                {/* 今月分集計 */}
+                                <div className="text-xs font-medium mb-2">
+                                  📅 今月のタグ別集計
+                                </div>
+                                {item.monthlySummaryData &&
+                                item.monthlySummaryData.length > 0 ? (
+                                  <div className="space-y-1.5">
+                                    {item.monthlySummaryData.map((s, idx) => (
+                                      <div
+                                        key={idx}
+                                        className={`flex items-center justify-between text-xs ${
+                                          isOwnMessage
+                                            ? "text-slate-200"
+                                            : "text-slate-700"
+                                        }`}
+                                      >
+                                        <span
+                                          className={`px-2 py-0.5 rounded-full ${
+                                            isOwnMessage
+                                              ? "bg-emerald-600 text-emerald-100"
+                                              : "bg-emerald-100 text-emerald-700"
+                                          }`}
+                                        >
+                                          {s.tag}
+                                        </span>
+                                        <span
+                                          className={`font-medium ${
+                                            isOwnMessage
+                                              ? "text-red-300"
+                                              : "text-red-600"
+                                          }`}
+                                        >
+                                          -¥{formatYen(s.total)}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div
+                                    className={`text-[10px] ${
+                                      isOwnMessage
+                                        ? "text-slate-400"
+                                        : "text-slate-500"
+                                    }`}
+                                  >
+                                    今月のタグ付き支出がありません
+                                  </div>
+                                )}
+                              </>
+                            ) : item.kind === "notice" ? (
+                              <>
+                                {/* 運営からのお知らせ（タイトルはヘッダー行に表示済み） */}
+                                {item.noticeBody && (
+                                  <p className="text-[11px] text-slate-500 whitespace-pre-wrap leading-relaxed">
+                                    {item.noticeBody}
+                                  </p>
+                                )}
+                                {item.noticeLink && (
+                                  <a
+                                    href={item.noticeLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="inline-flex items-center gap-1 mt-1.5 text-[11px] text-sky-500 underline"
+                                  >
+                                    🔗 詳細を見る
+                                  </a>
+                                )}
+                              </>
+                            ) : item.kind === "help" ? (
+                              <>
+                                {/* ショートカット一覧 */}
+                                <div className="text-xs font-medium mb-2">
+                                  📋 ショートカット一覧
+                                </div>
+                                {item.shortcuts &&
+                                  item.shortcuts.length > 0 && (
+                                    <div className="space-y-2">
+                                      {item.shortcuts.map((shortcut, idx) => (
+                                        <div
+                                          key={idx}
+                                          className={`text-xs ${
+                                            isOwnMessage
+                                              ? "text-slate-200"
+                                              : "text-slate-700"
+                                          }`}
+                                        >
+                                          <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+                                            <span
+                                              className={`font-medium px-1.5 py-0.5 rounded ${
+                                                isOwnMessage
+                                                  ? "bg-slate-600 text-slate-100"
+                                                  : "bg-slate-200 text-slate-800"
+                                              }`}
+                                            >
+                                              {shortcut.command}
+                                            </span>
+                                            {shortcut.aliases
+                                              .slice(0, 2)
+                                              .map((alias, aliasIdx) => (
+                                                <span
+                                                  key={aliasIdx}
+                                                  className={`text-[10px] ${
+                                                    isOwnMessage
+                                                      ? "text-slate-400"
+                                                      : "text-slate-500"
+                                                  }`}
+                                                >
+                                                  {alias}
+                                                </span>
+                                              ))}
+                                          </div>
+                                          <div
+                                            className={`text-[10px] ${
+                                              isOwnMessage
+                                                ? "text-slate-400"
+                                                : "text-slate-500"
+                                            }`}
+                                          >
+                                            {shortcut.description}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                              </>
+                            ) : item.kind === "insight" ? (
+                              <>
+                                {/* AIインサイト */}
+                                <p className="text-sm text-slate-800 font-medium leading-snug">
+                                  {(item.insightText ?? "").length > 50 ? (
+                                    <>
+                                      {(item.insightText ?? "").slice(0, 50)}
+                                      <span className="text-sky-500 text-xs ml-1">
+                                        続きを読む
+                                      </span>
+                                    </>
+                                  ) : (
+                                    item.insightText
+                                  )}
+                                </p>
+                                <p className="text-[10px] text-slate-400 mt-1">
+                                  AI による直近2週間の傾向分析
+                                </p>
+                              </>
+                            ) : (
+                              <>
+                                {/* 残高スナップショット */}
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span
+                                    className={`font-semibold text-sm ${
+                                      isOwnMessage
+                                        ? "text-white"
+                                        : "text-slate-900"
+                                    }`}
+                                  >
+                                    ¥{formatYen(item.amount)}
+                                  </span>
+                                  {item.snapshotDiff !== undefined && (
+                                    <span
+                                      className={`text-xs ${
+                                        isOwnMessage
+                                          ? "text-slate-400"
+                                          : "text-slate-500"
+                                      }`}
+                                    >
+                                      {item.snapshotDiff === null
+                                        ? "(-)"
+                                        : item.snapshotDiff >= 0
+                                          ? `(+¥${formatYen(item.snapshotDiff)})`
+                                          : `(-¥${formatYen(Math.abs(item.snapshotDiff))})`}
+                                    </span>
+                                  )}
+                                </div>
+                                {item.note && (
+                                  <p
+                                    className={`text-[10px] mt-0.5 ${
+                                      isOwnMessage
+                                        ? "text-slate-300"
+                                        : "text-slate-600"
+                                    }`}
+                                  >
+                                    {item.note}
+                                  </p>
+                                )}
+                              </>
+                            )}
+                          </button>
+
+                          {/* リアクションボタン（expense, income, snapshot, notice） */}
+                          {(item.kind === "expense" ||
+                            item.kind === "income" ||
+                            item.kind === "snapshot" ||
+                            item.kind === "notice") && (
+                            <div
+                              className={`flex items-center gap-1 mt-1 ${
+                                isOwnMessage ? "justify-end" : "justify-start"
+                              }`}
+                            >
+                              {(
+                                [
+                                  "CHECK",
+                                  "GOOD",
+                                  "BAD",
+                                  "DOGEZA",
+                                ] as ReactionType[]
+                              ).map((type) => {
+                                const itemKey = `${item.kind}:${item.id.replace(`${item.kind}-`, "")}`;
+                                const reactionData = reactions[itemKey];
+                                const count = reactionData?.counts[type] || 0;
+                                const hasReacted =
+                                  reactionData?.userReactions.includes(type);
+                                const isToggling =
+                                  togglingReaction === `${item.id}:${type}`;
+                                const emoji =
+                                  type === "CHECK"
+                                    ? "✅"
+                                    : type === "GOOD"
+                                      ? "👍"
+                                      : type === "BAD"
+                                        ? "👎"
+                                        : "🙇";
+
+                                return (
+                                  <button
+                                    key={type}
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleReaction(item, type);
+                                    }}
+                                    disabled={
+                                      reactionsLoading || !!togglingReaction
+                                    }
+                                    className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs transition ${
+                                      hasReacted
+                                        ? "bg-slate-700 text-white"
+                                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                    } ${reactionsLoading || isToggling ? "opacity-50" : ""}`}
+                                  >
+                                    <TwemojiImg emoji={emoji} size={14} />
+                                    {count > 0 && (
+                                      <span className="text-[10px] min-w-[12px] text-center">
+                                        {count}
+                                      </span>
+                                    )}
+                                  </button>
+                                );
+                              })}
                             </div>
                           )}
                         </div>
-                      )}
-
-                      {/* メッセージ部分 */}
-                      <div
-                        className={`max-w-full ${isOwnMessage ? "items-end" : ""}`}
-                      >
-                        {/* 投稿者名（バブルの上、連続投稿時は非表示） */}
-                        {!isSameUserAsPrev && (
-                          <div
-                            className={`text-[10px] text-slate-500 mb-0.5 ${
-                              isOwnMessage ? "text-right" : ""
-                            }`}
-                          >
-                            {item.kind === "insight" ? "AI" : item.userName}
-                          </div>
-                        )}
-
-                        {/* メッセージバブル */}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (item.kind === "insight") {
-                              setInsightDialog({ text: item.insightText ?? "", circleName: item.circleName ?? "", createdAt: item.createdAt });
-                            } else {
-                              setSelectedItem(item);
-                            }
-                          }}
-                          className={`rounded-2xl px-3 py-1.5 text-left w-full ${
-                            isOwnMessage
-                              ? "bg-slate-900 text-white rounded-tr-sm"
-                              : "bg-white border border-slate-200 rounded-tl-sm"
-                          } active:opacity-80 transition-opacity`}
-                        >
-                          {/* サークル名 + 時刻（バブル内上部） */}
-                          <div className="flex items-center gap-2 mb-1">
-                            <span
-                              className={`text-xs ${item.kind === "notice" ? "font-bold" : "font-medium"} ${
-                                isOwnMessage
-                                  ? "text-slate-300"
-                                  : "text-slate-700"
-                              }`}
-                            >
-                              {item.kind === "notice"
-                                ? `📣 ${item.noticeTitle}`
-                                : item.kind === "insight"
-                                ? (<>{item.circleName && <span className="text-sky-500">{item.circleName}</span>}{item.circleName ? "  " : ""}AI インサイト</>)
-                                : item.circleName || "（名前なし）"}
-                            </span>
-                            <span
-                              className={`text-[10px] ${
-                                isOwnMessage
-                                  ? "text-slate-500"
-                                  : "text-slate-400"
-                              }`}
-                            >
-                              {formatTime(item.createdAt)}
-                            </span>
-                          </div>
-
-                          {item.kind === "expense" ? (
-                            <>
-                              {/* カテゴリ絵文字 + 金額 + 累計 + タグバッジ */}
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <TwemojiImg
-                                  emoji={getCategoryEmoji(
-                                    (item.category ||
-                                      "OTHER") as ExpenseCategory,
-                                  )}
-                                  size={16}
-                                />
-                                <span
-                                  className={`font-semibold text-sm ${
-                                    isOwnMessage
-                                      ? "text-red-300"
-                                      : "text-red-600"
-                                  }`}
-                                >
-                                  ¥{formatYen(item.amount)}
-                                </span>
-                                {item.circleBalanceAfter !== undefined && (
-                                  <span
-                                    className={`text-xs ${
-                                      isOwnMessage
-                                        ? "text-slate-400"
-                                        : "text-slate-500"
-                                    }`}
-                                  >
-                                    (¥{formatYen(item.circleBalanceAfter)})
-                                  </span>
-                                )}
-                                {item.tags && item.tags.length > 0 && (
-                                  <>
-                                    {item.tags.map((tag, idx) => (
-                                      <span
-                                        key={idx}
-                                        className={`text-[10px] px-2 py-0.5 rounded-full ${
-                                          isOwnMessage
-                                            ? "bg-sky-600 text-sky-100"
-                                            : "bg-sky-100 text-sky-700"
-                                        }`}
-                                      >
-                                        {tag}
-                                      </span>
-                                    ))}
-                                  </>
-                                )}
-                                {item.autoTags && item.autoTags.length > 0 && (
-                                  <>
-                                    {item.autoTags.map((tag, idx) => (
-                                      <span
-                                        key={`auto-${idx}`}
-                                        className="inline-flex items-center gap-0.5 text-[10px] px-2 py-0.5 rounded-full bg-amber-500 text-white"
-                                        title="自動タグ"
-                                      >
-                                        ✦ {tag}
-                                      </span>
-                                    ))}
-                                  </>
-                                )}
-                              </div>
-                            </>
-                          ) : item.kind === "income" ? (
-                            <>
-                              {/* 収入 */}
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className="text-sm">💰</span>
-                                <span
-                                  className={`font-semibold text-sm ${
-                                    isOwnMessage
-                                      ? "text-emerald-300"
-                                      : "text-emerald-600"
-                                  }`}
-                                >
-                                  +¥{formatYen(item.amount)}
-                                </span>
-                                {item.tags && item.tags.length > 0 && (
-                                  <>
-                                    {item.tags.map((tag, idx) => (
-                                      <span
-                                        key={idx}
-                                        className={`text-[10px] px-2 py-0.5 rounded-full ${
-                                          isOwnMessage
-                                            ? "bg-emerald-600 text-emerald-100"
-                                            : "bg-emerald-100 text-emerald-700"
-                                        }`}
-                                      >
-                                        {tag}
-                                      </span>
-                                    ))}
-                                  </>
-                                )}
-                              </div>
-                            </>
-                          ) : item.kind === "invite" ? (
-                            <>
-                              {/* 招待リンク */}
-                              <div className="text-xs font-medium mb-1">
-                                📨 招待リンクをコピーしました
-                              </div>
-                              <div
-                                className={`text-[10px] break-all ${
-                                  isOwnMessage
-                                    ? "text-slate-400"
-                                    : "text-slate-500"
-                                }`}
-                              >
-                                {item.inviteUrl}
-                              </div>
-                            </>
-                          ) : item.kind === "summary" ? (
-                            <>
-                              {/* 全期間集計 */}
-                              <div className="text-xs font-medium mb-2">
-                                📊 全期間のタグ別集計
-                              </div>
-                              {item.allTimeSummaryData &&
-                              item.allTimeSummaryData.length > 0 ? (
-                                <div className="space-y-1.5 mb-4">
-                                  {item.allTimeSummaryData.map((s, idx) => (
-                                    <div
-                                      key={idx}
-                                      className={`flex items-center justify-between text-xs ${
-                                        isOwnMessage
-                                          ? "text-slate-200"
-                                          : "text-slate-700"
-                                      }`}
-                                    >
-                                      <span
-                                        className={`px-2 py-0.5 rounded-full ${
-                                          isOwnMessage
-                                            ? "bg-sky-600 text-sky-100"
-                                            : "bg-sky-100 text-sky-700"
-                                        }`}
-                                      >
-                                        {s.tag}
-                                      </span>
-                                      <span
-                                        className={`font-medium ${
-                                          isOwnMessage
-                                            ? "text-red-300"
-                                            : "text-red-600"
-                                        }`}
-                                      >
-                                        -¥{formatYen(s.total)}
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <div
-                                  className={`text-[10px] mb-4 ${
-                                    isOwnMessage
-                                      ? "text-slate-400"
-                                      : "text-slate-500"
-                                  }`}
-                                >
-                                  タグ付き支出がありません
-                                </div>
-                              )}
-
-                              {/* 今月分集計 */}
-                              <div className="text-xs font-medium mb-2">
-                                📅 今月のタグ別集計
-                              </div>
-                              {item.monthlySummaryData &&
-                              item.monthlySummaryData.length > 0 ? (
-                                <div className="space-y-1.5">
-                                  {item.monthlySummaryData.map((s, idx) => (
-                                    <div
-                                      key={idx}
-                                      className={`flex items-center justify-between text-xs ${
-                                        isOwnMessage
-                                          ? "text-slate-200"
-                                          : "text-slate-700"
-                                      }`}
-                                    >
-                                      <span
-                                        className={`px-2 py-0.5 rounded-full ${
-                                          isOwnMessage
-                                            ? "bg-emerald-600 text-emerald-100"
-                                            : "bg-emerald-100 text-emerald-700"
-                                        }`}
-                                      >
-                                        {s.tag}
-                                      </span>
-                                      <span
-                                        className={`font-medium ${
-                                          isOwnMessage
-                                            ? "text-red-300"
-                                            : "text-red-600"
-                                        }`}
-                                      >
-                                        -¥{formatYen(s.total)}
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <div
-                                  className={`text-[10px] ${
-                                    isOwnMessage
-                                      ? "text-slate-400"
-                                      : "text-slate-500"
-                                  }`}
-                                >
-                                  今月のタグ付き支出がありません
-                                </div>
-                              )}
-                            </>
-                          ) : item.kind === "notice" ? (
-                            <>
-                              {/* 運営からのお知らせ（タイトルはヘッダー行に表示済み） */}
-                              {item.noticeBody && (
-                                <p className="text-[11px] text-slate-500 whitespace-pre-wrap leading-relaxed">
-                                  {item.noticeBody}
-                                </p>
-                              )}
-                              {item.noticeLink && (
-                                <a
-                                  href={item.noticeLink}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="inline-flex items-center gap-1 mt-1.5 text-[11px] text-sky-500 underline"
-                                >
-                                  🔗 詳細を見る
-                                </a>
-                              )}
-                            </>
-                          ) : item.kind === "help" ? (
-                            <>
-                              {/* ショートカット一覧 */}
-                              <div className="text-xs font-medium mb-2">
-                                📋 ショートカット一覧
-                              </div>
-                              {item.shortcuts && item.shortcuts.length > 0 && (
-                                <div className="space-y-2">
-                                  {item.shortcuts.map((shortcut, idx) => (
-                                    <div
-                                      key={idx}
-                                      className={`text-xs ${
-                                        isOwnMessage
-                                          ? "text-slate-200"
-                                          : "text-slate-700"
-                                      }`}
-                                    >
-                                      <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-                                        <span
-                                          className={`font-medium px-1.5 py-0.5 rounded ${
-                                            isOwnMessage
-                                              ? "bg-slate-600 text-slate-100"
-                                              : "bg-slate-200 text-slate-800"
-                                          }`}
-                                        >
-                                          {shortcut.command}
-                                        </span>
-                                        {shortcut.aliases
-                                          .slice(0, 2)
-                                          .map((alias, aliasIdx) => (
-                                            <span
-                                              key={aliasIdx}
-                                              className={`text-[10px] ${
-                                                isOwnMessage
-                                                  ? "text-slate-400"
-                                                  : "text-slate-500"
-                                              }`}
-                                            >
-                                              {alias}
-                                            </span>
-                                          ))}
-                                      </div>
-                                      <div
-                                        className={`text-[10px] ${
-                                          isOwnMessage
-                                            ? "text-slate-400"
-                                            : "text-slate-500"
-                                        }`}
-                                      >
-                                        {shortcut.description}
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </>
-                          ) : item.kind === "insight" ? (
-                            <>
-                              {/* AIインサイト */}
-                              <p className="text-sm text-slate-800 font-medium leading-snug">
-                                {(item.insightText ?? "").length > 50
-                                  ? <>{(item.insightText ?? "").slice(0, 50)}<span className="text-sky-500 text-xs ml-1">続きを読む</span></>
-                                  : item.insightText}
-                              </p>
-                              <p className="text-[10px] text-slate-400 mt-1">AI による直近2週間の傾向分析</p>
-                            </>
-                          ) : (
-                            <>
-                              {/* 残高スナップショット */}
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <span
-                                  className={`font-semibold text-sm ${
-                                    isOwnMessage
-                                      ? "text-white"
-                                      : "text-slate-900"
-                                  }`}
-                                >
-                                  ¥{formatYen(item.amount)}
-                                </span>
-                                {item.snapshotDiff !== undefined && (
-                                  <span
-                                    className={`text-xs ${
-                                      isOwnMessage
-                                        ? "text-slate-400"
-                                        : "text-slate-500"
-                                    }`}
-                                  >
-                                    {item.snapshotDiff === null
-                                      ? "(-)"
-                                      : item.snapshotDiff >= 0
-                                        ? `(+¥${formatYen(item.snapshotDiff)})`
-                                        : `(-¥${formatYen(Math.abs(item.snapshotDiff))})`}
-                                  </span>
-                                )}
-                              </div>
-                              {item.note && (
-                                <p
-                                  className={`text-[10px] mt-0.5 ${
-                                    isOwnMessage
-                                      ? "text-slate-300"
-                                      : "text-slate-600"
-                                  }`}
-                                >
-                                  {item.note}
-                                </p>
-                              )}
-                            </>
-                          )}
-                        </button>
-
-                        {/* リアクションボタン（expense, income, snapshot, notice） */}
-                        {(item.kind === "expense" ||
-                          item.kind === "income" ||
-                          item.kind === "snapshot" ||
-                          item.kind === "notice") && (
-                          <div
-                            className={`flex items-center gap-1 mt-1 ${
-                              isOwnMessage ? "justify-end" : "justify-start"
-                            }`}
-                          >
-                            {(
-                              [
-                                "CHECK",
-                                "GOOD",
-                                "BAD",
-                                "DOGEZA",
-                              ] as ReactionType[]
-                            ).map((type) => {
-                              const itemKey = `${item.kind}:${item.id.replace(`${item.kind}-`, "")}`;
-                              const reactionData = reactions[itemKey];
-                              const count = reactionData?.counts[type] || 0;
-                              const hasReacted =
-                                reactionData?.userReactions.includes(type);
-                              const isToggling =
-                                togglingReaction === `${item.id}:${type}`;
-                              const emoji =
-                                type === "CHECK"
-                                  ? "✅"
-                                  : type === "GOOD"
-                                    ? "👍"
-                                    : type === "BAD"
-                                      ? "👎"
-                                      : "🙇";
-
-                              return (
-                                <button
-                                  key={type}
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    toggleReaction(item, type);
-                                  }}
-                                  disabled={
-                                    reactionsLoading || !!togglingReaction
-                                  }
-                                  className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs transition ${
-                                    hasReacted
-                                      ? "bg-slate-700 text-white"
-                                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                                  } ${reactionsLoading || isToggling ? "opacity-50" : ""}`}
-                                >
-                                  <TwemojiImg emoji={emoji} size={14} />
-                                  {count > 0 && (
-                                    <span className="text-[10px] min-w-[12px] text-center">
-                                      {count}
-                                    </span>
-                                  )}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        )}
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))
-        )}
-      </div>
+            ))
+          )}
+        </div>
       </div>
 
       {/* AIインサイトボタン（管理者サークルのみ、条件付き表示） */}
-      {!isTimeline && adminCircleIds.includes(selectedCircleId) && (() => {
-        const todayJST = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      {!isTimeline &&
+        adminCircleIds.includes(selectedCircleId) &&
+        (() => {
+          const todayJST = new Date(Date.now() + 9 * 60 * 60 * 1000)
+            .toISOString()
+            .slice(0, 10);
 
-        // 今日のインサイトがあれば非表示
-        const lastInsight = feed
-          .filter((item) => item.kind === "insight" && item.circleId === selectedCircleId)
-          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-        const hasTodayInsight = lastInsight &&
-          new Date(new Date(lastInsight.createdAt).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10) === todayJST;
-        if (hasTodayInsight) return null;
+          // 今日のインサイトがあれば非表示
+          const lastInsight = feed
+            .filter(
+              (item) =>
+                item.kind === "insight" && item.circleId === selectedCircleId,
+            )
+            .sort(
+              (a, b) =>
+                new Date(b.createdAt).getTime() -
+                new Date(a.createdAt).getTime(),
+            )[0];
+          const hasTodayInsight =
+            lastInsight &&
+            new Date(
+              new Date(lastInsight.createdAt).getTime() + 9 * 60 * 60 * 1000,
+            )
+              .toISOString()
+              .slice(0, 10) === todayJST;
+          if (hasTodayInsight) return null;
 
-        // AIの最終投稿以降に自分の投稿がなければ非表示
-        const lastUserPost = feed
-          .filter((item) => item.circleId === selectedCircleId && item.userId === currentUserId && item.kind !== "insight")
-          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-        const hasNewActivity = lastUserPost && (
-          !lastInsight || new Date(lastUserPost.createdAt) > new Date(lastInsight.createdAt)
-        );
-        if (!hasNewActivity) return null;
+          // AIの最終投稿以降に自分の投稿がなければ非表示
+          const lastUserPost = feed
+            .filter(
+              (item) =>
+                item.circleId === selectedCircleId &&
+                item.userId === currentUserId &&
+                item.kind !== "insight",
+            )
+            .sort(
+              (a, b) =>
+                new Date(b.createdAt).getTime() -
+                new Date(a.createdAt).getTime(),
+            )[0];
+          const hasNewActivity =
+            lastUserPost &&
+            (!lastInsight ||
+              new Date(lastUserPost.createdAt) >
+                new Date(lastInsight.createdAt));
+          if (!hasNewActivity) return null;
 
-        const AI_CONSENT_KEY = "aiInsightConsented";
-        const hasConsented = isLocalStorageAvailable() && localStorage.getItem(AI_CONSENT_KEY) === "true";
+          const AI_CONSENT_KEY = "aiInsightConsented";
+          const hasConsented =
+            isLocalStorageAvailable() &&
+            localStorage.getItem(AI_CONSENT_KEY) === "true";
 
-        return (
-          <div className="flex-shrink-0 px-3 pb-1 bg-slate-50 flex justify-center">
-            <button
-              type="button"
-              onClick={() => {
-                if (hasConsented) {
-                  runInsight(selectedCircleId, selectedCircle?.name ?? "");
-                } else {
-                  pendingInsightCircleIdRef.current = selectedCircleId;
-                  setShowInsightConsentDialog(true);
-                }
-              }}
-              disabled={isInsightLoading}
-              className="text-[11px] text-sky-600 border border-sky-200 bg-sky-50 rounded-full px-3 py-0.5 hover:bg-sky-100 disabled:opacity-50 transition"
-            >
-              {isInsightLoading ? "分析中..." : "✨ 昨日までの傾向をAIに聞いてみる"}
-            </button>
-          </div>
-        );
-      })()}
+          return (
+            <div className="flex-shrink-0 px-3 pb-1 bg-slate-50 flex justify-center">
+              <button
+                type="button"
+                onClick={() => {
+                  if (hasConsented) {
+                    runInsight(selectedCircleId, selectedCircle?.name ?? "");
+                  } else {
+                    pendingInsightCircleIdRef.current = selectedCircleId;
+                    setShowInsightConsentDialog(true);
+                  }
+                }}
+                disabled={isInsightLoading}
+                className="text-[11px] text-sky-600 border border-sky-200 bg-sky-50 rounded-full px-3 py-0.5 hover:bg-sky-100 disabled:opacity-50 transition"
+              >
+                {isInsightLoading
+                  ? "分析中..."
+                  : "✨ 昨日までの傾向をAIに聞いてみる"}
+              </button>
+            </div>
+          );
+        })()}
 
       {/* 入力エリア（画面下部に固定） */}
       <div className="flex-shrink-0 bg-white border-t border-slate-200">
@@ -1952,7 +2067,6 @@ export default function UnifiedChat({
             {error}
           </div>
         )}
-
 
         {/* サークル選択 + アクションボタン */}
         <div className="px-3 py-1.5 flex items-center gap-2">
@@ -2120,7 +2234,12 @@ export default function UnifiedChat({
                 disabled={isLoading || !input.trim() || !selectedCircleId}
                 className="flex-shrink-0 w-9 h-9 rounded-full bg-slate-900 text-white flex items-center justify-center disabled:opacity-40 transition"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="w-4 h-4"
+                >
                   <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
                 </svg>
               </button>
@@ -2137,9 +2256,17 @@ export default function UnifiedChat({
 
       {/* シェアメニューダイアログ */}
       {showShareMenuDialog && selectedCircle && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowShareMenuDialog(false)}>
-          <div className="bg-white rounded-xl w-full max-w-sm p-5" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-base font-semibold text-slate-900 mb-4">{selectedCircle.name}</h3>
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowShareMenuDialog(false)}
+        >
+          <div
+            className="bg-white rounded-xl w-full max-w-sm p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-base font-semibold text-slate-900 mb-4">
+              {selectedCircle.name}
+            </h3>
             <div className="space-y-2">
               {/* フィードをシェア（公開時のみ） */}
               {selectedCircle.isPublic && (
@@ -2148,12 +2275,28 @@ export default function UnifiedChat({
                   onClick={handleShareFeed}
                   className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-left transition"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-600 flex-shrink-0">
-                    <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-slate-600 flex-shrink-0"
+                  >
+                    <circle cx="18" cy="5" r="3" />
+                    <circle cx="6" cy="12" r="3" />
+                    <circle cx="18" cy="19" r="3" />
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
                   </svg>
                   <div>
-                    <p className="text-sm font-medium text-slate-900">フィードをシェア</p>
+                    <p className="text-sm font-medium text-slate-900">
+                      フィードをシェア
+                    </p>
                     <p className="text-xs text-slate-500">公開フィードを共有</p>
                   </div>
                 </button>
@@ -2164,34 +2307,102 @@ export default function UnifiedChat({
                 onClick={handleCopyInvite}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-left transition"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-600 flex-shrink-0">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-slate-600 flex-shrink-0"
+                >
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                 </svg>
                 <div>
-                  <p className="text-sm font-medium text-slate-900">{copiedInvite ? "コピーしました！" : "招待リンクをコピー"}</p>
+                  <p className="text-sm font-medium text-slate-900">
+                    {copiedInvite ? "コピーしました！" : "招待リンクをコピー"}
+                  </p>
                   <p className="text-xs text-slate-500">リンクをLINE等で送る</p>
                 </div>
               </button>
               {/* 招待QRコード（allowNewMembersがONかつADMINのみ） */}
-              {selectedCircle.allowNewMembers && adminCircleIds.includes(selectedCircle.id) && (
-                <button
-                  type="button"
-                  onClick={() => { setShowShareMenuDialog(false); setShowQRDialog(true); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-left transition"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-600 flex-shrink-0">
-                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-                    <rect x="5" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="16" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="5" y="16" width="3" height="3" fill="currentColor" stroke="none"/>
-                    <path d="M14 14h3v3h-3z" fill="currentColor" stroke="none"/><path d="M17 17h4v4h-4z"/><path d="M14 20h3"/>
-                  </svg>
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">招待QRコードを表示</p>
-                    <p className="text-xs text-slate-500">その場で見せて参加してもらう</p>
-                  </div>
-                </button>
-              )}
+              {selectedCircle.allowNewMembers &&
+                adminCircleIds.includes(selectedCircle.id) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowShareMenuDialog(false);
+                      setShowQRDialog(true);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-left transition"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-slate-600 flex-shrink-0"
+                    >
+                      <rect x="3" y="3" width="7" height="7" />
+                      <rect x="14" y="3" width="7" height="7" />
+                      <rect x="3" y="14" width="7" height="7" />
+                      <rect
+                        x="5"
+                        y="5"
+                        width="3"
+                        height="3"
+                        fill="currentColor"
+                        stroke="none"
+                      />
+                      <rect
+                        x="16"
+                        y="5"
+                        width="3"
+                        height="3"
+                        fill="currentColor"
+                        stroke="none"
+                      />
+                      <rect
+                        x="5"
+                        y="16"
+                        width="3"
+                        height="3"
+                        fill="currentColor"
+                        stroke="none"
+                      />
+                      <path
+                        d="M14 14h3v3h-3z"
+                        fill="currentColor"
+                        stroke="none"
+                      />
+                      <path d="M17 17h4v4h-4z" />
+                      <path d="M14 20h3" />
+                    </svg>
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">
+                        招待QRコードを表示
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        その場で見せて参加してもらう
+                      </p>
+                    </div>
+                  </button>
+                )}
             </div>
-            <button type="button" onClick={() => setShowShareMenuDialog(false)} className="w-full mt-3 bg-slate-100 text-slate-700 rounded-lg px-4 py-2 text-sm font-medium">
+            <button
+              type="button"
+              onClick={() => setShowShareMenuDialog(false)}
+              className="w-full mt-3 bg-slate-100 text-slate-700 rounded-lg px-4 py-2 text-sm font-medium"
+            >
               閉じる
             </button>
           </div>
@@ -2200,10 +2411,20 @@ export default function UnifiedChat({
 
       {/* QRコードダイアログ */}
       {showQRDialog && selectedCircle && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowQRDialog(false)}>
-          <div className="bg-white rounded-xl w-full max-w-sm p-5 flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-base font-semibold text-slate-900 mb-1">{selectedCircle.name}</h3>
-            <p className="text-xs text-slate-500 mb-4">QRコードを読み取って参加</p>
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowQRDialog(false)}
+        >
+          <div
+            className="bg-white rounded-xl w-full max-w-sm p-5 flex flex-col items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-base font-semibold text-slate-900 mb-1">
+              {selectedCircle.name}
+            </h3>
+            <p className="text-xs text-slate-500 mb-4">
+              QRコードを読み取って参加
+            </p>
             <div className="p-3 bg-white rounded-xl border border-slate-200">
               <QRCodeSVG
                 value={`${typeof window !== "undefined" ? window.location.origin : "https://crun.click"}/join?circleId=${selectedCircle.id}`}
@@ -2212,7 +2433,11 @@ export default function UnifiedChat({
                 fgColor="#0f172a"
               />
             </div>
-            <button type="button" onClick={() => setShowQRDialog(false)} className="w-full mt-4 bg-slate-100 text-slate-700 rounded-lg px-4 py-2 text-sm font-medium">
+            <button
+              type="button"
+              onClick={() => setShowQRDialog(false)}
+              className="w-full mt-4 bg-slate-100 text-slate-700 rounded-lg px-4 py-2 text-sm font-medium"
+            >
               閉じる
             </button>
           </div>
@@ -2229,19 +2454,45 @@ export default function UnifiedChat({
             className="bg-white rounded-xl w-full max-w-sm p-5"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-base font-semibold text-slate-900 mb-3">AIに傾向を分析してもらいますか？</h3>
+            <h3 className="text-base font-semibold text-slate-900 mb-3">
+              AIに傾向を分析してもらいますか？
+            </h3>
             <p className="text-sm text-slate-600 leading-relaxed mb-3">
-              以下の情報をAI（Google Gemini）に送信して、直近の傾向を分析します。
+              以下の情報をAI（Google
+              Gemini）に送信して、直近の傾向を分析します。
             </p>
             <ul className="text-sm text-slate-700 space-y-1.5 mb-3 pl-1">
-              <li className="flex items-start gap-2"><span className="text-green-500 mt-0.5">✓</span><span>支出・収入の<strong>金額・説明文</strong></span></li>
-              <li className="flex items-start gap-2"><span className="text-green-500 mt-0.5">✓</span><span>残高スナップショット</span></li>
-              <li className="flex items-start gap-2"><span className="text-red-400 mt-0.5">✗</span><span className="text-slate-500">メールアドレス・個人情報は含みません</span></li>
-              <li className="flex items-start gap-2"><span className="text-red-400 mt-0.5">✗</span><span className="text-slate-500">タグは含みません</span></li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-500 mt-0.5">✓</span>
+                <span>
+                  支出・収入の<strong>金額・説明文</strong>
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-500 mt-0.5">✓</span>
+                <span>残高スナップショット</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-red-400 mt-0.5">✗</span>
+                <span className="text-slate-500">
+                  メールアドレス・個人情報は含みません
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-red-400 mt-0.5">✗</span>
+                <span className="text-slate-500">タグは含みません</span>
+              </li>
             </ul>
             <p className="text-xs text-slate-400 mb-4">
               詳しくは
-              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-sky-500 underline ml-0.5">プライバシーポリシー</a>
+              <a
+                href="/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sky-500 underline ml-0.5"
+              >
+                プライバシーポリシー
+              </a>
               の「AIの利用について」をご確認ください。
             </p>
             <div className="flex gap-2">
@@ -2260,7 +2511,8 @@ export default function UnifiedChat({
                   }
                   setShowInsightConsentDialog(false);
                   const circleId = pendingInsightCircleIdRef.current;
-                  const circleName = circlesState.find((c) => c.id === circleId)?.name ?? "";
+                  const circleName =
+                    circlesState.find((c) => c.id === circleId)?.name ?? "";
                   if (circleId) runInsight(circleId, circleName);
                 }}
                 className="flex-1 py-2 text-sm text-white bg-sky-500 rounded-lg hover:bg-sky-600 transition font-medium"
@@ -2283,16 +2535,30 @@ export default function UnifiedChat({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 rounded-full bg-sky-500 flex items-center justify-center text-xs text-white font-medium">AI</div>
+              <div className="w-7 h-7 rounded-full bg-sky-500 flex items-center justify-center text-xs text-white font-medium">
+                AI
+              </div>
               <div>
                 {insightDialog.circleName && (
-                  <p className="text-[10px] text-sky-500 font-medium leading-none">{insightDialog.circleName}</p>
+                  <p className="text-[10px] text-sky-500 font-medium leading-none">
+                    {insightDialog.circleName}
+                  </p>
                 )}
-                <p className="text-xs text-slate-500">{new Date(insightDialog.createdAt).toLocaleDateString("ja-JP", { month: "short", day: "numeric" })} AI インサイト</p>
+                <p className="text-xs text-slate-500">
+                  {new Date(insightDialog.createdAt).toLocaleDateString(
+                    "ja-JP",
+                    { month: "short", day: "numeric" },
+                  )}{" "}
+                  AI インサイト
+                </p>
               </div>
             </div>
-            <p className="text-sm text-slate-800 leading-relaxed">{insightDialog.text}</p>
-            <p className="text-[10px] text-slate-400 mt-3">AI による直近2週間の傾向分析</p>
+            <p className="text-sm text-slate-800 leading-relaxed">
+              {insightDialog.text}
+            </p>
+            <p className="text-[10px] text-slate-400 mt-3">
+              AI による直近2週間の傾向分析
+            </p>
             <button
               type="button"
               onClick={() => setInsightDialog(null)}
@@ -2519,7 +2785,8 @@ export default function UnifiedChat({
 
                   {/* 現在のタグ */}
                   <div className="flex flex-wrap gap-1.5 min-h-[24px]">
-                    {(selectedItem.tags || []).length === 0 && (selectedItem.autoTags || []).length === 0 ? (
+                    {(selectedItem.tags || []).length === 0 &&
+                    (selectedItem.autoTags || []).length === 0 ? (
                       <span className="text-xs text-slate-400">タグなし</span>
                     ) : (
                       <>
@@ -2549,7 +2816,9 @@ export default function UnifiedChat({
                             ✦ {tag}
                             <button
                               type="button"
-                              onClick={() => handleRemoveAutoTag(selectedItem, tag)}
+                              onClick={() =>
+                                handleRemoveAutoTag(selectedItem, tag)
+                              }
                               disabled={isTagging}
                               className="text-yellow-100 hover:text-white leading-none disabled:opacity-50"
                               aria-label={`自動タグ ${tag}を削除`}
@@ -2614,7 +2883,8 @@ export default function UnifiedChat({
                     </button>
                   </div>
                 </div>
-              ) : (selectedItem.tags && selectedItem.tags.length > 0) || (selectedItem.autoTags && selectedItem.autoTags.length > 0) ? (
+              ) : (selectedItem.tags && selectedItem.tags.length > 0) ||
+                (selectedItem.autoTags && selectedItem.autoTags.length > 0) ? (
                 <div className="flex justify-between items-start">
                   <span className="text-sm text-slate-500">タグ</span>
                   <div className="flex flex-wrap gap-1 justify-end">

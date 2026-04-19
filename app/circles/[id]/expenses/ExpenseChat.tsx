@@ -116,7 +116,7 @@ export default function ExpenseChat({ circleId, initialExpenses }: Props) {
       acc[dateKey].push(expense);
       return acc;
     },
-    {} as Record<string, Expense[]>
+    {} as Record<string, Expense[]>,
   );
 
   return (

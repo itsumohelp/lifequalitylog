@@ -31,7 +31,9 @@ export default function MiniBalanceChart({ data, onClose }: Props) {
     y: pad + ((max - d.balance) / range) * (H - pad * 2),
   }));
 
-  const polylinePoints = coords.map((c) => `${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(" ");
+  const polylinePoints = coords
+    .map((c) => `${c.x.toFixed(1)},${c.y.toFixed(1)}`)
+    .join(" ");
 
   // 面グラデーション用パス
   const first = coords[0];
@@ -64,7 +66,9 @@ export default function MiniBalanceChart({ data, onClose }: Props) {
         ✕
       </button>
 
-      <div className="text-[10px] text-slate-400 mb-1 pr-6">直近30日間の残高推移</div>
+      <div className="text-[10px] text-slate-400 mb-1 pr-6">
+        直近30日間の残高推移
+      </div>
 
       <svg
         width="100%"

@@ -49,8 +49,19 @@ function IOSSignInInner() {
   }, [router, searchParams]);
 
   return (
-    <main style={{ fontFamily: '-apple-system, "Hiragino Sans", sans-serif', minHeight: "100vh", background: "#f8fafc", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <p style={{ color: "#64748b", fontSize: "14px" }}>Googleにリダイレクト中...</p>
+    <main
+      style={{
+        fontFamily: '-apple-system, "Hiragino Sans", sans-serif',
+        minHeight: "100vh",
+        background: "#f8fafc",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <p style={{ color: "#64748b", fontSize: "14px" }}>
+        Googleにリダイレクト中...
+      </p>
     </main>
   );
 }

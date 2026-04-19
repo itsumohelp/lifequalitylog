@@ -142,9 +142,7 @@ export default async function CircleDetailPage({ params }: Props) {
                 <div className="text-sm font-semibold text-sky-100">
                   支出を入力
                 </div>
-                <div className="text-xs text-slate-400">
-                  チャット形式で記録
-                </div>
+                <div className="text-xs text-slate-400">チャット形式で記録</div>
               </div>
             </div>
             <span className="text-sky-300">→</span>

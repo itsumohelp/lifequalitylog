@@ -27,15 +27,33 @@ export default async function IOSCompletePage() {
       await prisma.iosAuthToken.upsert({
         where: { pollId },
         update: { token, expiresAt: new Date(Date.now() + 5 * 60 * 1000) },
-        create: { pollId, token, expiresAt: new Date(Date.now() + 5 * 60 * 1000) },
+        create: {
+          pollId,
+          token,
+          expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+        },
       });
     }
   }
 
   return (
-    <main style={{ fontFamily: "-apple-system, sans-serif", display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", margin: 0, background: "#f8fafc" }}>
-      <p style={{ color: "#64748b", fontSize: "15px" }}>ログイン完了。アプリに戻っています...</p>
-      <script dangerouslySetInnerHTML={{ __html: `
+    <main
+      style={{
+        fontFamily: "-apple-system, sans-serif",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100vh",
+        margin: 0,
+        background: "#f8fafc",
+      }}
+    >
+      <p style={{ color: "#64748b", fontSize: "15px" }}>
+        ログイン完了。アプリに戻っています...
+      </p>
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
         // バック操作でOAuthコールバックURL（消費済み）に戻るとエラーになるため横取りする
         history.pushState(null, '', location.href);
         window.addEventListener('popstate', function() {
@@ -44,7 +62,9 @@ export default async function IOSCompletePage() {
         });
         // アプリに戻る
         setTimeout(function(){ window.location.href = "click.crun.circlerun://auth-complete"; }, 300);
-      `}} />
+      `,
+        }}
+      />
     </main>
   );
 }

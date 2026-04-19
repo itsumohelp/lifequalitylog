@@ -4,13 +4,16 @@ import { SignJWT } from "jose";
 import prisma from "@/lib/prisma";
 
 const APPLE_JWKS = createRemoteJWKSet(
-  new URL("https://appleid.apple.com/auth/keys")
+  new URL("https://appleid.apple.com/auth/keys"),
 );
 
 export async function POST(req: NextRequest) {
   const { identityToken, firstName, lastName } = await req.json();
   if (!identityToken) {
-    return NextResponse.json({ error: "missing identityToken" }, { status: 400 });
+    return NextResponse.json(
+      { error: "missing identityToken" },
+      { status: 400 },
+    );
   }
 
   let appleUserId: string;
@@ -24,7 +27,10 @@ export async function POST(req: NextRequest) {
     appleUserId = payload.sub as string;
     email = payload.email as string | undefined;
   } catch {
-    return NextResponse.json({ error: "invalid identity token" }, { status: 401 });
+    return NextResponse.json(
+      { error: "invalid identity token" },
+      { status: 401 },
+    );
   }
 
   // 既存のAppleアカウントを検索
@@ -39,7 +45,10 @@ export async function POST(req: NextRequest) {
   } else {
     // 初回ログイン — emailが必要
     if (!email) {
-      return NextResponse.json({ error: "email required on first sign-in" }, { status: 400 });
+      return NextResponse.json(
+        { error: "email required on first sign-in" },
+        { status: 400 },
+      );
     }
 
     // 同メールのユーザーが既存であればリンク、なければ新規作成

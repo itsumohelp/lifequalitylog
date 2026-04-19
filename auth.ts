@@ -6,7 +6,7 @@ import { authConfig } from "./auth.config";
 
 export const {
   handlers, // Route Handler用
-  auth,     // Server Component / middleware 用
+  auth, // Server Component / middleware 用
   signIn,
   signOut,
 } = NextAuth({
