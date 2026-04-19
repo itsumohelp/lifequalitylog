@@ -26,14 +26,30 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+        guard url.scheme == "click.crun.circlerun",
+              let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            return ApplicationDelegateProxy.shared.application(app, open: url, options: options)
+        }
+
         // Handle iOS auth token exchange: click.crun.circlerun://auth?token=xxx
-        if url.scheme == "click.crun.circlerun",
-           let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-           let token = components.queryItems?.first(where: { $0.name == "token" })?.value,
+        if let token = components.queryItems?.first(where: { $0.name == "token" })?.value,
+           url.host == "auth",
            let sessionURL = URL(string: "https://crun.click/api/auth/ios-session?token=\(token)") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 if let vc = self.window?.rootViewController as? CAPBridgeViewController {
                     vc.webView?.load(URLRequest(url: sessionURL))
+                }
+            }
+            return true
+        }
+
+        // Handle invite link: click.crun.circlerun://join?circleId=xxx
+        if url.host == "join",
+           let circleId = components.queryItems?.first(where: { $0.name == "circleId" })?.value,
+           let joinURL = URL(string: "https://crun.click/join?circleId=\(circleId)") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                if let vc = self.window?.rootViewController as? CAPBridgeViewController {
+                    vc.webView?.load(URLRequest(url: joinURL))
                 }
             }
             return true
