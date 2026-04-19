@@ -14,10 +14,16 @@ export async function PATCH(
 
   const { id } = await params;
   const body = await request.json();
-  const { tags } = body;
+  const { tags, autoTags } = body;
 
-  if (!Array.isArray(tags)) {
+  if (tags !== undefined && !Array.isArray(tags)) {
     return NextResponse.json({ error: "tags must be an array" }, { status: 400 });
+  }
+  if (autoTags !== undefined && !Array.isArray(autoTags)) {
+    return NextResponse.json({ error: "autoTags must be an array" }, { status: 400 });
+  }
+  if (tags === undefined && autoTags === undefined) {
+    return NextResponse.json({ error: "tags or autoTags is required" }, { status: 400 });
   }
 
   const expense = await prisma.expense.findUnique({ where: { id } });
@@ -42,7 +48,10 @@ export async function PATCH(
 
   const updated = await prisma.expense.update({
     where: { id },
-    data: { tags },
+    data: {
+      ...(tags !== undefined ? { tags } : {}),
+      ...(autoTags !== undefined ? { autoTags } : {}),
+    },
   });
 
   return NextResponse.json({ expense: updated });

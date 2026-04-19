@@ -513,10 +513,6 @@ export type CircleScalarRelationFilter = {
   isNot?: Prisma.CircleWhereInput
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type CircleCreateNestedOneWithoutMembersInput = {
   create?: Prisma.XOR<Prisma.CircleCreateWithoutMembersInput, Prisma.CircleUncheckedCreateWithoutMembersInput>
   connectOrCreate?: Prisma.CircleCreateOrConnectWithoutMembersInput

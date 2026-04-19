@@ -83,6 +83,7 @@ model User {
   email         String?   @unique
   emailVerified DateTime? @map("email_verified")
   image         String?
+  autoTagEnabled Boolean   @default(false) @map("auto_tag_enabled")
   accounts      Account[]
   sessions      Session[]
   circleMembers CircleMember[]
@@ -209,7 +210,8 @@ model Expense {
   description String          // 入力された説明（例：「コンビニで500円」）
   place       String?         // パースした場所
   category    ExpenseCategory @default(OTHER)
-  tags        String[]        // 自動抽出されたタグ（例：["コンビニ"]）
+  tags        String[]        // 手動タグ（例：["コンビニ"]）
+  autoTags    String[]        // 自動提案タグ（ルールベース）
   expenseDate DateTime        @default(now()) // 支出日時
   createdAt   DateTime        @default(now())
   @@index([circleId, expenseDate])

@@ -12,6 +12,7 @@ type User = {
   displayName: string | null;
   email: string | null;
   image: string | null;
+  autoTagEnabled: boolean;
 };
 
 type Circle = {
@@ -67,6 +68,8 @@ export default function SettingsPage() {
   const [newCircleName, setNewCircleName] = useState("");
   const [isCreatingCircle, setIsCreatingCircle] = useState(false);
   const [isSavingImageOptOut, setIsSavingImageOptOut] = useState(false);
+  const [autoTagEnabled, setAutoTagEnabled] = useState(false);
+  const [isSavingAutoTag, setIsSavingAutoTag] = useState(false);
   const [isNativeApp, setIsNativeApp] = useState(true); // SSR安全のためtrueで初期化
 
   const handleImageOptOut = async () => {
@@ -97,6 +100,26 @@ export default function SettingsPage() {
     }
   };
 
+  const handleToggleAutoTag = async (enabled: boolean) => {
+    if (isSavingAutoTag) return;
+    setAutoTagEnabled(enabled);
+    setIsSavingAutoTag(true);
+    try {
+      const res = await fetch("/api/user", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ autoTagEnabled: enabled }),
+      });
+      if (!res.ok) {
+        setAutoTagEnabled(!enabled); // 失敗時は元に戻す
+      }
+    } catch {
+      setAutoTagEnabled(!enabled);
+    } finally {
+      setIsSavingAutoTag(false);
+    }
+  };
+
   useEffect(() => {
     type CapacitorWindow = Window & { Capacitor?: { isNativePlatform?: () => boolean } };
     setIsNativeApp(!!(window as CapacitorWindow).Capacitor?.isNativePlatform?.());
@@ -111,6 +134,7 @@ export default function SettingsPage() {
           setUser(data.user);
           setCircles(data.circles || []);
           setDisplayName(data.user.displayName || data.user.name || "");
+          setAutoTagEnabled(data.user.autoTagEnabled ?? false);
         }
       } catch (error) {
         console.error("Failed to fetch user:", error);
@@ -589,6 +613,35 @@ export default function SettingsPage() {
                   className="w-full bg-slate-900 text-white rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50"
                 >
                   {isSaving ? "保存中..." : "表示名を保存"}
+                </button>
+              </div>
+            </div>
+
+            {/* 機能設定 */}
+            <div className="bg-slate-50 rounded-xl p-4">
+              <h2 className="text-sm font-medium text-slate-700 mb-3">機能設定</h2>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm text-slate-700">自動タグ付け</div>
+                  <div className="text-xs text-slate-500 mt-0.5">
+                    過去の支出パターンからタグを自動提案します
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={autoTagEnabled}
+                  onClick={() => handleToggleAutoTag(!autoTagEnabled)}
+                  disabled={isSavingAutoTag}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${
+                    autoTagEnabled ? "bg-sky-500" : "bg-slate-300"
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                      autoTagEnabled ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
                 </button>
               </div>
             </div>

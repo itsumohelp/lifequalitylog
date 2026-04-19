@@ -49,6 +49,7 @@ type FeedItem = {
   source?: string | null;
   category?: string;
   tags?: string[];
+  autoTags?: string[];
   note?: string | null;
   summaryData?: TagSummaryData[]; // 後方互換性のため
   allTimeSummaryData?: TagSummaryData[];
@@ -600,6 +601,39 @@ export default function UnifiedChat({
     }
   };
 
+  // 自動タグを削除
+  const handleRemoveAutoTag = async (item: FeedItem, tagToRemove: string) => {
+    if (isTagging) return;
+
+    const id = item.id.replace("expense-", "");
+    const updatedAutoTags = (item.autoTags || []).filter((t) => t !== tagToRemove);
+
+    setIsTagging(true);
+    try {
+      const res = await fetch(`/api/expense/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ autoTags: updatedAutoTags }),
+      });
+
+      if (res.ok) {
+        setFeed((prev) =>
+          prev.map((f) => (f.id === item.id ? { ...f, autoTags: updatedAutoTags } : f)),
+        );
+        setSelectedItem((prev) =>
+          prev && prev.id === item.id ? { ...prev, autoTags: updatedAutoTags } : prev,
+        );
+      } else {
+        const data = await res.json();
+        setError(data.error || "タグの削除に失敗しました");
+      }
+    } catch {
+      setError("通信エラーが発生しました");
+    } finally {
+      setIsTagging(false);
+    }
+  };
+
   // 初期読み込み時に最後に開いたサークルを復元
   useEffect(() => {
     if (isLocalStorageAvailable()) {
@@ -905,6 +939,7 @@ export default function UnifiedChat({
           place: data.expense.place,
           category: data.expense.category,
           tags: data.expense.tags || [],
+          autoTags: data.expense.autoTags || [],
           createdAt: new Date().toISOString(),
         };
 
@@ -1494,6 +1529,19 @@ export default function UnifiedChat({
                                         }`}
                                       >
                                         {tag}
+                                      </span>
+                                    ))}
+                                  </>
+                                )}
+                                {item.autoTags && item.autoTags.length > 0 && (
+                                  <>
+                                    {item.autoTags.map((tag, idx) => (
+                                      <span
+                                        key={`auto-${idx}`}
+                                        className="inline-flex items-center gap-0.5 text-[10px] px-2 py-0.5 rounded-full bg-amber-500 text-white"
+                                        title="自動タグ"
+                                      >
+                                        ✦ {tag}
                                       </span>
                                     ))}
                                   </>
@@ -2471,26 +2519,46 @@ export default function UnifiedChat({
 
                   {/* 現在のタグ */}
                   <div className="flex flex-wrap gap-1.5 min-h-[24px]">
-                    {(selectedItem.tags || []).length === 0 ? (
+                    {(selectedItem.tags || []).length === 0 && (selectedItem.autoTags || []).length === 0 ? (
                       <span className="text-xs text-slate-400">タグなし</span>
                     ) : (
-                      (selectedItem.tags || []).map((tag, idx) => (
-                        <span
-                          key={idx}
-                          className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700"
-                        >
-                          {tag}
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveTag(selectedItem, tag)}
-                            disabled={isTagging}
-                            className="text-sky-400 hover:text-sky-600 leading-none disabled:opacity-50"
-                            aria-label={`${tag}を削除`}
+                      <>
+                        {(selectedItem.tags || []).map((tag, idx) => (
+                          <span
+                            key={idx}
+                            className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700"
                           >
-                            ✕
-                          </button>
-                        </span>
-                      ))
+                            {tag}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveTag(selectedItem, tag)}
+                              disabled={isTagging}
+                              className="text-sky-400 hover:text-sky-600 leading-none disabled:opacity-50"
+                              aria-label={`${tag}を削除`}
+                            >
+                              ✕
+                            </button>
+                          </span>
+                        ))}
+                        {(selectedItem.autoTags || []).map((tag, idx) => (
+                          <span
+                            key={`auto-${idx}`}
+                            className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-amber-500 text-white"
+                            title="自動タグ"
+                          >
+                            ✦ {tag}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveAutoTag(selectedItem, tag)}
+                              disabled={isTagging}
+                              className="text-yellow-100 hover:text-white leading-none disabled:opacity-50"
+                              aria-label={`自動タグ ${tag}を削除`}
+                            >
+                              ✕
+                            </button>
+                          </span>
+                        ))}
+                      </>
                     )}
                   </div>
 
@@ -2546,16 +2614,25 @@ export default function UnifiedChat({
                     </button>
                   </div>
                 </div>
-              ) : selectedItem.tags && selectedItem.tags.length > 0 ? (
+              ) : (selectedItem.tags && selectedItem.tags.length > 0) || (selectedItem.autoTags && selectedItem.autoTags.length > 0) ? (
                 <div className="flex justify-between items-start">
                   <span className="text-sm text-slate-500">タグ</span>
                   <div className="flex flex-wrap gap-1 justify-end">
-                    {selectedItem.tags.map((tag, idx) => (
+                    {(selectedItem.tags || []).map((tag, idx) => (
                       <span
                         key={idx}
                         className="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700"
                       >
                         {tag}
+                      </span>
+                    ))}
+                    {(selectedItem.autoTags || []).map((tag, idx) => (
+                      <span
+                        key={`auto-${idx}`}
+                        className="inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full bg-amber-500 text-white"
+                        title="自動タグ"
+                      >
+                        ✦ {tag}
                       </span>
                     ))}
                   </div>

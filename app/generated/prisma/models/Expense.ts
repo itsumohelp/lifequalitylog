@@ -67,6 +67,7 @@ export type ExpenseCountAggregateOutputType = {
   place: number
   category: number
   tags: number
+  autoTags: number
   expenseDate: number
   createdAt: number
   _all: number
@@ -114,6 +115,7 @@ export type ExpenseCountAggregateInputType = {
   place?: true
   category?: true
   tags?: true
+  autoTags?: true
   expenseDate?: true
   createdAt?: true
   _all?: true
@@ -214,6 +216,7 @@ export type ExpenseGroupByOutputType = {
   place: string | null
   category: $Enums.ExpenseCategory
   tags: string[]
+  autoTags: string[]
   expenseDate: Date
   createdAt: Date
   _count: ExpenseCountAggregateOutputType | null
@@ -250,6 +253,7 @@ export type ExpenseWhereInput = {
   place?: Prisma.StringNullableFilter<"Expense"> | string | null
   category?: Prisma.EnumExpenseCategoryFilter<"Expense"> | $Enums.ExpenseCategory
   tags?: Prisma.StringNullableListFilter<"Expense">
+  autoTags?: Prisma.StringNullableListFilter<"Expense">
   expenseDate?: Prisma.DateTimeFilter<"Expense"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"Expense"> | Date | string
   circle?: Prisma.XOR<Prisma.CircleScalarRelationFilter, Prisma.CircleWhereInput>
@@ -265,6 +269,7 @@ export type ExpenseOrderByWithRelationInput = {
   place?: Prisma.SortOrderInput | Prisma.SortOrder
   category?: Prisma.SortOrder
   tags?: Prisma.SortOrder
+  autoTags?: Prisma.SortOrder
   expenseDate?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   circle?: Prisma.CircleOrderByWithRelationInput
@@ -283,6 +288,7 @@ export type ExpenseWhereUniqueInput = Prisma.AtLeast<{
   place?: Prisma.StringNullableFilter<"Expense"> | string | null
   category?: Prisma.EnumExpenseCategoryFilter<"Expense"> | $Enums.ExpenseCategory
   tags?: Prisma.StringNullableListFilter<"Expense">
+  autoTags?: Prisma.StringNullableListFilter<"Expense">
   expenseDate?: Prisma.DateTimeFilter<"Expense"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"Expense"> | Date | string
   circle?: Prisma.XOR<Prisma.CircleScalarRelationFilter, Prisma.CircleWhereInput>
@@ -298,6 +304,7 @@ export type ExpenseOrderByWithAggregationInput = {
   place?: Prisma.SortOrderInput | Prisma.SortOrder
   category?: Prisma.SortOrder
   tags?: Prisma.SortOrder
+  autoTags?: Prisma.SortOrder
   expenseDate?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.ExpenseCountOrderByAggregateInput
@@ -319,6 +326,7 @@ export type ExpenseScalarWhereWithAggregatesInput = {
   place?: Prisma.StringNullableWithAggregatesFilter<"Expense"> | string | null
   category?: Prisma.EnumExpenseCategoryWithAggregatesFilter<"Expense"> | $Enums.ExpenseCategory
   tags?: Prisma.StringNullableListFilter<"Expense">
+  autoTags?: Prisma.StringNullableListFilter<"Expense">
   expenseDate?: Prisma.DateTimeWithAggregatesFilter<"Expense"> | Date | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Expense"> | Date | string
 }
@@ -330,6 +338,7 @@ export type ExpenseCreateInput = {
   place?: string | null
   category?: $Enums.ExpenseCategory
   tags?: Prisma.ExpenseCreatetagsInput | string[]
+  autoTags?: Prisma.ExpenseCreateautoTagsInput | string[]
   expenseDate?: Date | string
   createdAt?: Date | string
   circle: Prisma.CircleCreateNestedOneWithoutExpensesInput
@@ -345,6 +354,7 @@ export type ExpenseUncheckedCreateInput = {
   place?: string | null
   category?: $Enums.ExpenseCategory
   tags?: Prisma.ExpenseCreatetagsInput | string[]
+  autoTags?: Prisma.ExpenseCreateautoTagsInput | string[]
   expenseDate?: Date | string
   createdAt?: Date | string
 }
@@ -356,6 +366,7 @@ export type ExpenseUpdateInput = {
   place?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory
   tags?: Prisma.ExpenseUpdatetagsInput | string[]
+  autoTags?: Prisma.ExpenseUpdateautoTagsInput | string[]
   expenseDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   circle?: Prisma.CircleUpdateOneRequiredWithoutExpensesNestedInput
@@ -371,6 +382,7 @@ export type ExpenseUncheckedUpdateInput = {
   place?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory
   tags?: Prisma.ExpenseUpdatetagsInput | string[]
+  autoTags?: Prisma.ExpenseUpdateautoTagsInput | string[]
   expenseDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -384,6 +396,7 @@ export type ExpenseCreateManyInput = {
   place?: string | null
   category?: $Enums.ExpenseCategory
   tags?: Prisma.ExpenseCreatetagsInput | string[]
+  autoTags?: Prisma.ExpenseCreateautoTagsInput | string[]
   expenseDate?: Date | string
   createdAt?: Date | string
 }
@@ -395,6 +408,7 @@ export type ExpenseUpdateManyMutationInput = {
   place?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory
   tags?: Prisma.ExpenseUpdatetagsInput | string[]
+  autoTags?: Prisma.ExpenseUpdateautoTagsInput | string[]
   expenseDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -408,6 +422,7 @@ export type ExpenseUncheckedUpdateManyInput = {
   place?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory
   tags?: Prisma.ExpenseUpdatetagsInput | string[]
+  autoTags?: Prisma.ExpenseUpdateautoTagsInput | string[]
   expenseDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -439,6 +454,7 @@ export type ExpenseCountOrderByAggregateInput = {
   place?: Prisma.SortOrder
   category?: Prisma.SortOrder
   tags?: Prisma.SortOrder
+  autoTags?: Prisma.SortOrder
   expenseDate?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -563,11 +579,20 @@ export type ExpenseCreatetagsInput = {
   set: string[]
 }
 
+export type ExpenseCreateautoTagsInput = {
+  set: string[]
+}
+
 export type EnumExpenseCategoryFieldUpdateOperationsInput = {
   set?: $Enums.ExpenseCategory
 }
 
 export type ExpenseUpdatetagsInput = {
+  set?: string[]
+  push?: string | string[]
+}
+
+export type ExpenseUpdateautoTagsInput = {
   set?: string[]
   push?: string | string[]
 }
@@ -579,6 +604,7 @@ export type ExpenseCreateWithoutUserInput = {
   place?: string | null
   category?: $Enums.ExpenseCategory
   tags?: Prisma.ExpenseCreatetagsInput | string[]
+  autoTags?: Prisma.ExpenseCreateautoTagsInput | string[]
   expenseDate?: Date | string
   createdAt?: Date | string
   circle: Prisma.CircleCreateNestedOneWithoutExpensesInput
@@ -592,6 +618,7 @@ export type ExpenseUncheckedCreateWithoutUserInput = {
   place?: string | null
   category?: $Enums.ExpenseCategory
   tags?: Prisma.ExpenseCreatetagsInput | string[]
+  autoTags?: Prisma.ExpenseCreateautoTagsInput | string[]
   expenseDate?: Date | string
   createdAt?: Date | string
 }
@@ -634,6 +661,7 @@ export type ExpenseScalarWhereInput = {
   place?: Prisma.StringNullableFilter<"Expense"> | string | null
   category?: Prisma.EnumExpenseCategoryFilter<"Expense"> | $Enums.ExpenseCategory
   tags?: Prisma.StringNullableListFilter<"Expense">
+  autoTags?: Prisma.StringNullableListFilter<"Expense">
   expenseDate?: Prisma.DateTimeFilter<"Expense"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"Expense"> | Date | string
 }
@@ -645,6 +673,7 @@ export type ExpenseCreateWithoutCircleInput = {
   place?: string | null
   category?: $Enums.ExpenseCategory
   tags?: Prisma.ExpenseCreatetagsInput | string[]
+  autoTags?: Prisma.ExpenseCreateautoTagsInput | string[]
   expenseDate?: Date | string
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutExpensesInput
@@ -658,6 +687,7 @@ export type ExpenseUncheckedCreateWithoutCircleInput = {
   place?: string | null
   category?: $Enums.ExpenseCategory
   tags?: Prisma.ExpenseCreatetagsInput | string[]
+  autoTags?: Prisma.ExpenseCreateautoTagsInput | string[]
   expenseDate?: Date | string
   createdAt?: Date | string
 }
@@ -696,6 +726,7 @@ export type ExpenseCreateManyUserInput = {
   place?: string | null
   category?: $Enums.ExpenseCategory
   tags?: Prisma.ExpenseCreatetagsInput | string[]
+  autoTags?: Prisma.ExpenseCreateautoTagsInput | string[]
   expenseDate?: Date | string
   createdAt?: Date | string
 }
@@ -707,6 +738,7 @@ export type ExpenseUpdateWithoutUserInput = {
   place?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory
   tags?: Prisma.ExpenseUpdatetagsInput | string[]
+  autoTags?: Prisma.ExpenseUpdateautoTagsInput | string[]
   expenseDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   circle?: Prisma.CircleUpdateOneRequiredWithoutExpensesNestedInput
@@ -720,6 +752,7 @@ export type ExpenseUncheckedUpdateWithoutUserInput = {
   place?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory
   tags?: Prisma.ExpenseUpdatetagsInput | string[]
+  autoTags?: Prisma.ExpenseUpdateautoTagsInput | string[]
   expenseDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -732,6 +765,7 @@ export type ExpenseUncheckedUpdateManyWithoutUserInput = {
   place?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory
   tags?: Prisma.ExpenseUpdatetagsInput | string[]
+  autoTags?: Prisma.ExpenseUpdateautoTagsInput | string[]
   expenseDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -744,6 +778,7 @@ export type ExpenseCreateManyCircleInput = {
   place?: string | null
   category?: $Enums.ExpenseCategory
   tags?: Prisma.ExpenseCreatetagsInput | string[]
+  autoTags?: Prisma.ExpenseCreateautoTagsInput | string[]
   expenseDate?: Date | string
   createdAt?: Date | string
 }
@@ -755,6 +790,7 @@ export type ExpenseUpdateWithoutCircleInput = {
   place?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory
   tags?: Prisma.ExpenseUpdatetagsInput | string[]
+  autoTags?: Prisma.ExpenseUpdateautoTagsInput | string[]
   expenseDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutExpensesNestedInput
@@ -768,6 +804,7 @@ export type ExpenseUncheckedUpdateWithoutCircleInput = {
   place?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory
   tags?: Prisma.ExpenseUpdatetagsInput | string[]
+  autoTags?: Prisma.ExpenseUpdateautoTagsInput | string[]
   expenseDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -780,6 +817,7 @@ export type ExpenseUncheckedUpdateManyWithoutCircleInput = {
   place?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumExpenseCategoryFieldUpdateOperationsInput | $Enums.ExpenseCategory
   tags?: Prisma.ExpenseUpdatetagsInput | string[]
+  autoTags?: Prisma.ExpenseUpdateautoTagsInput | string[]
   expenseDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -795,6 +833,7 @@ export type ExpenseSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   place?: boolean
   category?: boolean
   tags?: boolean
+  autoTags?: boolean
   expenseDate?: boolean
   createdAt?: boolean
   circle?: boolean | Prisma.CircleDefaultArgs<ExtArgs>
@@ -810,6 +849,7 @@ export type ExpenseSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   place?: boolean
   category?: boolean
   tags?: boolean
+  autoTags?: boolean
   expenseDate?: boolean
   createdAt?: boolean
   circle?: boolean | Prisma.CircleDefaultArgs<ExtArgs>
@@ -825,6 +865,7 @@ export type ExpenseSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   place?: boolean
   category?: boolean
   tags?: boolean
+  autoTags?: boolean
   expenseDate?: boolean
   createdAt?: boolean
   circle?: boolean | Prisma.CircleDefaultArgs<ExtArgs>
@@ -840,11 +881,12 @@ export type ExpenseSelectScalar = {
   place?: boolean
   category?: boolean
   tags?: boolean
+  autoTags?: boolean
   expenseDate?: boolean
   createdAt?: boolean
 }
 
-export type ExpenseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "circleId" | "userId" | "amount" | "description" | "place" | "category" | "tags" | "expenseDate" | "createdAt", ExtArgs["result"]["expense"]>
+export type ExpenseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "circleId" | "userId" | "amount" | "description" | "place" | "category" | "tags" | "autoTags" | "expenseDate" | "createdAt", ExtArgs["result"]["expense"]>
 export type ExpenseInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   circle?: boolean | Prisma.CircleDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -873,6 +915,7 @@ export type $ExpensePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     place: string | null
     category: $Enums.ExpenseCategory
     tags: string[]
+    autoTags: string[]
     expenseDate: Date
     createdAt: Date
   }, ExtArgs["result"]["expense"]>
@@ -1308,6 +1351,7 @@ export interface ExpenseFieldRefs {
   readonly place: Prisma.FieldRef<"Expense", 'String'>
   readonly category: Prisma.FieldRef<"Expense", 'ExpenseCategory'>
   readonly tags: Prisma.FieldRef<"Expense", 'String[]'>
+  readonly autoTags: Prisma.FieldRef<"Expense", 'String[]'>
   readonly expenseDate: Prisma.FieldRef<"Expense", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Expense", 'DateTime'>
 }
