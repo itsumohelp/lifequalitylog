@@ -2,6 +2,48 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
 
+// 収入を更新（タグ編集）
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const body = await request.json();
+  const { tags, autoTags } = body;
+
+  const income = await prisma.income.findUnique({ where: { id } });
+  if (!income) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const member = await prisma.circleMember.findUnique({
+    where: {
+      circleId_userId: { circleId: income.circleId, userId: session.user.id },
+    },
+  });
+  if (!member || (member.role !== "ADMIN" && member.role !== "EDITOR")) {
+    return NextResponse.json({ error: "Permission denied" }, { status: 403 });
+  }
+  if (member.role === "EDITOR" && income.userId !== session.user.id) {
+    return NextResponse.json({ error: "Permission denied" }, { status: 403 });
+  }
+
+  const updated = await prisma.income.update({
+    where: { id },
+    data: {
+      ...(tags !== undefined && { tags }),
+      ...(autoTags !== undefined && { autoTags }),
+    },
+  });
+
+  return NextResponse.json({ income: updated });
+}
+
 // 収入を削除
 export async function DELETE(
   request: NextRequest,

@@ -2052,6 +2052,7 @@ export const IncomeScalarFieldEnum = {
   source: 'source',
   category: 'category',
   tags: 'tags',
+  autoTags: 'autoTags',
   incomeDate: 'incomeDate',
   createdAt: 'createdAt'
 } as const

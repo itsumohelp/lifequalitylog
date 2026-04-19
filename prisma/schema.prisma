@@ -239,6 +239,7 @@ model Income {
   source      String?         // 収入元（例：「会社」）
   category    IncomeCategory  @default(OTHER)
   tags        String[]        // タグ
+  autoTags    String[]        // 自動提案タグ（ルールベース）
   incomeDate  DateTime        @default(now()) // 収入日時
   createdAt   DateTime        @default(now())
   @@index([circleId, incomeDate])

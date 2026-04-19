@@ -67,6 +67,7 @@ export type IncomeCountAggregateOutputType = {
   source: number
   category: number
   tags: number
+  autoTags: number
   incomeDate: number
   createdAt: number
   _all: number
@@ -114,6 +115,7 @@ export type IncomeCountAggregateInputType = {
   source?: true
   category?: true
   tags?: true
+  autoTags?: true
   incomeDate?: true
   createdAt?: true
   _all?: true
@@ -214,6 +216,7 @@ export type IncomeGroupByOutputType = {
   source: string | null
   category: $Enums.IncomeCategory
   tags: string[]
+  autoTags: string[]
   incomeDate: Date
   createdAt: Date
   _count: IncomeCountAggregateOutputType | null
@@ -250,6 +253,7 @@ export type IncomeWhereInput = {
   source?: Prisma.StringNullableFilter<"Income"> | string | null
   category?: Prisma.EnumIncomeCategoryFilter<"Income"> | $Enums.IncomeCategory
   tags?: Prisma.StringNullableListFilter<"Income">
+  autoTags?: Prisma.StringNullableListFilter<"Income">
   incomeDate?: Prisma.DateTimeFilter<"Income"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"Income"> | Date | string
   circle?: Prisma.XOR<Prisma.CircleScalarRelationFilter, Prisma.CircleWhereInput>
@@ -265,6 +269,7 @@ export type IncomeOrderByWithRelationInput = {
   source?: Prisma.SortOrderInput | Prisma.SortOrder
   category?: Prisma.SortOrder
   tags?: Prisma.SortOrder
+  autoTags?: Prisma.SortOrder
   incomeDate?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   circle?: Prisma.CircleOrderByWithRelationInput
@@ -283,6 +288,7 @@ export type IncomeWhereUniqueInput = Prisma.AtLeast<{
   source?: Prisma.StringNullableFilter<"Income"> | string | null
   category?: Prisma.EnumIncomeCategoryFilter<"Income"> | $Enums.IncomeCategory
   tags?: Prisma.StringNullableListFilter<"Income">
+  autoTags?: Prisma.StringNullableListFilter<"Income">
   incomeDate?: Prisma.DateTimeFilter<"Income"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"Income"> | Date | string
   circle?: Prisma.XOR<Prisma.CircleScalarRelationFilter, Prisma.CircleWhereInput>
@@ -298,6 +304,7 @@ export type IncomeOrderByWithAggregationInput = {
   source?: Prisma.SortOrderInput | Prisma.SortOrder
   category?: Prisma.SortOrder
   tags?: Prisma.SortOrder
+  autoTags?: Prisma.SortOrder
   incomeDate?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.IncomeCountOrderByAggregateInput
@@ -319,6 +326,7 @@ export type IncomeScalarWhereWithAggregatesInput = {
   source?: Prisma.StringNullableWithAggregatesFilter<"Income"> | string | null
   category?: Prisma.EnumIncomeCategoryWithAggregatesFilter<"Income"> | $Enums.IncomeCategory
   tags?: Prisma.StringNullableListFilter<"Income">
+  autoTags?: Prisma.StringNullableListFilter<"Income">
   incomeDate?: Prisma.DateTimeWithAggregatesFilter<"Income"> | Date | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Income"> | Date | string
 }
@@ -330,6 +338,7 @@ export type IncomeCreateInput = {
   source?: string | null
   category?: $Enums.IncomeCategory
   tags?: Prisma.IncomeCreatetagsInput | string[]
+  autoTags?: Prisma.IncomeCreateautoTagsInput | string[]
   incomeDate?: Date | string
   createdAt?: Date | string
   circle: Prisma.CircleCreateNestedOneWithoutIncomesInput
@@ -345,6 +354,7 @@ export type IncomeUncheckedCreateInput = {
   source?: string | null
   category?: $Enums.IncomeCategory
   tags?: Prisma.IncomeCreatetagsInput | string[]
+  autoTags?: Prisma.IncomeCreateautoTagsInput | string[]
   incomeDate?: Date | string
   createdAt?: Date | string
 }
@@ -356,6 +366,7 @@ export type IncomeUpdateInput = {
   source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumIncomeCategoryFieldUpdateOperationsInput | $Enums.IncomeCategory
   tags?: Prisma.IncomeUpdatetagsInput | string[]
+  autoTags?: Prisma.IncomeUpdateautoTagsInput | string[]
   incomeDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   circle?: Prisma.CircleUpdateOneRequiredWithoutIncomesNestedInput
@@ -371,6 +382,7 @@ export type IncomeUncheckedUpdateInput = {
   source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumIncomeCategoryFieldUpdateOperationsInput | $Enums.IncomeCategory
   tags?: Prisma.IncomeUpdatetagsInput | string[]
+  autoTags?: Prisma.IncomeUpdateautoTagsInput | string[]
   incomeDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -384,6 +396,7 @@ export type IncomeCreateManyInput = {
   source?: string | null
   category?: $Enums.IncomeCategory
   tags?: Prisma.IncomeCreatetagsInput | string[]
+  autoTags?: Prisma.IncomeCreateautoTagsInput | string[]
   incomeDate?: Date | string
   createdAt?: Date | string
 }
@@ -395,6 +408,7 @@ export type IncomeUpdateManyMutationInput = {
   source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumIncomeCategoryFieldUpdateOperationsInput | $Enums.IncomeCategory
   tags?: Prisma.IncomeUpdatetagsInput | string[]
+  autoTags?: Prisma.IncomeUpdateautoTagsInput | string[]
   incomeDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -408,6 +422,7 @@ export type IncomeUncheckedUpdateManyInput = {
   source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumIncomeCategoryFieldUpdateOperationsInput | $Enums.IncomeCategory
   tags?: Prisma.IncomeUpdatetagsInput | string[]
+  autoTags?: Prisma.IncomeUpdateautoTagsInput | string[]
   incomeDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -431,6 +446,7 @@ export type IncomeCountOrderByAggregateInput = {
   source?: Prisma.SortOrder
   category?: Prisma.SortOrder
   tags?: Prisma.SortOrder
+  autoTags?: Prisma.SortOrder
   incomeDate?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -555,11 +571,20 @@ export type IncomeCreatetagsInput = {
   set: string[]
 }
 
+export type IncomeCreateautoTagsInput = {
+  set: string[]
+}
+
 export type EnumIncomeCategoryFieldUpdateOperationsInput = {
   set?: $Enums.IncomeCategory
 }
 
 export type IncomeUpdatetagsInput = {
+  set?: string[]
+  push?: string | string[]
+}
+
+export type IncomeUpdateautoTagsInput = {
   set?: string[]
   push?: string | string[]
 }
@@ -571,6 +596,7 @@ export type IncomeCreateWithoutUserInput = {
   source?: string | null
   category?: $Enums.IncomeCategory
   tags?: Prisma.IncomeCreatetagsInput | string[]
+  autoTags?: Prisma.IncomeCreateautoTagsInput | string[]
   incomeDate?: Date | string
   createdAt?: Date | string
   circle: Prisma.CircleCreateNestedOneWithoutIncomesInput
@@ -584,6 +610,7 @@ export type IncomeUncheckedCreateWithoutUserInput = {
   source?: string | null
   category?: $Enums.IncomeCategory
   tags?: Prisma.IncomeCreatetagsInput | string[]
+  autoTags?: Prisma.IncomeCreateautoTagsInput | string[]
   incomeDate?: Date | string
   createdAt?: Date | string
 }
@@ -626,6 +653,7 @@ export type IncomeScalarWhereInput = {
   source?: Prisma.StringNullableFilter<"Income"> | string | null
   category?: Prisma.EnumIncomeCategoryFilter<"Income"> | $Enums.IncomeCategory
   tags?: Prisma.StringNullableListFilter<"Income">
+  autoTags?: Prisma.StringNullableListFilter<"Income">
   incomeDate?: Prisma.DateTimeFilter<"Income"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"Income"> | Date | string
 }
@@ -637,6 +665,7 @@ export type IncomeCreateWithoutCircleInput = {
   source?: string | null
   category?: $Enums.IncomeCategory
   tags?: Prisma.IncomeCreatetagsInput | string[]
+  autoTags?: Prisma.IncomeCreateautoTagsInput | string[]
   incomeDate?: Date | string
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutIncomesInput
@@ -650,6 +679,7 @@ export type IncomeUncheckedCreateWithoutCircleInput = {
   source?: string | null
   category?: $Enums.IncomeCategory
   tags?: Prisma.IncomeCreatetagsInput | string[]
+  autoTags?: Prisma.IncomeCreateautoTagsInput | string[]
   incomeDate?: Date | string
   createdAt?: Date | string
 }
@@ -688,6 +718,7 @@ export type IncomeCreateManyUserInput = {
   source?: string | null
   category?: $Enums.IncomeCategory
   tags?: Prisma.IncomeCreatetagsInput | string[]
+  autoTags?: Prisma.IncomeCreateautoTagsInput | string[]
   incomeDate?: Date | string
   createdAt?: Date | string
 }
@@ -699,6 +730,7 @@ export type IncomeUpdateWithoutUserInput = {
   source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumIncomeCategoryFieldUpdateOperationsInput | $Enums.IncomeCategory
   tags?: Prisma.IncomeUpdatetagsInput | string[]
+  autoTags?: Prisma.IncomeUpdateautoTagsInput | string[]
   incomeDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   circle?: Prisma.CircleUpdateOneRequiredWithoutIncomesNestedInput
@@ -712,6 +744,7 @@ export type IncomeUncheckedUpdateWithoutUserInput = {
   source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumIncomeCategoryFieldUpdateOperationsInput | $Enums.IncomeCategory
   tags?: Prisma.IncomeUpdatetagsInput | string[]
+  autoTags?: Prisma.IncomeUpdateautoTagsInput | string[]
   incomeDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -724,6 +757,7 @@ export type IncomeUncheckedUpdateManyWithoutUserInput = {
   source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumIncomeCategoryFieldUpdateOperationsInput | $Enums.IncomeCategory
   tags?: Prisma.IncomeUpdatetagsInput | string[]
+  autoTags?: Prisma.IncomeUpdateautoTagsInput | string[]
   incomeDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -736,6 +770,7 @@ export type IncomeCreateManyCircleInput = {
   source?: string | null
   category?: $Enums.IncomeCategory
   tags?: Prisma.IncomeCreatetagsInput | string[]
+  autoTags?: Prisma.IncomeCreateautoTagsInput | string[]
   incomeDate?: Date | string
   createdAt?: Date | string
 }
@@ -747,6 +782,7 @@ export type IncomeUpdateWithoutCircleInput = {
   source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumIncomeCategoryFieldUpdateOperationsInput | $Enums.IncomeCategory
   tags?: Prisma.IncomeUpdatetagsInput | string[]
+  autoTags?: Prisma.IncomeUpdateautoTagsInput | string[]
   incomeDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutIncomesNestedInput
@@ -760,6 +796,7 @@ export type IncomeUncheckedUpdateWithoutCircleInput = {
   source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumIncomeCategoryFieldUpdateOperationsInput | $Enums.IncomeCategory
   tags?: Prisma.IncomeUpdatetagsInput | string[]
+  autoTags?: Prisma.IncomeUpdateautoTagsInput | string[]
   incomeDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -772,6 +809,7 @@ export type IncomeUncheckedUpdateManyWithoutCircleInput = {
   source?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.EnumIncomeCategoryFieldUpdateOperationsInput | $Enums.IncomeCategory
   tags?: Prisma.IncomeUpdatetagsInput | string[]
+  autoTags?: Prisma.IncomeUpdateautoTagsInput | string[]
   incomeDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -787,6 +825,7 @@ export type IncomeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   source?: boolean
   category?: boolean
   tags?: boolean
+  autoTags?: boolean
   incomeDate?: boolean
   createdAt?: boolean
   circle?: boolean | Prisma.CircleDefaultArgs<ExtArgs>
@@ -802,6 +841,7 @@ export type IncomeSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   source?: boolean
   category?: boolean
   tags?: boolean
+  autoTags?: boolean
   incomeDate?: boolean
   createdAt?: boolean
   circle?: boolean | Prisma.CircleDefaultArgs<ExtArgs>
@@ -817,6 +857,7 @@ export type IncomeSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   source?: boolean
   category?: boolean
   tags?: boolean
+  autoTags?: boolean
   incomeDate?: boolean
   createdAt?: boolean
   circle?: boolean | Prisma.CircleDefaultArgs<ExtArgs>
@@ -832,11 +873,12 @@ export type IncomeSelectScalar = {
   source?: boolean
   category?: boolean
   tags?: boolean
+  autoTags?: boolean
   incomeDate?: boolean
   createdAt?: boolean
 }
 
-export type IncomeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "circleId" | "userId" | "amount" | "description" | "source" | "category" | "tags" | "incomeDate" | "createdAt", ExtArgs["result"]["income"]>
+export type IncomeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "circleId" | "userId" | "amount" | "description" | "source" | "category" | "tags" | "autoTags" | "incomeDate" | "createdAt", ExtArgs["result"]["income"]>
 export type IncomeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   circle?: boolean | Prisma.CircleDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -865,6 +907,7 @@ export type $IncomePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     source: string | null
     category: $Enums.IncomeCategory
     tags: string[]
+    autoTags: string[]
     incomeDate: Date
     createdAt: Date
   }, ExtArgs["result"]["income"]>
@@ -1300,6 +1343,7 @@ export interface IncomeFieldRefs {
   readonly source: Prisma.FieldRef<"Income", 'String'>
   readonly category: Prisma.FieldRef<"Income", 'IncomeCategory'>
   readonly tags: Prisma.FieldRef<"Income", 'String[]'>
+  readonly autoTags: Prisma.FieldRef<"Income", 'String[]'>
   readonly incomeDate: Prisma.FieldRef<"Income", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Income", 'DateTime'>
 }
