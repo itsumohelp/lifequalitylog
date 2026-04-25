@@ -14,25 +14,16 @@ export async function PATCH(
 
   const { id } = await params;
   const body = await request.json();
-  const { tags, autoTags } = body;
+  const { tags, autoTags, expenseDate } = body;
 
   if (tags !== undefined && !Array.isArray(tags)) {
-    return NextResponse.json(
-      { error: "tags must be an array" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "tags must be an array" }, { status: 400 });
   }
   if (autoTags !== undefined && !Array.isArray(autoTags)) {
-    return NextResponse.json(
-      { error: "autoTags must be an array" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "autoTags must be an array" }, { status: 400 });
   }
-  if (tags === undefined && autoTags === undefined) {
-    return NextResponse.json(
-      { error: "tags or autoTags is required" },
-      { status: 400 },
-    );
+  if (tags === undefined && autoTags === undefined && expenseDate === undefined) {
+    return NextResponse.json({ error: "tags, autoTags or expenseDate is required" }, { status: 400 });
   }
 
   const expense = await prisma.expense.findUnique({ where: { id } });
@@ -58,8 +49,9 @@ export async function PATCH(
   const updated = await prisma.expense.update({
     where: { id },
     data: {
-      ...(tags !== undefined ? { tags } : {}),
-      ...(autoTags !== undefined ? { autoTags } : {}),
+      ...(tags !== undefined && { tags }),
+      ...(autoTags !== undefined && { autoTags }),
+      ...(expenseDate !== undefined && { expenseDate: new Date(expenseDate) }),
     },
   });
 

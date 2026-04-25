@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.55] - 2026-04-26
+
+### Added
+- **Transaction date editing**: Expense and income items now have a 処理日 (processing date) field in the detail view. Defaults to registration date. Can be edited via date picker (no future dates allowed). Updates `expenseDate` / `incomeDate` in the DB via PATCH. Read-only display for non-editable items.
+- **Apple ID login button (web)**: On iOS Safari, a black "Apple IDでログイン（アプリで開く）" button now appears below the Google login button. Tapping it opens the native app via `click.crun.circlerun://` deep link. Requires agreement checkbox. Only shown on iOS non-Capacitor environments.
+
+### 追加
+- **処理日の編集**: 支出・収入の詳細画面に「処理日」フィールドを追加。デフォルトは登録日。日付ピッカーで変更可能（未来日は選択不可）。変更時はPATCHで `expenseDate` / `incomeDate` を即時更新。編集権限がない場合は日本語テキスト表示のみ。
+- **Apple IDログインボタン（Web）**: iOS Safariのログイン画面にApple IDボタンを追加。タップすると `click.crun.circlerun://` でネイティブアプリを起動。招待リンク経由の場合は参加画面に直接遷移。同意チェック必須。iOSの非Capacitor環境のみ表示。
+
+---
+
 ## [0.0.53] - 2026-04-20
 
 ### Added

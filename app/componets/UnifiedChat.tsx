@@ -70,6 +70,7 @@ type FeedItem = {
   noticeLink?: string | null;
   insightText?: string;
   notificationMessage?: string;
+  transactionDate?: string;
   createdAt: string;
 };
 
@@ -720,6 +721,41 @@ export default function UnifiedChat({
       setError("通信エラーが発生しました");
     } finally {
       setIsTagging(false);
+    }
+  };
+
+  // 処理日を更新
+  const handleUpdateTransactionDate = async (item: FeedItem, dateStr: string) => {
+    const isIncome = item.kind === "income";
+    const id = isIncome
+      ? item.id.replace("income-", "")
+      : item.id.replace("expense-", "");
+    const apiPath = isIncome ? `/api/income/${id}` : `/api/expense/${id}`;
+    const bodyKey = isIncome ? "incomeDate" : "expenseDate";
+
+    // YYYY-MM-DD → JST midnight
+    const date = new Date(`${dateStr}T00:00:00+09:00`);
+
+    try {
+      const res = await fetch(apiPath, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [bodyKey]: date.toISOString() }),
+      });
+      if (res.ok) {
+        const transactionDate = date.toISOString();
+        setFeed((prev) =>
+          prev.map((f) => (f.id === item.id ? { ...f, transactionDate } : f)),
+        );
+        setSelectedItem((prev) =>
+          prev && prev.id === item.id ? { ...prev, transactionDate } : prev,
+        );
+      } else {
+        const data = await res.json();
+        setError(data.error || "処理日の更新に失敗しました");
+      }
+    } catch {
+      setError("通信エラーが発生しました");
     }
   };
 
@@ -2862,6 +2898,53 @@ export default function UnifiedChat({
                   <span className="text-sm text-slate-700">
                     {selectedItem.source}
                   </span>
+                </div>
+              )}
+
+              {/* 処理日（支出・収入の場合） */}
+              {(selectedItem.kind === "expense" ||
+                selectedItem.kind === "income") && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-slate-500">処理日</span>
+                  {canModifyItem(selectedItem) ? (
+                    <input
+                      type="date"
+                      defaultValue={
+                        selectedItem.transactionDate
+                          ? new Date(selectedItem.transactionDate)
+                              .toLocaleDateString("sv-SE", {
+                                timeZone: "Asia/Tokyo",
+                              })
+                          : new Date(selectedItem.createdAt)
+                              .toLocaleDateString("sv-SE", {
+                                timeZone: "Asia/Tokyo",
+                              })
+                      }
+                      max={new Date().toLocaleDateString("sv-SE", {
+                        timeZone: "Asia/Tokyo",
+                      })}
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          handleUpdateTransactionDate(
+                            selectedItem,
+                            e.target.value,
+                          );
+                        }
+                      }}
+                      className="text-sm text-slate-700 border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-sky-400"
+                    />
+                  ) : (
+                    <span className="text-sm text-slate-700">
+                      {new Date(
+                        selectedItem.transactionDate || selectedItem.createdAt,
+                      ).toLocaleDateString("ja-JP", {
+                        timeZone: "Asia/Tokyo",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </span>
+                  )}
                 </div>
               )}
 

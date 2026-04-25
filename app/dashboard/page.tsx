@@ -34,6 +34,7 @@ type FeedItem = {
   noticeLink?: string | null;
   insightText?: string;
   notificationMessage?: string;
+  transactionDate?: string;
   createdAt: string;
 };
 
@@ -366,6 +367,7 @@ export default async function DashboardPage() {
           category: e.category,
           tags: e.tags,
           autoTags: e.autoTags,
+          transactionDate: e.expenseDate.toISOString(),
           createdAt: e.createdAt.toISOString(),
         })),
       ...incomes
@@ -384,6 +386,7 @@ export default async function DashboardPage() {
           category: i.category,
           tags: i.tags,
           autoTags: i.autoTags,
+          transactionDate: i.incomeDate.toISOString(),
           createdAt: i.createdAt.toISOString(),
         })),
       ...notifications
