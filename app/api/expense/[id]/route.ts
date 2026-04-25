@@ -14,7 +14,7 @@ export async function PATCH(
 
   const { id } = await params;
   const body = await request.json();
-  const { tags, autoTags, expenseDate } = body;
+  const { tags, autoTags, expenseDate, claimeeUserId } = body;
 
   if (tags !== undefined && !Array.isArray(tags)) {
     return NextResponse.json({ error: "tags must be an array" }, { status: 400 });
@@ -22,8 +22,8 @@ export async function PATCH(
   if (autoTags !== undefined && !Array.isArray(autoTags)) {
     return NextResponse.json({ error: "autoTags must be an array" }, { status: 400 });
   }
-  if (tags === undefined && autoTags === undefined && expenseDate === undefined) {
-    return NextResponse.json({ error: "tags, autoTags or expenseDate is required" }, { status: 400 });
+  if (tags === undefined && autoTags === undefined && expenseDate === undefined && !("claimeeUserId" in body)) {
+    return NextResponse.json({ error: "tags, autoTags, expenseDate or claimeeUserId is required" }, { status: 400 });
   }
 
   const expense = await prisma.expense.findUnique({ where: { id } });
@@ -46,12 +46,33 @@ export async function PATCH(
     return NextResponse.json({ error: "Permission denied" }, { status: 403 });
   }
 
+  // 請求先を設定するとき、名前をキャッシュする
+  let claimeeNameCache: string | null | undefined = undefined;
+  if ("claimeeUserId" in body) {
+    if (claimeeUserId) {
+      const claimeeUser = await prisma.user.findUnique({
+        where: { id: claimeeUserId },
+        select: { name: true, displayName: true },
+      });
+      claimeeNameCache = claimeeUser?.displayName || claimeeUser?.name || null;
+    } else {
+      claimeeNameCache = null;
+    }
+  }
+
   const updated = await prisma.expense.update({
     where: { id },
     data: {
       ...(tags !== undefined && { tags }),
       ...(autoTags !== undefined && { autoTags }),
       ...(expenseDate !== undefined && { expenseDate: new Date(expenseDate) }),
+      ...("claimeeUserId" in body && {
+        claimeeUserId: claimeeUserId ?? null,
+        claimeeNameCache,
+      }),
+    },
+    include: {
+      claimee: { select: { id: true, name: true, displayName: true, image: true } },
     },
   });
 

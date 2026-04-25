@@ -35,6 +35,10 @@ type FeedItem = {
   insightText?: string;
   notificationMessage?: string;
   transactionDate?: string;
+  claimeeUserId?: string;
+  claimeeUserName?: string;
+  claimeeUserImage?: string | null;
+  claimeeNameCache?: string;
   createdAt: string;
 };
 
@@ -157,6 +161,9 @@ export default async function DashboardPage() {
             email: true,
             image: true,
           },
+        },
+        claimee: {
+          select: { id: true, name: true, displayName: true, image: true },
         },
       },
     });
@@ -368,6 +375,10 @@ export default async function DashboardPage() {
           tags: e.tags,
           autoTags: e.autoTags,
           transactionDate: e.expenseDate.toISOString(),
+          claimeeUserId: e.claimee?.id,
+          claimeeUserName: e.claimee?.displayName || e.claimee?.name || undefined,
+          claimeeUserImage: e.claimee?.image || null,
+          claimeeNameCache: e.claimeeNameCache || undefined,
           createdAt: e.createdAt.toISOString(),
         })),
       ...incomes
@@ -430,6 +441,7 @@ export default async function DashboardPage() {
       userImage: null,
       amount: 0,
       insightText: ins.insight,
+      insightSummary: ins.summary ?? undefined,
       createdAt: ins.generatedAt.toISOString(),
     }));
 

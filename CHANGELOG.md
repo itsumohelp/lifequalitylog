@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.57] - 2026-04-27
+
+### Added
+- **Expense claim (請求先)**: After registering an expense, open the detail view to assign a circle member as the claimee — the person you fronted money for. The feed shows a 💸 badge with the claimee's avatar and name. Setting the claimee is restricted to the expense owner (EDITOR) or circle ADMIN.
+- **Deleted-user placeholder for claimee**: When the claimee's account is deleted, their name is preserved in a `claimeeNameCache` column. The UI shows a grey "?" avatar with "（退会済み）" instead of breaking. Circle withdrawal (without account deletion) continues to display the user normally since their account still exists.
+
+### 追加
+- **支出の請求先設定**: 支出の詳細画面からサークルメンバーを請求先として設定できる機能を追加。立替払いした相手を指定すると、フィードの支出バブルに💸バッジ＋アバター＋名前が表示される。設定はEDITOR（自分の支出のみ）またはADMINが可能。
+- **削除済みユーザーのプレースホルダー表示**: 請求先ユーザーがアカウントを削除した場合、名前を`claimeeNameCache`カラムに保持。UIではグレーの「?」アバターと「（退会済み）」テキストで表示し、参照エラーを回避。サークル脱退のみ（アカウント削除なし）の場合はユーザーが存在するため通常表示。
+
+---
+
 ## [0.0.55] - 2026-04-26
 
 ### Added
