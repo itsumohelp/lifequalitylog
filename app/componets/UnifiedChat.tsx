@@ -69,8 +69,13 @@ type FeedItem = {
   noticeBody?: string | null;
   noticeLink?: string | null;
   insightText?: string;
+  insightSummary?: string;
   notificationMessage?: string;
   transactionDate?: string;
+  claimeeUserId?: string;
+  claimeeUserName?: string;
+  claimeeUserImage?: string | null;
+  claimeeNameCache?: string;
   createdAt: string;
 };
 
@@ -114,6 +119,25 @@ const ALL_CATEGORY_TAGS = [
   "ボーナス",
   "副収入",
 ];
+
+type WarikanPayload = {
+  type: "WARIKAN";
+  period: string;
+  total: number;
+  perPerson: number;
+  people: number;
+  members: { name: string; image: string | null; paid: number; diff: number }[];
+};
+
+function parseWarikan(message: string | undefined): WarikanPayload | null {
+  if (!message) return null;
+  try {
+    const p = JSON.parse(message);
+    return p?.type === "WARIKAN" ? (p as WarikanPayload) : null;
+  } catch {
+    return null;
+  }
+}
 
 function getTimeSlotKey(hour: number): string {
   if (hour >= 5 && hour < 10) return "morning";
@@ -258,6 +282,20 @@ export default function UnifiedChat({
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // 割り勘
+  type WarikanMember = { userId: string; name: string; image: string | null; paid: number };
+  const [showWarikanDialog, setShowWarikanDialog] = useState(false);
+  const [warikanPeriod, setWarikanPeriod] = useState("month");
+  const [warikanData, setWarikanData] = useState<{ total: number; members: WarikanMember[] } | null>(null);
+  const [warikanPeople, setWarikanPeople] = useState(0);
+  const [isWarikanLoading, setIsWarikanLoading] = useState(false);
+  const [isWarikanPosting, setIsWarikanPosting] = useState(false);
+
+  // 請求先
+  type ClaimeeMember = { userId: string; name: string; image: string | null };
+  const [claimeeMembers, setClaimeeMembers] = useState<ClaimeeMember[]>([]);
+  const [isUpdatingClaimee, setIsUpdatingClaimee] = useState(false);
+
   const isTimeline = selectedCircleId === TIMELINE_VALUE;
   const selectedCircle = circlesState.find((c) => c.id === selectedCircleId);
 
@@ -288,6 +326,7 @@ export default function UnifiedChat({
           userImage: null,
           amount: 0,
           insightText: data.insight,
+          insightSummary: data.summary,
           createdAt: data.generatedAt,
         };
         setFeed((prev) => {
@@ -305,6 +344,82 @@ export default function UnifiedChat({
     },
     [isInsightLoading],
   );
+
+  // 割り勘データ取得
+  const fetchWarikan = async (circleId: string, period: string) => {
+    setIsWarikanLoading(true);
+    setWarikanData(null);
+    try {
+      const res = await fetch(`/api/warikan?circleId=${circleId}&period=${period}`);
+      const data = await res.json();
+      if (res.ok) {
+        setWarikanData(data);
+        setWarikanPeople(data.members.length || 2);
+      }
+    } catch {
+      // silent
+    } finally {
+      setIsWarikanLoading(false);
+    }
+  };
+
+  // 割り勘結果をフィードに投稿
+  const handleWarikanPost = async (circleId: string) => {
+    if (!warikanData || warikanPeople < 1) return;
+    const share = Math.ceil(warikanData.total / warikanPeople);
+    const periodLabel =
+      warikanPeriod === "month" ? "今月" :
+      warikanPeriod === "30" ? "直近30日" :
+      warikanPeriod === "90" ? "直近90日" : "全期間";
+
+    // JSON形式で保存（グラフィカル表示用）
+    const payload = {
+      type: "WARIKAN",
+      period: periodLabel,
+      total: warikanData.total,
+      perPerson: share,
+      people: warikanPeople,
+      members: warikanData.members.slice(0, warikanPeople).map((m) => ({
+        name: m.name,
+        image: m.image,
+        paid: m.paid,
+        diff: m.paid - share,
+      })),
+    };
+    const message = JSON.stringify(payload);
+
+    setIsWarikanPosting(true);
+    try {
+      const res = await fetch("/api/warikan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ circleId, message }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const n = data.notification;
+        setFeed((prev) =>
+          [...prev, {
+            id: `notification-${n.id}`,
+            kind: "notification" as const,
+            circleId: n.circleId,
+            circleName: n.circle.name,
+            userId: n.actorUserId,
+            userName: n.actor?.displayName || n.actor?.name || "メンバー",
+            userImage: n.actor?.image || null,
+            amount: 0,
+            notificationMessage: n.message,
+            createdAt: n.createdAt,
+          }].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()),
+        );
+        setShowWarikanDialog(false);
+      }
+    } catch {
+      // silent
+    } finally {
+      setIsWarikanPosting(false);
+    }
+  };
 
   // シェアボタン処理 → メニューを開く
   const handleShare = () => {
@@ -355,15 +470,47 @@ export default function UnifiedChat({
     return false;
   };
 
+  // 請求先を設定/解除
+  const handleSetClaimee = async (item: FeedItem, userId: string | null) => {
+    if (isUpdatingClaimee) return;
+    setIsUpdatingClaimee(true);
+    const expenseId = item.id.replace(/^expense-/, "");
+    try {
+      const res = await fetch(`/api/expense/${expenseId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ claimeeUserId: userId }),
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      const claimee = data.expense?.claimee;
+      const nameCache = data.expense?.claimeeNameCache ?? undefined;
+      const patch = {
+        claimeeUserId: claimee?.id ?? undefined,
+        claimeeUserName: claimee?.displayName || claimee?.name || undefined,
+        claimeeUserImage: claimee?.image ?? null,
+        claimeeNameCache: nameCache,
+      };
+      setFeed((prev) =>
+        prev.map((f) => (f.id === item.id ? { ...f, ...patch } : f)),
+      );
+      if (selectedItem?.id === item.id) {
+        setSelectedItem((prev) => (prev ? { ...prev, ...patch } : prev));
+      }
+    } finally {
+      setIsUpdatingClaimee(false);
+    }
+  };
+
   // リアクションを取得（遅延読み込み）
   const fetchReactions = useCallback(async (items: FeedItem[]) => {
-    // expense, income, snapshot のみ対象
     const targetItems = items.filter(
       (item) =>
         item.kind === "expense" ||
         item.kind === "income" ||
         item.kind === "snapshot" ||
-        item.kind === "notice",
+        item.kind === "notice" ||
+        item.kind === "notification",
     );
     if (targetItems.length === 0) return;
 
@@ -837,6 +984,20 @@ export default function UnifiedChat({
   useEffect(() => {
     fetchReactions(feed);
   }, [feed, fetchReactions]);
+
+  // 請求先ピッカー用メンバー取得
+  useEffect(() => {
+    if (!selectedItem || selectedItem.kind !== "expense") {
+      setClaimeeMembers([]);
+      return;
+    }
+    fetch(`/api/warikan?circleId=${selectedItem.circleId}&period=month`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.members) setClaimeeMembers(data.members);
+      })
+      .catch(() => {});
+  }, [selectedItem?.id, selectedItem?.kind]);
 
   // 招待コマンドかどうかをチェック
   const isInviteCommand = (text: string) => {
@@ -1724,6 +1885,34 @@ export default function UnifiedChat({
                                       </>
                                     )}
                                 </div>
+                                {/* 請求バッジ */}
+                                {(item.claimeeUserId || item.claimeeNameCache) && (() => {
+                                  const isDeleted = !item.claimeeUserId && !!item.claimeeNameCache;
+                                  const displayName = isDeleted ? item.claimeeNameCache! : (item.claimeeUserName || "");
+                                  return (
+                                    <div className="flex items-center gap-1 mt-1">
+                                      <span className={`text-[10px] ${isOwnMessage ? "text-slate-400" : "text-slate-500"}`}>💸 請求:</span>
+                                      {isDeleted ? (
+                                        <div className="w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center text-[8px] bg-slate-300 text-slate-500 font-bold">?</div>
+                                      ) : item.claimeeUserImage ? (
+                                        <img src={item.claimeeUserImage} className="w-4 h-4 rounded-full object-cover flex-shrink-0" alt={displayName} />
+                                      ) : (
+                                        <div
+                                          className="w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center text-[8px] text-white font-bold"
+                                          style={{ backgroundColor: getAvatarColor(displayName) }}
+                                        >
+                                          {getAvatarInitial(displayName)}
+                                        </div>
+                                      )}
+                                      <span className={`text-[10px] font-medium ${isDeleted ? (isOwnMessage ? "text-slate-400 line-through" : "text-slate-400 line-through") : (isOwnMessage ? "text-orange-300" : "text-orange-600")}`}>
+                                        {displayName}
+                                      </span>
+                                      {isDeleted && (
+                                        <span className={`text-[9px] ${isOwnMessage ? "text-slate-400" : "text-slate-400"}`}>（退会済み）</span>
+                                      )}
+                                    </div>
+                                  );
+                                })()}
                               </>
                             ) : item.kind === "income" ? (
                               <>
@@ -1909,10 +2098,77 @@ export default function UnifiedChat({
                               </>
                             ) : item.kind === "notification" ? (
                               <>
-                                {/* サークル内通知 */}
-                                <p className="text-[11px] text-slate-600">
-                                  {item.notificationMessage}
-                                </p>
+                                {(() => {
+                                  const wk = parseWarikan(item.notificationMessage);
+                                  if (wk) {
+                                    return (
+                                      <div className="space-y-1.5 w-full">
+                                        {/* ヘッダー */}
+                                        <div className="flex items-center justify-between">
+                                          <span className={`text-[11px] font-semibold ${isOwnMessage ? "text-white" : "text-slate-700"}`}>
+                                            割り勘（{wk.period}）
+                                          </span>
+                                          <span className={`text-[10px] ${isOwnMessage ? "text-white/70" : "text-slate-400"}`}>
+                                            {wk.people}人
+                                          </span>
+                                        </div>
+                                        {/* 合計・1人あたり */}
+                                        <div className={`flex items-center gap-1.5 text-[10px] ${isOwnMessage ? "text-white/80" : "text-slate-500"}`}>
+                                          <span>¥{wk.total.toLocaleString()}</span>
+                                          <span>÷</span>
+                                          <span>{wk.people}人</span>
+                                          <span>=</span>
+                                          <span className={`font-semibold ${isOwnMessage ? "text-white" : "text-slate-700"}`}>
+                                            ¥{wk.perPerson.toLocaleString()}/人
+                                          </span>
+                                        </div>
+                                        {/* メンバー行 */}
+                                        <div className="space-y-1">
+                                          {wk.members.map((m, i) => (
+                                            <div key={i} className="flex items-center gap-2">
+                                              {/* アバター */}
+                                              <div
+                                                className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] text-white font-bold overflow-hidden"
+                                                style={{ backgroundColor: m.image ? undefined : getAvatarColor(m.name) }}
+                                              >
+                                                {m.image ? (
+                                                  <img src={m.image} alt={m.name} className="w-6 h-6 object-cover" />
+                                                ) : (
+                                                  getAvatarInitial(m.name)
+                                                )}
+                                              </div>
+                                              {/* 名前 */}
+                                              <span className={`text-[11px] flex-1 truncate ${isOwnMessage ? "text-white/90" : "text-slate-700"}`}>
+                                                {m.name}
+                                              </span>
+                                              {/* 差額バッジ */}
+                                              <span
+                                                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${
+                                                  m.diff > 0
+                                                    ? "bg-sky-100 text-sky-700"
+                                                    : m.diff < 0
+                                                      ? "bg-red-100 text-red-600"
+                                                      : isOwnMessage ? "bg-white/20 text-white/70" : "bg-slate-100 text-slate-400"
+                                                }`}
+                                              >
+                                                {m.diff > 0
+                                                  ? `¥${m.diff.toLocaleString()} 受取`
+                                                  : m.diff < 0
+                                                    ? `¥${Math.abs(m.diff).toLocaleString()} 支払`
+                                                    : "±0"}
+                                              </span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    );
+                                  }
+                                  return (
+                                    <p className={`text-[11px] ${isOwnMessage ? "text-white/90" : "text-slate-600"}`}>
+                                      {item.notificationMessage}
+                                    </p>
+                                  );
+                                })()}
                               </>
                             ) : item.kind === "help" ? (
                               <>
@@ -1973,7 +2229,22 @@ export default function UnifiedChat({
                               </>
                             ) : item.kind === "insight" ? (
                               <>
-                                {/* AIインサイト */}
+                                {/* AIインサイト：数値サマリー */}
+                                {item.insightSummary && (
+                                  <div className="mb-1.5 rounded-lg bg-slate-100 px-2.5 py-1.5">
+                                    {item.insightSummary
+                                      .split("\n")
+                                      .map((line, i) => (
+                                        <p
+                                          key={i}
+                                          className="text-[11px] text-slate-700 leading-snug"
+                                        >
+                                          {line}
+                                        </p>
+                                      ))}
+                                  </div>
+                                )}
+                                {/* AIコメント */}
                                 <p className="text-sm text-slate-800 font-medium leading-snug">
                                   {(item.insightText ?? "").length > 50 ? (
                                     <>
@@ -2034,11 +2305,12 @@ export default function UnifiedChat({
                             )}
                           </button>
 
-                          {/* リアクションボタン（expense, income, snapshot, notice） */}
+                          {/* リアクションボタン（expense, income, snapshot, notice, notification） */}
                           {(item.kind === "expense" ||
                             item.kind === "income" ||
                             item.kind === "snapshot" ||
-                            item.kind === "notice") && (
+                            item.kind === "notice" ||
+                            item.kind === "notification") && (
                             <div
                               className={`flex items-center gap-1 mt-1 ${
                                 isOwnMessage ? "justify-end" : "justify-start"
@@ -2161,7 +2433,7 @@ export default function UnifiedChat({
             localStorage.getItem(AI_CONSENT_KEY) === "true";
 
           return (
-            <div className="flex-shrink-0 px-3 pb-1 bg-slate-50 flex justify-center">
+            <div className="flex-shrink-0 px-3 py-2 bg-slate-50 flex justify-center gap-2">
               <button
                 type="button"
                 onClick={() => {
@@ -2175,9 +2447,17 @@ export default function UnifiedChat({
                 disabled={isInsightLoading}
                 className="text-[11px] text-sky-600 border border-sky-200 bg-sky-50 rounded-full px-3 py-0.5 hover:bg-sky-100 disabled:opacity-50 transition"
               >
-                {isInsightLoading
-                  ? "分析中..."
-                  : "✨ 昨日までの傾向をAIに聞いてみる"}
+                {isInsightLoading ? "分析中..." : "✨ 昨日までの傾向をAIに聞いてみる"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowWarikanDialog(true);
+                  fetchWarikan(selectedCircleId, warikanPeriod);
+                }}
+                className="text-[11px] text-emerald-600 border border-emerald-200 bg-emerald-50 rounded-full px-3 py-0.5 hover:bg-emerald-100 transition"
+              >
+                💴 割り勘
               </button>
             </div>
           );
@@ -2564,6 +2844,137 @@ export default function UnifiedChat({
             >
               閉じる
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 割り勘ダイアログ */}
+      {showWarikanDialog && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-end justify-center z-50"
+          onClick={() => setShowWarikanDialog(false)}
+        >
+          <div
+            className="bg-white rounded-t-2xl w-full max-w-md p-5 pb-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-semibold text-slate-900">💴 割り勘計算</h3>
+              <button
+                type="button"
+                onClick={() => setShowWarikanDialog(false)}
+                className="text-slate-400 hover:text-slate-600 text-lg leading-none"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* 期間選択 */}
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-xs text-slate-500 flex-shrink-0">対象期間</span>
+              <select
+                value={warikanPeriod}
+                onChange={(e) => {
+                  setWarikanPeriod(e.target.value);
+                  fetchWarikan(selectedCircleId, e.target.value);
+                }}
+                className="text-xs border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-sky-400"
+              >
+                <option value="month">今月</option>
+                <option value="30">直近30日</option>
+                <option value="90">直近90日</option>
+                <option value="all">全期間</option>
+              </select>
+            </div>
+
+            {isWarikanLoading ? (
+              <p className="text-sm text-slate-400 text-center py-6">計算中...</p>
+            ) : warikanData ? (
+              <>
+                {/* 合計・1人あたり */}
+                <div className="bg-slate-50 rounded-xl p-3 mb-4">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-xs text-slate-500">総支出</span>
+                    <span className="text-sm font-semibold text-slate-900">
+                      ¥{warikanData.total.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-xs text-slate-500">割り勘人数</span>
+                    <select
+                      value={warikanPeople}
+                      onChange={(e) => setWarikanPeople(Number(e.target.value))}
+                      className="text-xs border border-slate-200 rounded-lg px-2 py-0.5 focus:outline-none focus:border-sky-400"
+                    >
+                      {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                        <option key={n} value={n}>{n}人</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex justify-between items-center border-t border-slate-200 pt-2">
+                    <span className="text-xs text-slate-500">1人あたり</span>
+                    <span className="text-base font-bold text-emerald-600">
+                      ¥{Math.ceil(warikanData.total / Math.max(warikanPeople, 1)).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* メンバー内訳 */}
+                {warikanData.members.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-xs text-slate-500 mb-2">メンバー内訳</p>
+                    <div className="space-y-1.5">
+                      {(() => {
+                        const share = Math.ceil(warikanData.total / Math.max(warikanPeople, 1));
+                        return warikanData.members.map((m) => {
+                          const diff = m.paid - share;
+                          return (
+                            <div
+                              key={m.userId}
+                              className="flex items-center justify-between bg-white border border-slate-100 rounded-lg px-3 py-2"
+                            >
+                              <span className="text-xs text-slate-700 font-medium">{m.name}</span>
+                              <div className="flex items-center gap-3">
+                                <span className="text-[11px] text-slate-400">
+                                  支払済 ¥{m.paid.toLocaleString()}
+                                </span>
+                                <span
+                                  className={`text-[11px] font-semibold min-w-[80px] text-right ${
+                                    diff > 0
+                                      ? "text-sky-600"
+                                      : diff < 0
+                                        ? "text-red-500"
+                                        : "text-slate-400"
+                                  }`}
+                                >
+                                  {diff > 0
+                                    ? `+¥${diff.toLocaleString()} 受取`
+                                    : diff < 0
+                                      ? `-¥${Math.abs(diff).toLocaleString()} 支払`
+                                      : "±0"}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
+                  </div>
+                )}
+
+                {/* フィード投稿ボタン */}
+                <button
+                  type="button"
+                  onClick={() => handleWarikanPost(selectedCircleId)}
+                  disabled={isWarikanPosting || warikanData.total === 0}
+                  className="w-full text-sm py-2.5 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:opacity-50 transition"
+                >
+                  {isWarikanPosting ? "投稿中..." : "フィードに投稿"}
+                </button>
+              </>
+            ) : (
+              <p className="text-sm text-slate-400 text-center py-6">データを取得できませんでした</p>
+            )}
           </div>
         </div>
       )}
@@ -3116,6 +3527,163 @@ export default function UnifiedChat({
                 </div>
               ) : null}
 
+              {/* 請求先（支出の場合） */}
+              {selectedItem.kind === "expense" && (() => {
+                const isDeleted = !selectedItem.claimeeUserId && !!selectedItem.claimeeNameCache;
+                const hasClaimee = !!selectedItem.claimeeUserId || isDeleted;
+                return (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-slate-500">💸 請求先</span>
+                      {hasClaimee && canModifyItem(selectedItem) && (
+                        <button
+                          type="button"
+                          onClick={() => handleSetClaimee(selectedItem, null)}
+                          disabled={isUpdatingClaimee}
+                          className="text-[11px] text-slate-400 hover:text-slate-600 disabled:opacity-50"
+                        >
+                          解除
+                        </button>
+                      )}
+                    </div>
+                    {isDeleted ? (
+                      <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+                        <div className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-xs bg-slate-300 text-slate-500 font-bold">?</div>
+                        <div>
+                          <span className="text-sm text-slate-400 line-through">{selectedItem.claimeeNameCache}</span>
+                          <span className="text-xs text-slate-400 ml-2">（退会済み）</span>
+                        </div>
+                      </div>
+                    ) : selectedItem.claimeeUserId ? (
+                      <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">
+                        {selectedItem.claimeeUserImage ? (
+                          <img src={selectedItem.claimeeUserImage} className="w-7 h-7 rounded-full object-cover flex-shrink-0" alt={selectedItem.claimeeUserName} />
+                        ) : (
+                          <div
+                            className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-xs text-white font-bold"
+                            style={{ backgroundColor: getAvatarColor(selectedItem.claimeeUserName || "") }}
+                          >
+                            {getAvatarInitial(selectedItem.claimeeUserName || "")}
+                          </div>
+                        )}
+                        <span className="text-sm font-medium text-orange-700">{selectedItem.claimeeUserName}</span>
+                        <span className="text-xs text-orange-500 ml-auto">請求中</span>
+                      </div>
+                    ) : canModifyItem(selectedItem) ? (
+                      <div>
+                        <p className="text-xs text-slate-400 mb-2">請求するメンバーを選んでください</p>
+                        <div className="flex flex-wrap gap-2">
+                          {claimeeMembers
+                            .filter((m) => m.userId !== selectedItem.userId)
+                            .map((m) => (
+                              <button
+                                key={m.userId}
+                                type="button"
+                                onClick={() => handleSetClaimee(selectedItem, m.userId)}
+                                disabled={isUpdatingClaimee}
+                                className="flex items-center gap-1.5 bg-slate-100 hover:bg-orange-50 border border-slate-200 hover:border-orange-300 rounded-full px-2.5 py-1 transition disabled:opacity-50 active:scale-95"
+                              >
+                                {m.image ? (
+                                  <img src={m.image} className="w-5 h-5 rounded-full object-cover" alt={m.name} />
+                                ) : (
+                                  <div
+                                    className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] text-white font-bold"
+                                    style={{ backgroundColor: getAvatarColor(m.name) }}
+                                  >
+                                    {getAvatarInitial(m.name)}
+                                  </div>
+                                )}
+                                <span className="text-xs text-slate-700">{m.name}</span>
+                              </button>
+                            ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-400">請求なし</p>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* 通知メッセージ全文（通知の場合） */}
+              {selectedItem.kind === "notification" &&
+                selectedItem.notificationMessage && (() => {
+                  const wkDetail = parseWarikan(selectedItem.notificationMessage);
+                  if (wkDetail) {
+                    return (
+                      <div>
+                        <span className="text-sm text-slate-500 block mb-2">割り勘詳細</span>
+                        <div className="bg-slate-50 rounded-lg px-3 py-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-slate-500">合計</span>
+                            <span className="text-xs font-semibold text-slate-700">¥{wkDetail.total.toLocaleString()}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-slate-500">1人あたり（{wkDetail.people}人）</span>
+                            <button
+                              type="button"
+                              onClick={() => navigator.clipboard.writeText(String(wkDetail.perPerson))}
+                              className="text-xs font-semibold text-sky-600 bg-sky-50 border border-sky-200 rounded px-2 py-0.5 active:bg-sky-100"
+                              title="タップしてコピー"
+                            >
+                              ¥{wkDetail.perPerson.toLocaleString()} コピー
+                            </button>
+                          </div>
+                          <div className="space-y-2 pt-1 border-t border-slate-200">
+                            {wkDetail.members.map((m, i) => (
+                              <div key={i} className="flex items-center gap-2">
+                                <div
+                                  className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] text-white font-bold overflow-hidden"
+                                  style={{ backgroundColor: m.image ? undefined : getAvatarColor(m.name) }}
+                                >
+                                  {m.image ? (
+                                    <img src={m.image} alt={m.name} className="w-7 h-7 object-cover" />
+                                  ) : (
+                                    getAvatarInitial(m.name)
+                                  )}
+                                </div>
+                                <span className="text-xs text-slate-700 flex-1 truncate">{m.name}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => navigator.clipboard.writeText(String(Math.abs(m.diff)))}
+                                  className={`text-[11px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 active:opacity-70 ${
+                                    m.diff > 0
+                                      ? "bg-sky-100 text-sky-700"
+                                      : m.diff < 0
+                                        ? "bg-red-100 text-red-600"
+                                        : "bg-slate-100 text-slate-400"
+                                  }`}
+                                  title="タップしてコピー"
+                                >
+                                  {m.diff > 0
+                                    ? `+¥${m.diff.toLocaleString()} 受取`
+                                    : m.diff < 0
+                                      ? `-¥${Math.abs(m.diff).toLocaleString()} 支払`
+                                      : "±0"}
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div>
+                      <span className="text-sm text-slate-500 block mb-1">内容</span>
+                      <div className="bg-slate-50 rounded-lg px-3 py-2">
+                        {selectedItem.notificationMessage
+                          .split("\n")
+                          .map((line, i) => (
+                            <p key={i} className="text-xs text-slate-700 leading-relaxed">
+                              {line || " "}
+                            </p>
+                          ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+
               {/* メモ（残高の場合） */}
               {selectedItem.note && (
                 <div className="flex justify-between items-center">
@@ -3157,7 +3725,8 @@ export default function UnifiedChat({
               </button>
               {(selectedItem.kind === "expense" ||
                 selectedItem.kind === "income" ||
-                selectedItem.kind === "snapshot") &&
+                selectedItem.kind === "snapshot" ||
+                selectedItem.kind === "notification") &&
                 canModifyItem(selectedItem) && (
                   <button
                     type="button"

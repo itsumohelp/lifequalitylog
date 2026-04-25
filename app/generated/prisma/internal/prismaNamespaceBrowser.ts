@@ -259,6 +259,8 @@ export const ExpenseScalarFieldEnum = {
   tags: 'tags',
   autoTags: 'autoTags',
   expenseDate: 'expenseDate',
+  claimeeUserId: 'claimeeUserId',
+  claimeeNameCache: 'claimeeNameCache',
   createdAt: 'createdAt'
 } as const
 
@@ -323,6 +325,7 @@ export const UserInsightScalarFieldEnum = {
   userId: 'userId',
   circleId: 'circleId',
   insight: 'insight',
+  summary: 'summary',
   generatedAt: 'generatedAt'
 } as const
 

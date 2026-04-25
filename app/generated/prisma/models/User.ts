@@ -204,6 +204,7 @@ export type UserWhereInput = {
   snapshots?: Prisma.SnapshotListRelationFilter
   circleSnapshots?: Prisma.CircleSnapshotListRelationFilter
   expenses?: Prisma.ExpenseListRelationFilter
+  claimedExpenses?: Prisma.ExpenseListRelationFilter
   incomes?: Prisma.IncomeListRelationFilter
   reactions?: Prisma.ReactionListRelationFilter
   balanceTransactions?: Prisma.BalanceTransactionListRelationFilter
@@ -224,6 +225,7 @@ export type UserOrderByWithRelationInput = {
   snapshots?: Prisma.SnapshotOrderByRelationAggregateInput
   circleSnapshots?: Prisma.CircleSnapshotOrderByRelationAggregateInput
   expenses?: Prisma.ExpenseOrderByRelationAggregateInput
+  claimedExpenses?: Prisma.ExpenseOrderByRelationAggregateInput
   incomes?: Prisma.IncomeOrderByRelationAggregateInput
   reactions?: Prisma.ReactionOrderByRelationAggregateInput
   balanceTransactions?: Prisma.BalanceTransactionOrderByRelationAggregateInput
@@ -247,6 +249,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   snapshots?: Prisma.SnapshotListRelationFilter
   circleSnapshots?: Prisma.CircleSnapshotListRelationFilter
   expenses?: Prisma.ExpenseListRelationFilter
+  claimedExpenses?: Prisma.ExpenseListRelationFilter
   incomes?: Prisma.IncomeListRelationFilter
   reactions?: Prisma.ReactionListRelationFilter
   balanceTransactions?: Prisma.BalanceTransactionListRelationFilter
@@ -293,6 +296,7 @@ export type UserCreateInput = {
   snapshots?: Prisma.SnapshotCreateNestedManyWithoutUserInput
   circleSnapshots?: Prisma.CircleSnapshotCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutUserInput
+  claimedExpenses?: Prisma.ExpenseCreateNestedManyWithoutClaimeeInput
   incomes?: Prisma.IncomeCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutUserInput
@@ -313,6 +317,7 @@ export type UserUncheckedCreateInput = {
   snapshots?: Prisma.SnapshotUncheckedCreateNestedManyWithoutUserInput
   circleSnapshots?: Prisma.CircleSnapshotUncheckedCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutUserInput
+  claimedExpenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutClaimeeInput
   incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionUncheckedCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutUserInput
@@ -333,6 +338,7 @@ export type UserUpdateInput = {
   snapshots?: Prisma.SnapshotUpdateManyWithoutUserNestedInput
   circleSnapshots?: Prisma.CircleSnapshotUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutUserNestedInput
+  claimedExpenses?: Prisma.ExpenseUpdateManyWithoutClaimeeNestedInput
   incomes?: Prisma.IncomeUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutUserNestedInput
@@ -353,6 +359,7 @@ export type UserUncheckedUpdateInput = {
   snapshots?: Prisma.SnapshotUncheckedUpdateManyWithoutUserNestedInput
   circleSnapshots?: Prisma.CircleSnapshotUncheckedUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutUserNestedInput
+  claimedExpenses?: Prisma.ExpenseUncheckedUpdateManyWithoutClaimeeNestedInput
   incomes?: Prisma.IncomeUncheckedUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUncheckedUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -422,6 +429,11 @@ export type UserMinOrderByAggregateInput = {
   emailVerified?: Prisma.SortOrder
   image?: Prisma.SortOrder
   autoTagEnabled?: Prisma.SortOrder
+}
+
+export type UserNullableScalarRelationFilter = {
+  is?: Prisma.UserWhereInput | null
+  isNot?: Prisma.UserWhereInput | null
 }
 
 export type UserCreateNestedOneWithoutAccountsInput = {
@@ -504,12 +516,28 @@ export type UserCreateNestedOneWithoutExpensesInput = {
   connect?: Prisma.UserWhereUniqueInput
 }
 
+export type UserCreateNestedOneWithoutClaimedExpensesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutClaimedExpensesInput, Prisma.UserUncheckedCreateWithoutClaimedExpensesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutClaimedExpensesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
 export type UserUpdateOneRequiredWithoutExpensesNestedInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutExpensesInput, Prisma.UserUncheckedCreateWithoutExpensesInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutExpensesInput
   upsert?: Prisma.UserUpsertWithoutExpensesInput
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutExpensesInput, Prisma.UserUpdateWithoutExpensesInput>, Prisma.UserUncheckedUpdateWithoutExpensesInput>
+}
+
+export type UserUpdateOneWithoutClaimedExpensesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutClaimedExpensesInput, Prisma.UserUncheckedCreateWithoutClaimedExpensesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutClaimedExpensesInput
+  upsert?: Prisma.UserUpsertWithoutClaimedExpensesInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutClaimedExpensesInput, Prisma.UserUpdateWithoutClaimedExpensesInput>, Prisma.UserUncheckedUpdateWithoutClaimedExpensesInput>
 }
 
 export type UserCreateNestedOneWithoutIncomesInput = {
@@ -581,6 +609,7 @@ export type UserCreateWithoutAccountsInput = {
   snapshots?: Prisma.SnapshotCreateNestedManyWithoutUserInput
   circleSnapshots?: Prisma.CircleSnapshotCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutUserInput
+  claimedExpenses?: Prisma.ExpenseCreateNestedManyWithoutClaimeeInput
   incomes?: Prisma.IncomeCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutUserInput
@@ -600,6 +629,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   snapshots?: Prisma.SnapshotUncheckedCreateNestedManyWithoutUserInput
   circleSnapshots?: Prisma.CircleSnapshotUncheckedCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutUserInput
+  claimedExpenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutClaimeeInput
   incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionUncheckedCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutUserInput
@@ -635,6 +665,7 @@ export type UserUpdateWithoutAccountsInput = {
   snapshots?: Prisma.SnapshotUpdateManyWithoutUserNestedInput
   circleSnapshots?: Prisma.CircleSnapshotUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutUserNestedInput
+  claimedExpenses?: Prisma.ExpenseUpdateManyWithoutClaimeeNestedInput
   incomes?: Prisma.IncomeUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutUserNestedInput
@@ -654,6 +685,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   snapshots?: Prisma.SnapshotUncheckedUpdateManyWithoutUserNestedInput
   circleSnapshots?: Prisma.CircleSnapshotUncheckedUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutUserNestedInput
+  claimedExpenses?: Prisma.ExpenseUncheckedUpdateManyWithoutClaimeeNestedInput
   incomes?: Prisma.IncomeUncheckedUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUncheckedUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -673,6 +705,7 @@ export type UserCreateWithoutSessionsInput = {
   snapshots?: Prisma.SnapshotCreateNestedManyWithoutUserInput
   circleSnapshots?: Prisma.CircleSnapshotCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutUserInput
+  claimedExpenses?: Prisma.ExpenseCreateNestedManyWithoutClaimeeInput
   incomes?: Prisma.IncomeCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutUserInput
@@ -692,6 +725,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   snapshots?: Prisma.SnapshotUncheckedCreateNestedManyWithoutUserInput
   circleSnapshots?: Prisma.CircleSnapshotUncheckedCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutUserInput
+  claimedExpenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutClaimeeInput
   incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionUncheckedCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutUserInput
@@ -727,6 +761,7 @@ export type UserUpdateWithoutSessionsInput = {
   snapshots?: Prisma.SnapshotUpdateManyWithoutUserNestedInput
   circleSnapshots?: Prisma.CircleSnapshotUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutUserNestedInput
+  claimedExpenses?: Prisma.ExpenseUpdateManyWithoutClaimeeNestedInput
   incomes?: Prisma.IncomeUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutUserNestedInput
@@ -746,6 +781,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   snapshots?: Prisma.SnapshotUncheckedUpdateManyWithoutUserNestedInput
   circleSnapshots?: Prisma.CircleSnapshotUncheckedUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutUserNestedInput
+  claimedExpenses?: Prisma.ExpenseUncheckedUpdateManyWithoutClaimeeNestedInput
   incomes?: Prisma.IncomeUncheckedUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUncheckedUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -765,6 +801,7 @@ export type UserCreateWithoutCircleMembersInput = {
   snapshots?: Prisma.SnapshotCreateNestedManyWithoutUserInput
   circleSnapshots?: Prisma.CircleSnapshotCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutUserInput
+  claimedExpenses?: Prisma.ExpenseCreateNestedManyWithoutClaimeeInput
   incomes?: Prisma.IncomeCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutUserInput
@@ -784,6 +821,7 @@ export type UserUncheckedCreateWithoutCircleMembersInput = {
   snapshots?: Prisma.SnapshotUncheckedCreateNestedManyWithoutUserInput
   circleSnapshots?: Prisma.CircleSnapshotUncheckedCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutUserInput
+  claimedExpenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutClaimeeInput
   incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionUncheckedCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutUserInput
@@ -819,6 +857,7 @@ export type UserUpdateWithoutCircleMembersInput = {
   snapshots?: Prisma.SnapshotUpdateManyWithoutUserNestedInput
   circleSnapshots?: Prisma.CircleSnapshotUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutUserNestedInput
+  claimedExpenses?: Prisma.ExpenseUpdateManyWithoutClaimeeNestedInput
   incomes?: Prisma.IncomeUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutUserNestedInput
@@ -838,6 +877,7 @@ export type UserUncheckedUpdateWithoutCircleMembersInput = {
   snapshots?: Prisma.SnapshotUncheckedUpdateManyWithoutUserNestedInput
   circleSnapshots?: Prisma.CircleSnapshotUncheckedUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutUserNestedInput
+  claimedExpenses?: Prisma.ExpenseUncheckedUpdateManyWithoutClaimeeNestedInput
   incomes?: Prisma.IncomeUncheckedUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUncheckedUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -857,6 +897,7 @@ export type UserCreateWithoutSnapshotsInput = {
   circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
   circleSnapshots?: Prisma.CircleSnapshotCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutUserInput
+  claimedExpenses?: Prisma.ExpenseCreateNestedManyWithoutClaimeeInput
   incomes?: Prisma.IncomeCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutUserInput
@@ -876,6 +917,7 @@ export type UserUncheckedCreateWithoutSnapshotsInput = {
   circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
   circleSnapshots?: Prisma.CircleSnapshotUncheckedCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutUserInput
+  claimedExpenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutClaimeeInput
   incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionUncheckedCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutUserInput
@@ -911,6 +953,7 @@ export type UserUpdateWithoutSnapshotsInput = {
   circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
   circleSnapshots?: Prisma.CircleSnapshotUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutUserNestedInput
+  claimedExpenses?: Prisma.ExpenseUpdateManyWithoutClaimeeNestedInput
   incomes?: Prisma.IncomeUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutUserNestedInput
@@ -930,6 +973,7 @@ export type UserUncheckedUpdateWithoutSnapshotsInput = {
   circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
   circleSnapshots?: Prisma.CircleSnapshotUncheckedUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutUserNestedInput
+  claimedExpenses?: Prisma.ExpenseUncheckedUpdateManyWithoutClaimeeNestedInput
   incomes?: Prisma.IncomeUncheckedUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUncheckedUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -949,6 +993,7 @@ export type UserCreateWithoutCircleSnapshotsInput = {
   circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
   snapshots?: Prisma.SnapshotCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutUserInput
+  claimedExpenses?: Prisma.ExpenseCreateNestedManyWithoutClaimeeInput
   incomes?: Prisma.IncomeCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutUserInput
@@ -968,6 +1013,7 @@ export type UserUncheckedCreateWithoutCircleSnapshotsInput = {
   circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
   snapshots?: Prisma.SnapshotUncheckedCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutUserInput
+  claimedExpenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutClaimeeInput
   incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionUncheckedCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutUserInput
@@ -1003,6 +1049,7 @@ export type UserUpdateWithoutCircleSnapshotsInput = {
   circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
   snapshots?: Prisma.SnapshotUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutUserNestedInput
+  claimedExpenses?: Prisma.ExpenseUpdateManyWithoutClaimeeNestedInput
   incomes?: Prisma.IncomeUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutUserNestedInput
@@ -1022,6 +1069,7 @@ export type UserUncheckedUpdateWithoutCircleSnapshotsInput = {
   circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
   snapshots?: Prisma.SnapshotUncheckedUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutUserNestedInput
+  claimedExpenses?: Prisma.ExpenseUncheckedUpdateManyWithoutClaimeeNestedInput
   incomes?: Prisma.IncomeUncheckedUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUncheckedUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -1041,6 +1089,7 @@ export type UserCreateWithoutExpensesInput = {
   circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
   snapshots?: Prisma.SnapshotCreateNestedManyWithoutUserInput
   circleSnapshots?: Prisma.CircleSnapshotCreateNestedManyWithoutUserInput
+  claimedExpenses?: Prisma.ExpenseCreateNestedManyWithoutClaimeeInput
   incomes?: Prisma.IncomeCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutUserInput
@@ -1060,6 +1109,7 @@ export type UserUncheckedCreateWithoutExpensesInput = {
   circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
   snapshots?: Prisma.SnapshotUncheckedCreateNestedManyWithoutUserInput
   circleSnapshots?: Prisma.CircleSnapshotUncheckedCreateNestedManyWithoutUserInput
+  claimedExpenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutClaimeeInput
   incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionUncheckedCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutUserInput
@@ -1069,6 +1119,51 @@ export type UserUncheckedCreateWithoutExpensesInput = {
 export type UserCreateOrConnectWithoutExpensesInput = {
   where: Prisma.UserWhereUniqueInput
   create: Prisma.XOR<Prisma.UserCreateWithoutExpensesInput, Prisma.UserUncheckedCreateWithoutExpensesInput>
+}
+
+export type UserCreateWithoutClaimedExpensesInput = {
+  id?: string
+  name?: string | null
+  displayName?: string | null
+  email?: string | null
+  emailVerified?: Date | string | null
+  image?: string | null
+  autoTagEnabled?: boolean
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
+  snapshots?: Prisma.SnapshotCreateNestedManyWithoutUserInput
+  circleSnapshots?: Prisma.CircleSnapshotCreateNestedManyWithoutUserInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutUserInput
+  incomes?: Prisma.IncomeCreateNestedManyWithoutUserInput
+  reactions?: Prisma.ReactionCreateNestedManyWithoutUserInput
+  balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
+}
+
+export type UserUncheckedCreateWithoutClaimedExpensesInput = {
+  id?: string
+  name?: string | null
+  displayName?: string | null
+  email?: string | null
+  emailVerified?: Date | string | null
+  image?: string | null
+  autoTagEnabled?: boolean
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
+  snapshots?: Prisma.SnapshotUncheckedCreateNestedManyWithoutUserInput
+  circleSnapshots?: Prisma.CircleSnapshotUncheckedCreateNestedManyWithoutUserInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutUserInput
+  incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutUserInput
+  reactions?: Prisma.ReactionUncheckedCreateNestedManyWithoutUserInput
+  balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
+}
+
+export type UserCreateOrConnectWithoutClaimedExpensesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutClaimedExpensesInput, Prisma.UserUncheckedCreateWithoutClaimedExpensesInput>
 }
 
 export type UserUpsertWithoutExpensesInput = {
@@ -1095,6 +1190,7 @@ export type UserUpdateWithoutExpensesInput = {
   circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
   snapshots?: Prisma.SnapshotUpdateManyWithoutUserNestedInput
   circleSnapshots?: Prisma.CircleSnapshotUpdateManyWithoutUserNestedInput
+  claimedExpenses?: Prisma.ExpenseUpdateManyWithoutClaimeeNestedInput
   incomes?: Prisma.IncomeUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutUserNestedInput
@@ -1114,6 +1210,58 @@ export type UserUncheckedUpdateWithoutExpensesInput = {
   circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
   snapshots?: Prisma.SnapshotUncheckedUpdateManyWithoutUserNestedInput
   circleSnapshots?: Prisma.CircleSnapshotUncheckedUpdateManyWithoutUserNestedInput
+  claimedExpenses?: Prisma.ExpenseUncheckedUpdateManyWithoutClaimeeNestedInput
+  incomes?: Prisma.IncomeUncheckedUpdateManyWithoutUserNestedInput
+  reactions?: Prisma.ReactionUncheckedUpdateManyWithoutUserNestedInput
+  balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
+}
+
+export type UserUpsertWithoutClaimedExpensesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutClaimedExpensesInput, Prisma.UserUncheckedUpdateWithoutClaimedExpensesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutClaimedExpensesInput, Prisma.UserUncheckedCreateWithoutClaimedExpensesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutClaimedExpensesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutClaimedExpensesInput, Prisma.UserUncheckedUpdateWithoutClaimedExpensesInput>
+}
+
+export type UserUpdateWithoutClaimedExpensesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
+  snapshots?: Prisma.SnapshotUpdateManyWithoutUserNestedInput
+  circleSnapshots?: Prisma.CircleSnapshotUpdateManyWithoutUserNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutUserNestedInput
+  incomes?: Prisma.IncomeUpdateManyWithoutUserNestedInput
+  reactions?: Prisma.ReactionUpdateManyWithoutUserNestedInput
+  balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
+}
+
+export type UserUncheckedUpdateWithoutClaimedExpensesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
+  snapshots?: Prisma.SnapshotUncheckedUpdateManyWithoutUserNestedInput
+  circleSnapshots?: Prisma.CircleSnapshotUncheckedUpdateManyWithoutUserNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutUserNestedInput
   incomes?: Prisma.IncomeUncheckedUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUncheckedUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -1134,6 +1282,7 @@ export type UserCreateWithoutIncomesInput = {
   snapshots?: Prisma.SnapshotCreateNestedManyWithoutUserInput
   circleSnapshots?: Prisma.CircleSnapshotCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutUserInput
+  claimedExpenses?: Prisma.ExpenseCreateNestedManyWithoutClaimeeInput
   reactions?: Prisma.ReactionCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
@@ -1153,6 +1302,7 @@ export type UserUncheckedCreateWithoutIncomesInput = {
   snapshots?: Prisma.SnapshotUncheckedCreateNestedManyWithoutUserInput
   circleSnapshots?: Prisma.CircleSnapshotUncheckedCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutUserInput
+  claimedExpenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutClaimeeInput
   reactions?: Prisma.ReactionUncheckedCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
@@ -1188,6 +1338,7 @@ export type UserUpdateWithoutIncomesInput = {
   snapshots?: Prisma.SnapshotUpdateManyWithoutUserNestedInput
   circleSnapshots?: Prisma.CircleSnapshotUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutUserNestedInput
+  claimedExpenses?: Prisma.ExpenseUpdateManyWithoutClaimeeNestedInput
   reactions?: Prisma.ReactionUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
@@ -1207,6 +1358,7 @@ export type UserUncheckedUpdateWithoutIncomesInput = {
   snapshots?: Prisma.SnapshotUncheckedUpdateManyWithoutUserNestedInput
   circleSnapshots?: Prisma.CircleSnapshotUncheckedUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutUserNestedInput
+  claimedExpenses?: Prisma.ExpenseUncheckedUpdateManyWithoutClaimeeNestedInput
   reactions?: Prisma.ReactionUncheckedUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
@@ -1226,6 +1378,7 @@ export type UserCreateWithoutBalanceTransactionsInput = {
   snapshots?: Prisma.SnapshotCreateNestedManyWithoutUserInput
   circleSnapshots?: Prisma.CircleSnapshotCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutUserInput
+  claimedExpenses?: Prisma.ExpenseCreateNestedManyWithoutClaimeeInput
   incomes?: Prisma.IncomeCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
@@ -1245,6 +1398,7 @@ export type UserUncheckedCreateWithoutBalanceTransactionsInput = {
   snapshots?: Prisma.SnapshotUncheckedCreateNestedManyWithoutUserInput
   circleSnapshots?: Prisma.CircleSnapshotUncheckedCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutUserInput
+  claimedExpenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutClaimeeInput
   incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
@@ -1280,6 +1434,7 @@ export type UserUpdateWithoutBalanceTransactionsInput = {
   snapshots?: Prisma.SnapshotUpdateManyWithoutUserNestedInput
   circleSnapshots?: Prisma.CircleSnapshotUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutUserNestedInput
+  claimedExpenses?: Prisma.ExpenseUpdateManyWithoutClaimeeNestedInput
   incomes?: Prisma.IncomeUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
@@ -1299,6 +1454,7 @@ export type UserUncheckedUpdateWithoutBalanceTransactionsInput = {
   snapshots?: Prisma.SnapshotUncheckedUpdateManyWithoutUserNestedInput
   circleSnapshots?: Prisma.CircleSnapshotUncheckedUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutUserNestedInput
+  claimedExpenses?: Prisma.ExpenseUncheckedUpdateManyWithoutClaimeeNestedInput
   incomes?: Prisma.IncomeUncheckedUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
@@ -1318,6 +1474,7 @@ export type UserCreateWithoutReactionsInput = {
   snapshots?: Prisma.SnapshotCreateNestedManyWithoutUserInput
   circleSnapshots?: Prisma.CircleSnapshotCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutUserInput
+  claimedExpenses?: Prisma.ExpenseCreateNestedManyWithoutClaimeeInput
   incomes?: Prisma.IncomeCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
@@ -1337,6 +1494,7 @@ export type UserUncheckedCreateWithoutReactionsInput = {
   snapshots?: Prisma.SnapshotUncheckedCreateNestedManyWithoutUserInput
   circleSnapshots?: Prisma.CircleSnapshotUncheckedCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutUserInput
+  claimedExpenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutClaimeeInput
   incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutUserInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
@@ -1372,6 +1530,7 @@ export type UserUpdateWithoutReactionsInput = {
   snapshots?: Prisma.SnapshotUpdateManyWithoutUserNestedInput
   circleSnapshots?: Prisma.CircleSnapshotUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutUserNestedInput
+  claimedExpenses?: Prisma.ExpenseUpdateManyWithoutClaimeeNestedInput
   incomes?: Prisma.IncomeUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
@@ -1391,6 +1550,7 @@ export type UserUncheckedUpdateWithoutReactionsInput = {
   snapshots?: Prisma.SnapshotUncheckedUpdateManyWithoutUserNestedInput
   circleSnapshots?: Prisma.CircleSnapshotUncheckedUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutUserNestedInput
+  claimedExpenses?: Prisma.ExpenseUncheckedUpdateManyWithoutClaimeeNestedInput
   incomes?: Prisma.IncomeUncheckedUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
@@ -1410,6 +1570,7 @@ export type UserCreateWithoutNotificationsInput = {
   snapshots?: Prisma.SnapshotCreateNestedManyWithoutUserInput
   circleSnapshots?: Prisma.CircleSnapshotCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseCreateNestedManyWithoutUserInput
+  claimedExpenses?: Prisma.ExpenseCreateNestedManyWithoutClaimeeInput
   incomes?: Prisma.IncomeCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutUserInput
@@ -1429,6 +1590,7 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   snapshots?: Prisma.SnapshotUncheckedCreateNestedManyWithoutUserInput
   circleSnapshots?: Prisma.CircleSnapshotUncheckedCreateNestedManyWithoutUserInput
   expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutUserInput
+  claimedExpenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutClaimeeInput
   incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutUserInput
   reactions?: Prisma.ReactionUncheckedCreateNestedManyWithoutUserInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutUserInput
@@ -1464,6 +1626,7 @@ export type UserUpdateWithoutNotificationsInput = {
   snapshots?: Prisma.SnapshotUpdateManyWithoutUserNestedInput
   circleSnapshots?: Prisma.CircleSnapshotUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUpdateManyWithoutUserNestedInput
+  claimedExpenses?: Prisma.ExpenseUpdateManyWithoutClaimeeNestedInput
   incomes?: Prisma.IncomeUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutUserNestedInput
@@ -1483,6 +1646,7 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   snapshots?: Prisma.SnapshotUncheckedUpdateManyWithoutUserNestedInput
   circleSnapshots?: Prisma.CircleSnapshotUncheckedUpdateManyWithoutUserNestedInput
   expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutUserNestedInput
+  claimedExpenses?: Prisma.ExpenseUncheckedUpdateManyWithoutClaimeeNestedInput
   incomes?: Prisma.IncomeUncheckedUpdateManyWithoutUserNestedInput
   reactions?: Prisma.ReactionUncheckedUpdateManyWithoutUserNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutUserNestedInput
@@ -1500,6 +1664,7 @@ export type UserCountOutputType = {
   snapshots: number
   circleSnapshots: number
   expenses: number
+  claimedExpenses: number
   incomes: number
   reactions: number
   balanceTransactions: number
@@ -1513,6 +1678,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   snapshots?: boolean | UserCountOutputTypeCountSnapshotsArgs
   circleSnapshots?: boolean | UserCountOutputTypeCountCircleSnapshotsArgs
   expenses?: boolean | UserCountOutputTypeCountExpensesArgs
+  claimedExpenses?: boolean | UserCountOutputTypeCountClaimedExpensesArgs
   incomes?: boolean | UserCountOutputTypeCountIncomesArgs
   reactions?: boolean | UserCountOutputTypeCountReactionsArgs
   balanceTransactions?: boolean | UserCountOutputTypeCountBalanceTransactionsArgs
@@ -1574,6 +1740,13 @@ export type UserCountOutputTypeCountExpensesArgs<ExtArgs extends runtime.Types.E
 /**
  * UserCountOutputType without action
  */
+export type UserCountOutputTypeCountClaimedExpensesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ExpenseWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
 export type UserCountOutputTypeCountIncomesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.IncomeWhereInput
 }
@@ -1614,6 +1787,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   snapshots?: boolean | Prisma.User$snapshotsArgs<ExtArgs>
   circleSnapshots?: boolean | Prisma.User$circleSnapshotsArgs<ExtArgs>
   expenses?: boolean | Prisma.User$expensesArgs<ExtArgs>
+  claimedExpenses?: boolean | Prisma.User$claimedExpensesArgs<ExtArgs>
   incomes?: boolean | Prisma.User$incomesArgs<ExtArgs>
   reactions?: boolean | Prisma.User$reactionsArgs<ExtArgs>
   balanceTransactions?: boolean | Prisma.User$balanceTransactionsArgs<ExtArgs>
@@ -1659,6 +1833,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   snapshots?: boolean | Prisma.User$snapshotsArgs<ExtArgs>
   circleSnapshots?: boolean | Prisma.User$circleSnapshotsArgs<ExtArgs>
   expenses?: boolean | Prisma.User$expensesArgs<ExtArgs>
+  claimedExpenses?: boolean | Prisma.User$claimedExpensesArgs<ExtArgs>
   incomes?: boolean | Prisma.User$incomesArgs<ExtArgs>
   reactions?: boolean | Prisma.User$reactionsArgs<ExtArgs>
   balanceTransactions?: boolean | Prisma.User$balanceTransactionsArgs<ExtArgs>
@@ -1677,6 +1852,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     snapshots: Prisma.$SnapshotPayload<ExtArgs>[]
     circleSnapshots: Prisma.$CircleSnapshotPayload<ExtArgs>[]
     expenses: Prisma.$ExpensePayload<ExtArgs>[]
+    claimedExpenses: Prisma.$ExpensePayload<ExtArgs>[]
     incomes: Prisma.$IncomePayload<ExtArgs>[]
     reactions: Prisma.$ReactionPayload<ExtArgs>[]
     balanceTransactions: Prisma.$BalanceTransactionPayload<ExtArgs>[]
@@ -2090,6 +2266,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   snapshots<T extends Prisma.User$snapshotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$snapshotsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SnapshotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   circleSnapshots<T extends Prisma.User$circleSnapshotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$circleSnapshotsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CircleSnapshotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   expenses<T extends Prisma.User$expensesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$expensesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExpensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  claimedExpenses<T extends Prisma.User$claimedExpensesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$claimedExpensesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExpensePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   incomes<T extends Prisma.User$incomesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$incomesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IncomePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reactions<T extends Prisma.User$reactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   balanceTransactions<T extends Prisma.User$balanceTransactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$balanceTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BalanceTransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -2641,6 +2818,30 @@ export type User$circleSnapshotsArgs<ExtArgs extends runtime.Types.Extensions.In
  * User.expenses
  */
 export type User$expensesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Expense
+   */
+  select?: Prisma.ExpenseSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Expense
+   */
+  omit?: Prisma.ExpenseOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ExpenseInclude<ExtArgs> | null
+  where?: Prisma.ExpenseWhereInput
+  orderBy?: Prisma.ExpenseOrderByWithRelationInput | Prisma.ExpenseOrderByWithRelationInput[]
+  cursor?: Prisma.ExpenseWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ExpenseScalarFieldEnum | Prisma.ExpenseScalarFieldEnum[]
+}
+
+/**
+ * User.claimedExpenses
+ */
+export type User$claimedExpensesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the Expense
    */

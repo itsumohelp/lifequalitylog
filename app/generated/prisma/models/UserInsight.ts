@@ -29,6 +29,7 @@ export type UserInsightMinAggregateOutputType = {
   userId: string | null
   circleId: string | null
   insight: string | null
+  summary: string | null
   generatedAt: Date | null
 }
 
@@ -37,6 +38,7 @@ export type UserInsightMaxAggregateOutputType = {
   userId: string | null
   circleId: string | null
   insight: string | null
+  summary: string | null
   generatedAt: Date | null
 }
 
@@ -45,6 +47,7 @@ export type UserInsightCountAggregateOutputType = {
   userId: number
   circleId: number
   insight: number
+  summary: number
   generatedAt: number
   _all: number
 }
@@ -55,6 +58,7 @@ export type UserInsightMinAggregateInputType = {
   userId?: true
   circleId?: true
   insight?: true
+  summary?: true
   generatedAt?: true
 }
 
@@ -63,6 +67,7 @@ export type UserInsightMaxAggregateInputType = {
   userId?: true
   circleId?: true
   insight?: true
+  summary?: true
   generatedAt?: true
 }
 
@@ -71,6 +76,7 @@ export type UserInsightCountAggregateInputType = {
   userId?: true
   circleId?: true
   insight?: true
+  summary?: true
   generatedAt?: true
   _all?: true
 }
@@ -152,6 +158,7 @@ export type UserInsightGroupByOutputType = {
   userId: string
   circleId: string | null
   insight: string
+  summary: string | null
   generatedAt: Date
   _count: UserInsightCountAggregateOutputType | null
   _min: UserInsightMinAggregateOutputType | null
@@ -181,6 +188,7 @@ export type UserInsightWhereInput = {
   userId?: Prisma.StringFilter<"UserInsight"> | string
   circleId?: Prisma.StringNullableFilter<"UserInsight"> | string | null
   insight?: Prisma.StringFilter<"UserInsight"> | string
+  summary?: Prisma.StringNullableFilter<"UserInsight"> | string | null
   generatedAt?: Prisma.DateTimeFilter<"UserInsight"> | Date | string
 }
 
@@ -189,6 +197,7 @@ export type UserInsightOrderByWithRelationInput = {
   userId?: Prisma.SortOrder
   circleId?: Prisma.SortOrderInput | Prisma.SortOrder
   insight?: Prisma.SortOrder
+  summary?: Prisma.SortOrderInput | Prisma.SortOrder
   generatedAt?: Prisma.SortOrder
 }
 
@@ -200,6 +209,7 @@ export type UserInsightWhereUniqueInput = Prisma.AtLeast<{
   userId?: Prisma.StringFilter<"UserInsight"> | string
   circleId?: Prisma.StringNullableFilter<"UserInsight"> | string | null
   insight?: Prisma.StringFilter<"UserInsight"> | string
+  summary?: Prisma.StringNullableFilter<"UserInsight"> | string | null
   generatedAt?: Prisma.DateTimeFilter<"UserInsight"> | Date | string
 }, "id">
 
@@ -208,6 +218,7 @@ export type UserInsightOrderByWithAggregationInput = {
   userId?: Prisma.SortOrder
   circleId?: Prisma.SortOrderInput | Prisma.SortOrder
   insight?: Prisma.SortOrder
+  summary?: Prisma.SortOrderInput | Prisma.SortOrder
   generatedAt?: Prisma.SortOrder
   _count?: Prisma.UserInsightCountOrderByAggregateInput
   _max?: Prisma.UserInsightMaxOrderByAggregateInput
@@ -222,6 +233,7 @@ export type UserInsightScalarWhereWithAggregatesInput = {
   userId?: Prisma.StringWithAggregatesFilter<"UserInsight"> | string
   circleId?: Prisma.StringNullableWithAggregatesFilter<"UserInsight"> | string | null
   insight?: Prisma.StringWithAggregatesFilter<"UserInsight"> | string
+  summary?: Prisma.StringNullableWithAggregatesFilter<"UserInsight"> | string | null
   generatedAt?: Prisma.DateTimeWithAggregatesFilter<"UserInsight"> | Date | string
 }
 
@@ -230,6 +242,7 @@ export type UserInsightCreateInput = {
   userId: string
   circleId?: string | null
   insight: string
+  summary?: string | null
   generatedAt?: Date | string
 }
 
@@ -238,6 +251,7 @@ export type UserInsightUncheckedCreateInput = {
   userId: string
   circleId?: string | null
   insight: string
+  summary?: string | null
   generatedAt?: Date | string
 }
 
@@ -246,6 +260,7 @@ export type UserInsightUpdateInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   circleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   insight?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   generatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -254,6 +269,7 @@ export type UserInsightUncheckedUpdateInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   circleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   insight?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   generatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -262,6 +278,7 @@ export type UserInsightCreateManyInput = {
   userId: string
   circleId?: string | null
   insight: string
+  summary?: string | null
   generatedAt?: Date | string
 }
 
@@ -270,6 +287,7 @@ export type UserInsightUpdateManyMutationInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   circleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   insight?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   generatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -278,6 +296,7 @@ export type UserInsightUncheckedUpdateManyInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   circleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   insight?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   generatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -286,6 +305,7 @@ export type UserInsightCountOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   circleId?: Prisma.SortOrder
   insight?: Prisma.SortOrder
+  summary?: Prisma.SortOrder
   generatedAt?: Prisma.SortOrder
 }
 
@@ -294,6 +314,7 @@ export type UserInsightMaxOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   circleId?: Prisma.SortOrder
   insight?: Prisma.SortOrder
+  summary?: Prisma.SortOrder
   generatedAt?: Prisma.SortOrder
 }
 
@@ -302,6 +323,7 @@ export type UserInsightMinOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   circleId?: Prisma.SortOrder
   insight?: Prisma.SortOrder
+  summary?: Prisma.SortOrder
   generatedAt?: Prisma.SortOrder
 }
 
@@ -312,6 +334,7 @@ export type UserInsightSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   userId?: boolean
   circleId?: boolean
   insight?: boolean
+  summary?: boolean
   generatedAt?: boolean
 }, ExtArgs["result"]["userInsight"]>
 
@@ -320,6 +343,7 @@ export type UserInsightSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   userId?: boolean
   circleId?: boolean
   insight?: boolean
+  summary?: boolean
   generatedAt?: boolean
 }, ExtArgs["result"]["userInsight"]>
 
@@ -328,6 +352,7 @@ export type UserInsightSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   userId?: boolean
   circleId?: boolean
   insight?: boolean
+  summary?: boolean
   generatedAt?: boolean
 }, ExtArgs["result"]["userInsight"]>
 
@@ -336,10 +361,11 @@ export type UserInsightSelectScalar = {
   userId?: boolean
   circleId?: boolean
   insight?: boolean
+  summary?: boolean
   generatedAt?: boolean
 }
 
-export type UserInsightOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "circleId" | "insight" | "generatedAt", ExtArgs["result"]["userInsight"]>
+export type UserInsightOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "circleId" | "insight" | "summary" | "generatedAt", ExtArgs["result"]["userInsight"]>
 
 export type $UserInsightPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "UserInsight"
@@ -349,6 +375,7 @@ export type $UserInsightPayload<ExtArgs extends runtime.Types.Extensions.Interna
     userId: string
     circleId: string | null
     insight: string
+    summary: string | null
     generatedAt: Date
   }, ExtArgs["result"]["userInsight"]>
   composites: {}
@@ -777,6 +804,7 @@ export interface UserInsightFieldRefs {
   readonly userId: Prisma.FieldRef<"UserInsight", 'String'>
   readonly circleId: Prisma.FieldRef<"UserInsight", 'String'>
   readonly insight: Prisma.FieldRef<"UserInsight", 'String'>
+  readonly summary: Prisma.FieldRef<"UserInsight", 'String'>
   readonly generatedAt: Prisma.FieldRef<"UserInsight", 'DateTime'>
 }
     

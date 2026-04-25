@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       id: existingInsight.id,
       insight: existingInsight.insight,
+      summary: existingInsight.summary,
       generatedAt: existingInsight.generatedAt.toISOString(),
       cached: true,
     });
@@ -163,6 +164,64 @@ export async function POST(req: NextRequest) {
     recentSnapshots,
   );
 
+  // 数値サマリーを生成（AI不要）
+  const buildSummary = (): string => {
+    const lines: string[] = [];
+
+    // 支出比較
+    const prevExp = prevExpenses.reduce((s, e) => s + e.amount, 0);
+    const recentExp = recentExpenses.reduce((s, e) => s + e.amount, 0);
+    if (recentExpenses.length > 0 || prevExpenses.length > 0) {
+      const diff = recentExp - prevExp;
+      const diffText =
+        diff > 0
+          ? `前週より +¥${diff.toLocaleString()} 増`
+          : diff < 0
+            ? `前週より ¥${Math.abs(diff).toLocaleString()} 減`
+            : "前週と同額";
+      lines.push(
+        `支出: ¥${recentExp.toLocaleString()}（${diffText}）`,
+      );
+    }
+
+    // 収入比較
+    const prevInc = prevIncomes.reduce((s, i) => s + i.amount, 0);
+    const recentInc = recentIncomes.reduce((s, i) => s + i.amount, 0);
+    if (recentIncomes.length > 0 || prevIncomes.length > 0) {
+      const diff = recentInc - prevInc;
+      const diffText =
+        diff > 0
+          ? `前週より +¥${diff.toLocaleString()} 増`
+          : diff < 0
+            ? `前週より ¥${Math.abs(diff).toLocaleString()} 減`
+            : "前週と同額";
+      lines.push(
+        `収入: ¥${recentInc.toLocaleString()}（${diffText}）`,
+      );
+    }
+
+    // タグ別支出トップ3
+    const tagTotals = new Map<string, number>();
+    for (const e of recentExpenses) {
+      const tags = e.tags?.length ? e.tags : ["その他"];
+      for (const tag of tags) {
+        tagTotals.set(tag, (tagTotals.get(tag) ?? 0) + e.amount);
+      }
+    }
+    if (tagTotals.size > 0) {
+      const top = [...tagTotals.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([tag, amt]) => `${tag} ¥${amt.toLocaleString()}`)
+        .join(" · ");
+      lines.push(`内訳: ${top}`);
+    }
+
+    return lines.join("\n");
+  };
+
+  const numericSummary = buildSummary();
+
   const prompt = `あなたは家計アドバイザーです。以下はサークルメンバーが記録した家計データです。
 前の週と直近1週間を比較して、変化や傾向に触れた一言コメントをしてください。日本語50文字以内で返してください。
 
@@ -199,12 +258,13 @@ ${recentSummary}
 
   // DBに保存
   const saved = await prisma.userInsight.create({
-    data: { userId, circleId, insight },
+    data: { userId, circleId, insight, summary: numericSummary },
   });
 
   return NextResponse.json({
     id: saved.id,
     insight: saved.insight,
+    summary: saved.summary,
     generatedAt: saved.generatedAt.toISOString(),
     cached: false,
   });

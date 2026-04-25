@@ -90,6 +90,7 @@ model User {
   snapshots     Snapshot[]
   circleSnapshots CircleSnapshot[]
   expenses      Expense[]
+  claimedExpenses Expense[] @relation("ExpenseClaimee")
   incomes       Income[]
   reactions     Reaction[]
   balanceTransactions BalanceTransaction[]
@@ -203,19 +204,22 @@ enum ExpenseCategory {
 
 // 支出記録
 model Expense {
-  id          String          @id @default(cuid())
-  circleId    String
-  circle      Circle          @relation(fields: [circleId], references: [id], onDelete: Cascade)
-  userId      String
-  user        User            @relation(fields: [userId], references: [id])
-  amount      Int             // 金額
-  description String          // 入力された説明（例：「コンビニで500円」）
-  place       String?         // パースした場所
-  category    ExpenseCategory @default(OTHER)
-  tags        String[]        // 手動タグ（例：["コンビニ"]）
-  autoTags    String[]        // 自動提案タグ（ルールベース）
-  expenseDate DateTime        @default(now()) // 支出日時
-  createdAt   DateTime        @default(now())
+  id            String          @id @default(cuid())
+  circleId      String
+  circle        Circle          @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User            @relation(fields: [userId], references: [id])
+  amount        Int             // 金額
+  description   String          // 入力された説明（例：「コンビニで500円」）
+  place         String?         // パースした場所
+  category      ExpenseCategory @default(OTHER)
+  tags          String[]        // 手動タグ（例：["コンビニ"]）
+  autoTags      String[]        // 自動提案タグ（ルールベース）
+  expenseDate   DateTime        @default(now()) // 支出日時
+  claimeeUserId    String?  // 請求先ユーザーID
+  claimee          User?    @relation("ExpenseClaimee", fields: [claimeeUserId], references: [id], onDelete: SetNull)
+  claimeeNameCache String?  // 請求先名キャッシュ（アカウント削除後も保持）
+  createdAt     DateTime        @default(now())
   @@index([circleId, expenseDate])
   @@index([userId])
 }
@@ -307,6 +311,7 @@ model UserInsight {
   userId      String   @map("user_id")
   circleId    String?  @map("circle_id")
   insight     String   @db.Text
+  summary     String?  @db.Text
   generatedAt DateTime @default(now()) @map("generated_at")
   @@index([userId, circleId, generatedAt])
   @@map("user_insights")
