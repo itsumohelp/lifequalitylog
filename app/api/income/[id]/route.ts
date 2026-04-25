@@ -14,7 +14,7 @@ export async function PATCH(
 
   const { id } = await params;
   const body = await request.json();
-  const { tags, autoTags } = body;
+  const { tags, autoTags, incomeDate } = body;
 
   const income = await prisma.income.findUnique({ where: { id } });
   if (!income) {
@@ -38,6 +38,7 @@ export async function PATCH(
     data: {
       ...(tags !== undefined && { tags }),
       ...(autoTags !== undefined && { autoTags }),
+      ...(incomeDate !== undefined && { incomeDate: new Date(incomeDate) }),
     },
   });
 
