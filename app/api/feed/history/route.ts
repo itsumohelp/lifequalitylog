@@ -19,6 +19,12 @@ export type FeedItem = {
   category?: string;
   tags?: string[];
   note?: string | null;
+  claimeeUserId?: string;
+  claimeeUserName?: string;
+  claimeeUserImage?: string | null;
+  claimeeNameCache?: string;
+  claimeeCollected?: boolean;
+  bumpedAt?: string | null;
   createdAt: string;
 };
 
@@ -107,6 +113,9 @@ export async function GET(request: NextRequest) {
           image: true,
         },
       },
+      claimee: {
+        select: { id: true, name: true, displayName: true, image: true },
+      },
     },
   });
 
@@ -159,6 +168,12 @@ export async function GET(request: NextRequest) {
       place: e.place,
       category: e.category,
       tags: e.tags,
+      claimeeUserId: e.claimee?.id,
+      claimeeUserName: e.claimee?.displayName || e.claimee?.name || undefined,
+      claimeeUserImage: e.claimee?.image || null,
+      claimeeNameCache: e.claimeeNameCache || undefined,
+      claimeeCollected: e.claimeeCollected,
+      bumpedAt: e.bumpedAt?.toISOString() ?? null,
       createdAt: e.createdAt.toISOString(),
     })),
     ...incomes.map((i) => ({

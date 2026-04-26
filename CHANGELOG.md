@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.58] - 2026-04-28
+
+### Added
+- little bug fix
+
+### 追加
+- ちょっとしたバグ修正
+
+---
+
 ## [0.0.57] - 2026-04-27
 
 ### Added
@@ -20,12 +30,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.0.55] - 2026-04-26
 
 ### Added
+- **Warikan (bill splitting)**: Added a 💴 割り勘 button next to the AI insight button. Opens a dialog to select a period (current month / 30 days / 90 days / all time) and the number of people. Shows each member's paid amount and per-person share. Results can be posted to the feed as a notification. Feed shows a graphical breakdown with avatars, names, and diff badges (sky=receive, red=pay). Reactions and delete supported on warikan posts.
+- **Warikan detail view**: Tapping a warikan feed item opens a detail view with tappable amounts — tapping copies the number to clipboard.
+- **AI insight numeric summary**: The AI insight response now includes a numeric summary (expense comparison vs. previous week, income comparison, top-3 tag breakdown) displayed below the AI comment.
 - **Transaction date editing**: Expense and income items now have a 処理日 (processing date) field in the detail view. Defaults to registration date. Can be edited via date picker (no future dates allowed). Updates `expenseDate` / `incomeDate` in the DB via PATCH. Read-only display for non-editable items.
 - **Apple ID login button (web)**: On iOS Safari, a black "Apple IDでログイン（アプリで開く）" button now appears below the Google login button. Tapping it opens the native app via `click.crun.circlerun://` deep link. Requires agreement checkbox. Only shown on iOS non-Capacitor environments.
 
+### Changed
+- **Warikan bubble colors**: Warikan text in own-message (dark) bubbles now uses white/light colors for readability.
+- **Button bar spacing**: Added vertical padding (`py-2`) to the AI/warikan button bar to prevent accidental taps.
+
 ### 追加
+- **割り勘**: AIインサイトボタン横に💴割り勘ボタンを追加。期間（今月/30日/90日/全期間）と人数を選択してサークル内の支払い一覧を集計。1人あたりの負担額と各メンバーの差額を表示し、結果をフィードに投稿できる。フィードではアバター・名前・差額バッジ（空色=受取、赤=支払）でグラフィカルに表示。リアクション・削除に対応。
+- **割り勘詳細ビュー**: 割り勘フィードアイテムをタップすると詳細ビューが開き、金額をタップするとクリップボードにコピーされる。
+- **AIインサイト数値サマリー**: AIインサイトのレスポンスに数値サマリー（前週との支出比較・収入比較・タグ別トップ3）を追加。AIコメントの下に表示。
 - **処理日の編集**: 支出・収入の詳細画面に「処理日」フィールドを追加。デフォルトは登録日。日付ピッカーで変更可能（未来日は選択不可）。変更時はPATCHで `expenseDate` / `incomeDate` を即時更新。編集権限がない場合は日本語テキスト表示のみ。
 - **Apple IDログインボタン（Web）**: iOS Safariのログイン画面にApple IDボタンを追加。タップすると `click.crun.circlerun://` でネイティブアプリを起動。招待リンク経由の場合は参加画面に直接遷移。同意チェック必須。iOSの非Capacitor環境のみ表示。
+
+### 変更
+- **割り勘バブルの文字色**: 自分のメッセージ（黒バブル）内の割り勘テキストを白系の明るい色に変更し視認性を改善。
+- **ボタンバーの余白**: AI/割り勘ボタンバーに上下パディング（`py-2`）を追加し、誤タップを防止。
 
 ---
 

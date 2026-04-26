@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 type CircleInfo = {
@@ -42,10 +43,11 @@ function formatYenFull(value: number) {
 const DAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
 
 // ---- タグ＆カレンダータブ ----
-function CalendarTab({ circles }: { circles: CircleInfo[] }) {
-  const [selectedCircleId, setSelectedCircleId] = useState<string>(
-    circles[0]?.id ?? "",
-  );
+function CalendarTab({ circles, initialCircleId }: { circles: CircleInfo[]; initialCircleId?: string }) {
+  const [selectedCircleId, setSelectedCircleId] = useState<string>(() => {
+    if (initialCircleId && circles.find(c => c.id === initialCircleId)) return initialCircleId;
+    return circles[0]?.id ?? "";
+  });
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [circleData, setCircleData] = useState<CircleData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -318,10 +320,11 @@ function CalendarTab({ circles }: { circles: CircleInfo[] }) {
 }
 
 // ---- 月次集計タブ ----
-function MonthlyTab({ circles }: { circles: CircleInfo[] }) {
-  const [selectedCircleId, setSelectedCircleId] = useState<string>(
-    circles[0]?.id ?? "",
-  );
+function MonthlyTab({ circles, initialCircleId }: { circles: CircleInfo[]; initialCircleId?: string }) {
+  const [selectedCircleId, setSelectedCircleId] = useState<string>(() => {
+    if (initialCircleId && circles.find(c => c.id === initialCircleId)) return initialCircleId;
+    return circles[0]?.id ?? "";
+  });
   const [monthly, setMonthly] = useState<MonthlyRow[]>([]);
   const [currentBalance, setCurrentBalance] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -433,8 +436,11 @@ function MonthlyTab({ circles }: { circles: CircleInfo[] }) {
   );
 }
 
-// ---- メインページ ----
-export default function AnalyticsPage() {
+// ---- メインページ（内部） ----
+function AnalyticsContent() {
+  const searchParams = useSearchParams();
+  const initialCircleId = searchParams.get("circleId") ?? undefined;
+
   const [tab, setTab] = useState<"calendar" | "monthly">("calendar");
   const [circles, setCircles] = useState<CircleInfo[]>([]);
   const [isLoadingCircles, setIsLoadingCircles] = useState(true);
@@ -484,9 +490,9 @@ export default function AnalyticsPage() {
             サークルがありません
           </div>
         ) : tab === "calendar" ? (
-          <CalendarTab circles={circles} />
+          <CalendarTab circles={circles} initialCircleId={initialCircleId} />
         ) : (
-          <MonthlyTab circles={circles} />
+          <MonthlyTab circles={circles} initialCircleId={initialCircleId} />
         )}
       </div>
 
@@ -497,5 +503,14 @@ export default function AnalyticsPage() {
         ← 戻る
       </Link>
     </div>
+  );
+}
+
+// ---- メインページ ----
+export default function AnalyticsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-dvh bg-slate-50" />}>
+      <AnalyticsContent />
+    </Suspense>
   );
 }

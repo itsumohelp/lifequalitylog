@@ -219,6 +219,8 @@ model Expense {
   claimeeUserId    String?  // 請求先ユーザーID
   claimee          User?    @relation("ExpenseClaimee", fields: [claimeeUserId], references: [id], onDelete: SetNull)
   claimeeNameCache String?  // 請求先名キャッシュ（アカウント削除後も保持）
+  claimeeCollected Boolean  @default(false) // 回収済みフラグ
+  bumpedAt         DateTime? // タイムライン最新移動日時
   createdAt     DateTime        @default(now())
   @@index([circleId, expenseDate])
   @@index([userId])
@@ -326,6 +328,8 @@ model Notification {
   actorUserId String
   actor       User     @relation(fields: [actorUserId], references: [id], onDelete: Cascade)
   message     String   @db.Text
+  collected   Boolean  @default(false) // 回収済みフラグ
+  bumpedAt    DateTime? // タイムライン最新移動日時
   createdAt   DateTime @default(now())
   @@index([circleId, createdAt])
   @@map("notifications")

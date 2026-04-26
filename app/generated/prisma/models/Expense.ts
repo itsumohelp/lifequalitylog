@@ -45,6 +45,8 @@ export type ExpenseMinAggregateOutputType = {
   expenseDate: Date | null
   claimeeUserId: string | null
   claimeeNameCache: string | null
+  claimeeCollected: boolean | null
+  bumpedAt: Date | null
   createdAt: Date | null
 }
 
@@ -59,6 +61,8 @@ export type ExpenseMaxAggregateOutputType = {
   expenseDate: Date | null
   claimeeUserId: string | null
   claimeeNameCache: string | null
+  claimeeCollected: boolean | null
+  bumpedAt: Date | null
   createdAt: Date | null
 }
 
@@ -75,6 +79,8 @@ export type ExpenseCountAggregateOutputType = {
   expenseDate: number
   claimeeUserId: number
   claimeeNameCache: number
+  claimeeCollected: number
+  bumpedAt: number
   createdAt: number
   _all: number
 }
@@ -99,6 +105,8 @@ export type ExpenseMinAggregateInputType = {
   expenseDate?: true
   claimeeUserId?: true
   claimeeNameCache?: true
+  claimeeCollected?: true
+  bumpedAt?: true
   createdAt?: true
 }
 
@@ -113,6 +121,8 @@ export type ExpenseMaxAggregateInputType = {
   expenseDate?: true
   claimeeUserId?: true
   claimeeNameCache?: true
+  claimeeCollected?: true
+  bumpedAt?: true
   createdAt?: true
 }
 
@@ -129,6 +139,8 @@ export type ExpenseCountAggregateInputType = {
   expenseDate?: true
   claimeeUserId?: true
   claimeeNameCache?: true
+  claimeeCollected?: true
+  bumpedAt?: true
   createdAt?: true
   _all?: true
 }
@@ -232,6 +244,8 @@ export type ExpenseGroupByOutputType = {
   expenseDate: Date
   claimeeUserId: string | null
   claimeeNameCache: string | null
+  claimeeCollected: boolean
+  bumpedAt: Date | null
   createdAt: Date
   _count: ExpenseCountAggregateOutputType | null
   _avg: ExpenseAvgAggregateOutputType | null
@@ -271,6 +285,8 @@ export type ExpenseWhereInput = {
   expenseDate?: Prisma.DateTimeFilter<"Expense"> | Date | string
   claimeeUserId?: Prisma.StringNullableFilter<"Expense"> | string | null
   claimeeNameCache?: Prisma.StringNullableFilter<"Expense"> | string | null
+  claimeeCollected?: Prisma.BoolFilter<"Expense"> | boolean
+  bumpedAt?: Prisma.DateTimeNullableFilter<"Expense"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Expense"> | Date | string
   circle?: Prisma.XOR<Prisma.CircleScalarRelationFilter, Prisma.CircleWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -290,6 +306,8 @@ export type ExpenseOrderByWithRelationInput = {
   expenseDate?: Prisma.SortOrder
   claimeeUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   claimeeNameCache?: Prisma.SortOrderInput | Prisma.SortOrder
+  claimeeCollected?: Prisma.SortOrder
+  bumpedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   circle?: Prisma.CircleOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
@@ -312,6 +330,8 @@ export type ExpenseWhereUniqueInput = Prisma.AtLeast<{
   expenseDate?: Prisma.DateTimeFilter<"Expense"> | Date | string
   claimeeUserId?: Prisma.StringNullableFilter<"Expense"> | string | null
   claimeeNameCache?: Prisma.StringNullableFilter<"Expense"> | string | null
+  claimeeCollected?: Prisma.BoolFilter<"Expense"> | boolean
+  bumpedAt?: Prisma.DateTimeNullableFilter<"Expense"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Expense"> | Date | string
   circle?: Prisma.XOR<Prisma.CircleScalarRelationFilter, Prisma.CircleWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -331,6 +351,8 @@ export type ExpenseOrderByWithAggregationInput = {
   expenseDate?: Prisma.SortOrder
   claimeeUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   claimeeNameCache?: Prisma.SortOrderInput | Prisma.SortOrder
+  claimeeCollected?: Prisma.SortOrder
+  bumpedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.ExpenseCountOrderByAggregateInput
   _avg?: Prisma.ExpenseAvgOrderByAggregateInput
@@ -355,6 +377,8 @@ export type ExpenseScalarWhereWithAggregatesInput = {
   expenseDate?: Prisma.DateTimeWithAggregatesFilter<"Expense"> | Date | string
   claimeeUserId?: Prisma.StringNullableWithAggregatesFilter<"Expense"> | string | null
   claimeeNameCache?: Prisma.StringNullableWithAggregatesFilter<"Expense"> | string | null
+  claimeeCollected?: Prisma.BoolWithAggregatesFilter<"Expense"> | boolean
+  bumpedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Expense"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Expense"> | Date | string
 }
 
@@ -368,6 +392,8 @@ export type ExpenseCreateInput = {
   autoTags?: Prisma.ExpenseCreateautoTagsInput | string[]
   expenseDate?: Date | string
   claimeeNameCache?: string | null
+  claimeeCollected?: boolean
+  bumpedAt?: Date | string | null
   createdAt?: Date | string
   circle: Prisma.CircleCreateNestedOneWithoutExpensesInput
   user: Prisma.UserCreateNestedOneWithoutExpensesInput
@@ -387,6 +413,8 @@ export type ExpenseUncheckedCreateInput = {
   expenseDate?: Date | string
   claimeeUserId?: string | null
   claimeeNameCache?: string | null
+  claimeeCollected?: boolean
+  bumpedAt?: Date | string | null
   createdAt?: Date | string
 }
 
@@ -400,6 +428,8 @@ export type ExpenseUpdateInput = {
   autoTags?: Prisma.ExpenseUpdateautoTagsInput | string[]
   expenseDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimeeNameCache?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimeeCollected?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  bumpedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   circle?: Prisma.CircleUpdateOneRequiredWithoutExpensesNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutExpensesNestedInput
@@ -419,6 +449,8 @@ export type ExpenseUncheckedUpdateInput = {
   expenseDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimeeUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   claimeeNameCache?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimeeCollected?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  bumpedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -435,6 +467,8 @@ export type ExpenseCreateManyInput = {
   expenseDate?: Date | string
   claimeeUserId?: string | null
   claimeeNameCache?: string | null
+  claimeeCollected?: boolean
+  bumpedAt?: Date | string | null
   createdAt?: Date | string
 }
 
@@ -448,6 +482,8 @@ export type ExpenseUpdateManyMutationInput = {
   autoTags?: Prisma.ExpenseUpdateautoTagsInput | string[]
   expenseDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimeeNameCache?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimeeCollected?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  bumpedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -464,6 +500,8 @@ export type ExpenseUncheckedUpdateManyInput = {
   expenseDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimeeUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   claimeeNameCache?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimeeCollected?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  bumpedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -498,6 +536,8 @@ export type ExpenseCountOrderByAggregateInput = {
   expenseDate?: Prisma.SortOrder
   claimeeUserId?: Prisma.SortOrder
   claimeeNameCache?: Prisma.SortOrder
+  claimeeCollected?: Prisma.SortOrder
+  bumpedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -516,6 +556,8 @@ export type ExpenseMaxOrderByAggregateInput = {
   expenseDate?: Prisma.SortOrder
   claimeeUserId?: Prisma.SortOrder
   claimeeNameCache?: Prisma.SortOrder
+  claimeeCollected?: Prisma.SortOrder
+  bumpedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -530,6 +572,8 @@ export type ExpenseMinOrderByAggregateInput = {
   expenseDate?: Prisma.SortOrder
   claimeeUserId?: Prisma.SortOrder
   claimeeNameCache?: Prisma.SortOrder
+  claimeeCollected?: Prisma.SortOrder
+  bumpedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -695,6 +739,8 @@ export type ExpenseCreateWithoutUserInput = {
   autoTags?: Prisma.ExpenseCreateautoTagsInput | string[]
   expenseDate?: Date | string
   claimeeNameCache?: string | null
+  claimeeCollected?: boolean
+  bumpedAt?: Date | string | null
   createdAt?: Date | string
   circle: Prisma.CircleCreateNestedOneWithoutExpensesInput
   claimee?: Prisma.UserCreateNestedOneWithoutClaimedExpensesInput
@@ -712,6 +758,8 @@ export type ExpenseUncheckedCreateWithoutUserInput = {
   expenseDate?: Date | string
   claimeeUserId?: string | null
   claimeeNameCache?: string | null
+  claimeeCollected?: boolean
+  bumpedAt?: Date | string | null
   createdAt?: Date | string
 }
 
@@ -735,6 +783,8 @@ export type ExpenseCreateWithoutClaimeeInput = {
   autoTags?: Prisma.ExpenseCreateautoTagsInput | string[]
   expenseDate?: Date | string
   claimeeNameCache?: string | null
+  claimeeCollected?: boolean
+  bumpedAt?: Date | string | null
   createdAt?: Date | string
   circle: Prisma.CircleCreateNestedOneWithoutExpensesInput
   user: Prisma.UserCreateNestedOneWithoutExpensesInput
@@ -752,6 +802,8 @@ export type ExpenseUncheckedCreateWithoutClaimeeInput = {
   autoTags?: Prisma.ExpenseCreateautoTagsInput | string[]
   expenseDate?: Date | string
   claimeeNameCache?: string | null
+  claimeeCollected?: boolean
+  bumpedAt?: Date | string | null
   createdAt?: Date | string
 }
 
@@ -797,6 +849,8 @@ export type ExpenseScalarWhereInput = {
   expenseDate?: Prisma.DateTimeFilter<"Expense"> | Date | string
   claimeeUserId?: Prisma.StringNullableFilter<"Expense"> | string | null
   claimeeNameCache?: Prisma.StringNullableFilter<"Expense"> | string | null
+  claimeeCollected?: Prisma.BoolFilter<"Expense"> | boolean
+  bumpedAt?: Prisma.DateTimeNullableFilter<"Expense"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Expense"> | Date | string
 }
 
@@ -826,6 +880,8 @@ export type ExpenseCreateWithoutCircleInput = {
   autoTags?: Prisma.ExpenseCreateautoTagsInput | string[]
   expenseDate?: Date | string
   claimeeNameCache?: string | null
+  claimeeCollected?: boolean
+  bumpedAt?: Date | string | null
   createdAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutExpensesInput
   claimee?: Prisma.UserCreateNestedOneWithoutClaimedExpensesInput
@@ -843,6 +899,8 @@ export type ExpenseUncheckedCreateWithoutCircleInput = {
   expenseDate?: Date | string
   claimeeUserId?: string | null
   claimeeNameCache?: string | null
+  claimeeCollected?: boolean
+  bumpedAt?: Date | string | null
   createdAt?: Date | string
 }
 
@@ -884,6 +942,8 @@ export type ExpenseCreateManyUserInput = {
   expenseDate?: Date | string
   claimeeUserId?: string | null
   claimeeNameCache?: string | null
+  claimeeCollected?: boolean
+  bumpedAt?: Date | string | null
   createdAt?: Date | string
 }
 
@@ -899,6 +959,8 @@ export type ExpenseCreateManyClaimeeInput = {
   autoTags?: Prisma.ExpenseCreateautoTagsInput | string[]
   expenseDate?: Date | string
   claimeeNameCache?: string | null
+  claimeeCollected?: boolean
+  bumpedAt?: Date | string | null
   createdAt?: Date | string
 }
 
@@ -912,6 +974,8 @@ export type ExpenseUpdateWithoutUserInput = {
   autoTags?: Prisma.ExpenseUpdateautoTagsInput | string[]
   expenseDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimeeNameCache?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimeeCollected?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  bumpedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   circle?: Prisma.CircleUpdateOneRequiredWithoutExpensesNestedInput
   claimee?: Prisma.UserUpdateOneWithoutClaimedExpensesNestedInput
@@ -929,6 +993,8 @@ export type ExpenseUncheckedUpdateWithoutUserInput = {
   expenseDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimeeUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   claimeeNameCache?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimeeCollected?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  bumpedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -944,6 +1010,8 @@ export type ExpenseUncheckedUpdateManyWithoutUserInput = {
   expenseDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimeeUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   claimeeNameCache?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimeeCollected?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  bumpedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -957,6 +1025,8 @@ export type ExpenseUpdateWithoutClaimeeInput = {
   autoTags?: Prisma.ExpenseUpdateautoTagsInput | string[]
   expenseDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimeeNameCache?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimeeCollected?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  bumpedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   circle?: Prisma.CircleUpdateOneRequiredWithoutExpensesNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutExpensesNestedInput
@@ -974,6 +1044,8 @@ export type ExpenseUncheckedUpdateWithoutClaimeeInput = {
   autoTags?: Prisma.ExpenseUpdateautoTagsInput | string[]
   expenseDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimeeNameCache?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimeeCollected?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  bumpedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -989,6 +1061,8 @@ export type ExpenseUncheckedUpdateManyWithoutClaimeeInput = {
   autoTags?: Prisma.ExpenseUpdateautoTagsInput | string[]
   expenseDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimeeNameCache?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimeeCollected?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  bumpedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -1004,6 +1078,8 @@ export type ExpenseCreateManyCircleInput = {
   expenseDate?: Date | string
   claimeeUserId?: string | null
   claimeeNameCache?: string | null
+  claimeeCollected?: boolean
+  bumpedAt?: Date | string | null
   createdAt?: Date | string
 }
 
@@ -1017,6 +1093,8 @@ export type ExpenseUpdateWithoutCircleInput = {
   autoTags?: Prisma.ExpenseUpdateautoTagsInput | string[]
   expenseDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimeeNameCache?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimeeCollected?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  bumpedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutExpensesNestedInput
   claimee?: Prisma.UserUpdateOneWithoutClaimedExpensesNestedInput
@@ -1034,6 +1112,8 @@ export type ExpenseUncheckedUpdateWithoutCircleInput = {
   expenseDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimeeUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   claimeeNameCache?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimeeCollected?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  bumpedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -1049,6 +1129,8 @@ export type ExpenseUncheckedUpdateManyWithoutCircleInput = {
   expenseDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claimeeUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   claimeeNameCache?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  claimeeCollected?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  bumpedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -1067,6 +1149,8 @@ export type ExpenseSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   expenseDate?: boolean
   claimeeUserId?: boolean
   claimeeNameCache?: boolean
+  claimeeCollected?: boolean
+  bumpedAt?: boolean
   createdAt?: boolean
   circle?: boolean | Prisma.CircleDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1086,6 +1170,8 @@ export type ExpenseSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   expenseDate?: boolean
   claimeeUserId?: boolean
   claimeeNameCache?: boolean
+  claimeeCollected?: boolean
+  bumpedAt?: boolean
   createdAt?: boolean
   circle?: boolean | Prisma.CircleDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1105,6 +1191,8 @@ export type ExpenseSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   expenseDate?: boolean
   claimeeUserId?: boolean
   claimeeNameCache?: boolean
+  claimeeCollected?: boolean
+  bumpedAt?: boolean
   createdAt?: boolean
   circle?: boolean | Prisma.CircleDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1124,10 +1212,12 @@ export type ExpenseSelectScalar = {
   expenseDate?: boolean
   claimeeUserId?: boolean
   claimeeNameCache?: boolean
+  claimeeCollected?: boolean
+  bumpedAt?: boolean
   createdAt?: boolean
 }
 
-export type ExpenseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "circleId" | "userId" | "amount" | "description" | "place" | "category" | "tags" | "autoTags" | "expenseDate" | "claimeeUserId" | "claimeeNameCache" | "createdAt", ExtArgs["result"]["expense"]>
+export type ExpenseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "circleId" | "userId" | "amount" | "description" | "place" | "category" | "tags" | "autoTags" | "expenseDate" | "claimeeUserId" | "claimeeNameCache" | "claimeeCollected" | "bumpedAt" | "createdAt", ExtArgs["result"]["expense"]>
 export type ExpenseInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   circle?: boolean | Prisma.CircleDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1164,6 +1254,8 @@ export type $ExpensePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     expenseDate: Date
     claimeeUserId: string | null
     claimeeNameCache: string | null
+    claimeeCollected: boolean
+    bumpedAt: Date | null
     createdAt: Date
   }, ExtArgs["result"]["expense"]>
   composites: {}
@@ -1603,6 +1695,8 @@ export interface ExpenseFieldRefs {
   readonly expenseDate: Prisma.FieldRef<"Expense", 'DateTime'>
   readonly claimeeUserId: Prisma.FieldRef<"Expense", 'String'>
   readonly claimeeNameCache: Prisma.FieldRef<"Expense", 'String'>
+  readonly claimeeCollected: Prisma.FieldRef<"Expense", 'Boolean'>
+  readonly bumpedAt: Prisma.FieldRef<"Expense", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Expense", 'DateTime'>
 }
     

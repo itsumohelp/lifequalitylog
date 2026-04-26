@@ -14,7 +14,7 @@ export async function PATCH(
 
   const { id } = await params;
   const body = await request.json();
-  const { tags, autoTags, expenseDate, claimeeUserId } = body;
+  const { tags, autoTags, expenseDate, claimeeUserId, claimeeCollected, bump } = body;
 
   if (tags !== undefined && !Array.isArray(tags)) {
     return NextResponse.json({ error: "tags must be an array" }, { status: 400 });
@@ -22,8 +22,15 @@ export async function PATCH(
   if (autoTags !== undefined && !Array.isArray(autoTags)) {
     return NextResponse.json({ error: "autoTags must be an array" }, { status: 400 });
   }
-  if (tags === undefined && autoTags === undefined && expenseDate === undefined && !("claimeeUserId" in body)) {
-    return NextResponse.json({ error: "tags, autoTags, expenseDate or claimeeUserId is required" }, { status: 400 });
+  const hasAnyField =
+    tags !== undefined ||
+    autoTags !== undefined ||
+    expenseDate !== undefined ||
+    "claimeeUserId" in body ||
+    claimeeCollected !== undefined ||
+    bump === true;
+  if (!hasAnyField) {
+    return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
   }
 
   const expense = await prisma.expense.findUnique({ where: { id } });
@@ -43,6 +50,11 @@ export async function PATCH(
 
   // EDITORは自分の投稿のみ操作可
   if (member.role === "EDITOR" && expense.userId !== session.user.id) {
+    return NextResponse.json({ error: "Permission denied" }, { status: 403 });
+  }
+
+  // 回収済みフラグとbumpは投稿者またはADMINのみ操作可
+  if ((claimeeCollected !== undefined || bump === true) && expense.userId !== session.user.id && member.role !== "ADMIN") {
     return NextResponse.json({ error: "Permission denied" }, { status: 403 });
   }
 
@@ -70,6 +82,8 @@ export async function PATCH(
         claimeeUserId: claimeeUserId ?? null,
         claimeeNameCache,
       }),
+      ...(claimeeCollected !== undefined && { claimeeCollected }),
+      ...(bump === true && { bumpedAt: new Date() }),
     },
     include: {
       claimee: { select: { id: true, name: true, displayName: true, image: true } },

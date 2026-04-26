@@ -76,6 +76,9 @@ type FeedItem = {
   claimeeUserName?: string;
   claimeeUserImage?: string | null;
   claimeeNameCache?: string;
+  claimeeCollected?: boolean;
+  bumpedAt?: string | null;
+  notificationCollected?: boolean;
   createdAt: string;
 };
 
@@ -126,7 +129,8 @@ type WarikanPayload = {
   total: number;
   perPerson: number;
   people: number;
-  members: { name: string; image: string | null; paid: number; diff: number }[];
+  members: { userId?: string; name: string; image: string | null; paid: number; diff: number }[];
+  collectedUserIds?: string[];
 };
 
 function parseWarikan(message: string | undefined): WarikanPayload | null {
@@ -178,6 +182,7 @@ type Props = {
   initialMonthlyExpense: number;
   initialDailyExpense: number;
   adminCircleIds: string[];
+  openItemId?: string;
 };
 
 type InputMode = "expense" | "income" | "snapshot";
@@ -227,6 +232,7 @@ export default function UnifiedChat({
   initialMonthlyExpense,
   initialDailyExpense,
   adminCircleIds,
+  openItemId,
 }: Props) {
   const [feed, setFeed] = useState<FeedItem[]>(initialFeed);
   const [filterNoticesOnly, setFilterNoticesOnly] = useState(false);
@@ -295,6 +301,13 @@ export default function UnifiedChat({
   type ClaimeeMember = { userId: string; name: string; image: string | null };
   const [claimeeMembers, setClaimeeMembers] = useState<ClaimeeMember[]>([]);
   const [isUpdatingClaimee, setIsUpdatingClaimee] = useState(false);
+  const [isTogglingCollected, setIsTogglingCollected] = useState(false);
+  const [isBumping, setIsBumping] = useState(false);
+
+  // 残高加算
+  const [addToSnapshotInput, setAddToSnapshotInput] = useState("");
+  const [addToSnapshotNote, setAddToSnapshotNote] = useState("");
+  const [isAddingToSnapshot, setIsAddingToSnapshot] = useState(false);
 
   const isTimeline = selectedCircleId === TIMELINE_VALUE;
   const selectedCircle = circlesState.find((c) => c.id === selectedCircleId);
@@ -331,10 +344,11 @@ export default function UnifiedChat({
         };
         setFeed((prev) => {
           if (prev.some((item) => item.id === newItem.id)) return prev;
-          return [...prev, newItem].sort(
-            (a, b) =>
-              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-          );
+          return [...prev, newItem].sort((a, b) => {
+            const aTime = a.bumpedAt ? new Date(a.bumpedAt).getTime() : new Date(a.createdAt).getTime();
+            const bTime = b.bumpedAt ? new Date(b.bumpedAt).getTime() : new Date(b.createdAt).getTime();
+            return aTime - bTime;
+          });
         });
       } catch {
         setError("AIインサイトの取得に失敗しました");
@@ -380,11 +394,13 @@ export default function UnifiedChat({
       perPerson: share,
       people: warikanPeople,
       members: warikanData.members.slice(0, warikanPeople).map((m) => ({
+        userId: m.userId,
         name: m.name,
         image: m.image,
         paid: m.paid,
         diff: m.paid - share,
       })),
+      collectedUserIds: [],
     };
     const message = JSON.stringify(payload);
 
@@ -398,10 +414,9 @@ export default function UnifiedChat({
       if (res.ok) {
         const data = await res.json();
         const n = data.notification;
-        setFeed((prev) =>
-          [...prev, {
+        const newNotifItem: FeedItem = {
             id: `notification-${n.id}`,
-            kind: "notification" as const,
+            kind: "notification",
             circleId: n.circleId,
             circleName: n.circle.name,
             userId: n.actorUserId,
@@ -410,7 +425,13 @@ export default function UnifiedChat({
             amount: 0,
             notificationMessage: n.message,
             createdAt: n.createdAt,
-          }].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()),
+          };
+        setFeed((prev) =>
+          [...prev, newNotifItem].sort((a, b) => {
+            const aTime = a.bumpedAt ? new Date(a.bumpedAt).getTime() : new Date(a.createdAt).getTime();
+            const bTime = b.bumpedAt ? new Date(b.bumpedAt).getTime() : new Date(b.createdAt).getTime();
+            return aTime - bTime;
+          }),
         );
         setShowWarikanDialog(false);
       }
@@ -470,6 +491,61 @@ export default function UnifiedChat({
     return false;
   };
 
+  // 残高に加算して新しいスナップショットを登録
+  const handleAddToSnapshot = async (item: FeedItem) => {
+    const additionalAmount = parseInt(addToSnapshotInput.replace(/,/g, ""), 10);
+    if (!additionalAmount || additionalAmount <= 0 || isAddingToSnapshot) return;
+    setIsAddingToSnapshot(true);
+    const newAmount = item.amount + additionalAmount;
+    try {
+      const res = await fetch("/api/snapshot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          circleId: item.circleId,
+          amount: newAmount,
+          note: addToSnapshotNote || null,
+        }),
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      const newSnapshotItem: FeedItem = {
+        id: data.snapshot.id,
+        kind: "snapshot",
+        circleId: item.circleId,
+        circleName: item.circleName,
+        userId: currentUserId,
+        userName: "自分",
+        userImage: null,
+        amount: newAmount,
+        snapshotDiff: data.snapshot.snapshotDiff,
+        note: addToSnapshotNote || null,
+        createdAt: new Date().toISOString(),
+      };
+      setFeed((prev) => [
+        ...prev.filter(
+          (f) => f.kind !== "summary" && f.kind !== "help" && f.kind !== "invite",
+        ),
+        newSnapshotItem,
+      ]);
+      const oldBalance = balances.find((cb) => cb.circleId === item.circleId)?.balance || 0;
+      const balanceDiff = newAmount - oldBalance;
+      setBalances((prev) =>
+        prev.map((cb) =>
+          cb.circleId === item.circleId ? { ...cb, balance: newAmount } : cb,
+        ),
+      );
+      if (adminCircleIds.includes(item.circleId)) {
+        setTotalBalance((prev) => prev + balanceDiff);
+      }
+      setAddToSnapshotInput("");
+      setAddToSnapshotNote("");
+      setSelectedItem(null);
+    } finally {
+      setIsAddingToSnapshot(false);
+    }
+  };
+
   // 請求先を設定/解除
   const handleSetClaimee = async (item: FeedItem, userId: string | null) => {
     if (isUpdatingClaimee) return;
@@ -499,6 +575,95 @@ export default function UnifiedChat({
       }
     } finally {
       setIsUpdatingClaimee(false);
+    }
+  };
+
+  // 回収済みフラグをトグル
+  const handleToggleCollected = async (item: FeedItem) => {
+    if (isTogglingCollected) return;
+    setIsTogglingCollected(true);
+    try {
+      if (item.kind === "expense") {
+        const expenseId = item.id.replace(/^expense-/, "");
+        const newValue = !item.claimeeCollected;
+        const res = await fetch(`/api/expense/${expenseId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ claimeeCollected: newValue }),
+        });
+        if (!res.ok) return;
+        const patch = { claimeeCollected: newValue };
+        setFeed((prev) => prev.map((f) => (f.id === item.id ? { ...f, ...patch } : f)));
+        setSelectedItem((prev) => (prev?.id === item.id ? { ...prev, ...patch } : prev));
+      } else if (item.kind === "notification") {
+        const notifId = item.id.replace(/^notification-/, "");
+        const newValue = !item.notificationCollected;
+        const res = await fetch(`/api/notification/${notifId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ collected: newValue }),
+        });
+        if (!res.ok) return;
+        const patch = { notificationCollected: newValue };
+        setFeed((prev) => prev.map((f) => (f.id === item.id ? { ...f, ...patch } : f)));
+        setSelectedItem((prev) => (prev?.id === item.id ? { ...prev, ...patch } : prev));
+      }
+    } finally {
+      setIsTogglingCollected(false);
+    }
+  };
+
+  // 割り勘メンバーごとの回収済みトグル
+  const handleToggleWarikanMemberCollected = async (item: FeedItem, targetUserId: string) => {
+    if (isTogglingCollected) return;
+    setIsTogglingCollected(true);
+    const notifId = item.id.replace(/^notification-/, "");
+    try {
+      const res = await fetch(`/api/notification/${notifId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ toggleCollectedUserId: targetUserId }),
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      const patch = { notificationMessage: data.notification.message };
+      setFeed((prev) => prev.map((f) => (f.id === item.id ? { ...f, ...patch } : f)));
+      setSelectedItem((prev) => (prev?.id === item.id ? { ...prev, ...patch } : prev));
+    } finally {
+      setIsTogglingCollected(false);
+    }
+  };
+
+  // タイムラインの最新に移動
+  const handleBump = async (item: FeedItem) => {
+    if (isBumping) return;
+    setIsBumping(true);
+    const now = new Date().toISOString();
+    try {
+      if (item.kind === "expense") {
+        const expenseId = item.id.replace(/^expense-/, "");
+        const res = await fetch(`/api/expense/${expenseId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ bump: true }),
+        });
+        if (!res.ok) return;
+      } else if (item.kind === "notification") {
+        const notifId = item.id.replace(/^notification-/, "");
+        const res = await fetch(`/api/notification/${notifId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ bump: true }),
+        });
+        if (!res.ok) return;
+      } else {
+        return;
+      }
+      const patch = { bumpedAt: now };
+      setFeed((prev) => prev.map((f) => (f.id === item.id ? { ...f, ...patch } : f)));
+      setSelectedItem((prev) => (prev?.id === item.id ? { ...prev, ...patch } : prev));
+    } finally {
+      setIsBumping(false);
     }
   };
 
@@ -568,11 +733,11 @@ export default function UnifiedChat({
 
           if (newItems.length > 0) {
             setFeed((prev) =>
-              [...newItems, ...prev].sort(
-                (a, b) =>
-                  new Date(a.createdAt).getTime() -
-                  new Date(b.createdAt).getTime(),
-              ),
+              [...newItems, ...prev].sort((a, b) => {
+                const aTime = a.bumpedAt ? new Date(a.bumpedAt).getTime() : new Date(a.createdAt).getTime();
+                const bTime = b.bumpedAt ? new Date(b.bumpedAt).getTime() : new Date(b.createdAt).getTime();
+                return aTime - bTime;
+              }),
             );
             // 新しいアイテムのリアクションを取得
             fetchReactions(newItems);
@@ -984,6 +1149,27 @@ export default function UnifiedChat({
   useEffect(() => {
     fetchReactions(feed);
   }, [feed, fetchReactions]);
+
+  // openItemId: URL共有からの自動ダイアログ表示
+  useEffect(() => {
+    if (!openItemId) return;
+    // URLからクエリパラムを消す（履歴は残さない）
+    window.history.replaceState({}, "", "/dashboard");
+    // フィードに既にある場合はそのまま開く
+    const found = feed.find((f) => f.id === openItemId);
+    if (found) {
+      setSelectedItem(found);
+      return;
+    }
+    // フィードにない場合（古いアイテム等）はAPIから取得
+    fetch(`/api/item/${openItemId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.item) setSelectedItem(data.item as FeedItem);
+      })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 請求先ピッカー用メンバー取得
   useEffect(() => {
@@ -1408,6 +1594,12 @@ export default function UnifiedChat({
     }
   };
 
+  const sortByEffectiveTime = (a: FeedItem, b: FeedItem) => {
+    const aTime = a.bumpedAt ? new Date(a.bumpedAt).getTime() : new Date(a.createdAt).getTime();
+    const bTime = b.bumpedAt ? new Date(b.bumpedAt).getTime() : new Date(b.createdAt).getTime();
+    return aTime - bTime;
+  };
+
   // フィルタリング（タイムライン時はお知らせ＋全サークル、それ以外は選択サークルのみ）
   const filteredFeed = isTimeline
     ? filterNoticesOnly
@@ -1415,17 +1607,13 @@ export default function UnifiedChat({
           .filter(
             (item) => item.kind === "notice" || item.kind === "notification",
           )
-          .sort(
-            (a, b) =>
-              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-          )
-      : [...feed].sort(
-          (a, b) =>
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+          .sort(sortByEffectiveTime)
+      : [...feed].sort(sortByEffectiveTime)
+    : feed
+        .filter(
+          (item) => item.kind !== "notice" && item.circleId === filterCircleId,
         )
-    : feed.filter(
-        (item) => item.kind !== "notice" && item.circleId === filterCircleId,
-      );
+        .sort(sortByEffectiveTime);
 
   // 選択中サークルの直近30日間の残高推移データ（チャート用）
   const miniChartData = useMemo((): BalanceDataPoint[] => {
@@ -1821,6 +2009,11 @@ export default function UnifiedChat({
                               >
                                 {formatTime(item.createdAt)}
                               </span>
+                              {item.bumpedAt && (
+                                <span className={`text-[9px] px-1 rounded ${isOwnMessage ? "bg-sky-700 text-sky-200" : "bg-sky-50 text-sky-500"}`}>
+                                  ↑ 最新
+                                </span>
+                              )}
                             </div>
 
                             {item.kind === "expense" ? (
@@ -1909,6 +2102,9 @@ export default function UnifiedChat({
                                       </span>
                                       {isDeleted && (
                                         <span className={`text-[9px] ${isOwnMessage ? "text-slate-400" : "text-slate-400"}`}>（退会済み）</span>
+                                      )}
+                                      {item.claimeeCollected && (
+                                        <span className="text-emerald-500 text-[11px] font-bold" title="回収済み">✓</span>
                                       )}
                                     </div>
                                   );
@@ -2157,9 +2353,19 @@ export default function UnifiedChat({
                                                     ? `¥${Math.abs(m.diff).toLocaleString()} 支払`
                                                     : "±0"}
                                               </span>
+                                              {/* 回収済みインジケータ（金額の右） */}
+                                              {m.userId && wk.collectedUserIds?.includes(m.userId) && (
+                                                <span className="text-emerald-500 text-[11px] font-bold flex-shrink-0">✓</span>
+                                              )}
                                             </div>
                                           ))}
                                         </div>
+                                      {item.notificationCollected && (
+                                        <div className="flex items-center gap-1 mt-1">
+                                          <span className="text-emerald-500 text-[11px] font-bold">✓</span>
+                                          <span className={`text-[10px] text-emerald-500`}>回収済み</span>
+                                        </div>
+                                      )}
                                       </div>
                                     );
                                   }
@@ -2379,15 +2585,13 @@ export default function UnifiedChat({
         </div>
       </div>
 
-      {/* AIインサイトボタン（管理者サークルのみ、条件付き表示） */}
+      {/* AIインサイトボタン（管理者サークルのみ、今日未取得かつ新規アクティビティがある場合のみ） */}
       {!isTimeline &&
         adminCircleIds.includes(selectedCircleId) &&
         (() => {
           const todayJST = new Date(Date.now() + 9 * 60 * 60 * 1000)
             .toISOString()
             .slice(0, 10);
-
-          // 今日のインサイトがあれば非表示
           const lastInsight = feed
             .filter(
               (item) =>
@@ -2406,8 +2610,6 @@ export default function UnifiedChat({
               .toISOString()
               .slice(0, 10) === todayJST;
           if (hasTodayInsight) return null;
-
-          // AIの最終投稿以降に自分の投稿がなければ非表示
           const lastUserPost = feed
             .filter(
               (item) =>
@@ -2426,14 +2628,12 @@ export default function UnifiedChat({
               new Date(lastUserPost.createdAt) >
                 new Date(lastInsight.createdAt));
           if (!hasNewActivity) return null;
-
           const AI_CONSENT_KEY = "aiInsightConsented";
           const hasConsented =
             isLocalStorageAvailable() &&
             localStorage.getItem(AI_CONSENT_KEY) === "true";
-
           return (
-            <div className="flex-shrink-0 px-3 py-2 bg-slate-50 flex justify-center gap-2">
+            <div className="flex-shrink-0 px-3 pt-2 pb-0 bg-slate-50 flex justify-center">
               <button
                 type="button"
                 onClick={() => {
@@ -2449,19 +2649,25 @@ export default function UnifiedChat({
               >
                 {isInsightLoading ? "分析中..." : "✨ 昨日までの傾向をAIに聞いてみる"}
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowWarikanDialog(true);
-                  fetchWarikan(selectedCircleId, warikanPeriod);
-                }}
-                className="text-[11px] text-emerald-600 border border-emerald-200 bg-emerald-50 rounded-full px-3 py-0.5 hover:bg-emerald-100 transition"
-              >
-                💴 割り勘
-              </button>
             </div>
           );
         })()}
+
+      {/* 割り勘ボタン（管理者サークルのみ、常時表示） */}
+      {!isTimeline && adminCircleIds.includes(selectedCircleId) && (
+        <div className="flex-shrink-0 px-3 py-2 bg-slate-50 flex justify-center">
+          <button
+            type="button"
+            onClick={() => {
+              setShowWarikanDialog(true);
+              fetchWarikan(selectedCircleId, warikanPeriod);
+            }}
+            className="text-[11px] text-emerald-600 border border-emerald-200 bg-emerald-50 rounded-full px-3 py-0.5 hover:bg-emerald-100 transition"
+          >
+            💴 割り勘
+          </button>
+        </div>
+      )}
 
       {/* 入力エリア（画面下部に固定） */}
       <div className="flex-shrink-0 bg-white border-t border-slate-200">
@@ -2501,7 +2707,7 @@ export default function UnifiedChat({
 
           {/* 集計ボタン */}
           <Link
-            href="/dashboard/analytics"
+            href={`/dashboard/analytics${!isTimeline && selectedCircleId ? `?circleId=${encodeURIComponent(selectedCircleId)}` : ""}`}
             className="flex-shrink-0 p-2.5 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 active:bg-slate-300 active:scale-95 transition"
             title="集計"
           >
@@ -3242,13 +3448,34 @@ export default function UnifiedChat({
             className="bg-white rounded-xl w-full max-w-sm p-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-semibold text-slate-900 mb-4">
-              {selectedItem.kind === "expense"
-                ? "支出詳細"
-                : selectedItem.kind === "income"
-                  ? "収入詳細"
-                  : "残高詳細"}
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-slate-900">
+                {selectedItem.kind === "expense"
+                  ? "支出詳細"
+                  : selectedItem.kind === "income"
+                    ? "収入詳細"
+                    : selectedItem.kind === "notification"
+                      ? "通知詳細"
+                      : "残高詳細"}
+              </h3>
+              {(selectedItem.kind === "expense" ||
+                selectedItem.kind === "income" ||
+                selectedItem.kind === "snapshot" ||
+                selectedItem.kind === "notification") && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigator.clipboard.writeText(
+                      `${window.location.origin}/item/${selectedItem.id}`,
+                    )
+                  }
+                  className="text-[11px] text-slate-400 hover:text-sky-500 flex items-center gap-1 transition"
+                  title="URLをコピー"
+                >
+                  🔗 URLをコピー
+                </button>
+              )}
+            </div>
 
             <div className="space-y-3">
               {/* 金額 */}
@@ -3567,7 +3794,26 @@ export default function UnifiedChat({
                           </div>
                         )}
                         <span className="text-sm font-medium text-orange-700">{selectedItem.claimeeUserName}</span>
-                        <span className="text-xs text-orange-500 ml-auto">請求中</span>
+                        {(selectedItem.userId === currentUserId || userRoles.find(r => r.circleId === selectedItem.circleId)?.role === "ADMIN") ? (
+                          <button
+                            type="button"
+                            onClick={() => handleToggleCollected(selectedItem)}
+                            disabled={isTogglingCollected}
+                            className={`ml-auto flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold transition active:scale-95 disabled:opacity-50 ${
+                              selectedItem.claimeeCollected
+                                ? "bg-emerald-100 text-emerald-600 border border-emerald-300"
+                                : "bg-slate-100 text-slate-500 border border-slate-200"
+                            }`}
+                            title={selectedItem.claimeeCollected ? "未回収に戻す" : "回収済みにする"}
+                          >
+                            <span className="text-[14px]">{selectedItem.claimeeCollected ? "✓" : "○"}</span>
+                            <span>{selectedItem.claimeeCollected ? "回収済み" : "未回収"}</span>
+                          </button>
+                        ) : (
+                          <span className={`text-xs ml-auto font-semibold ${selectedItem.claimeeCollected ? "text-emerald-600" : "text-orange-500"}`}>
+                            {selectedItem.claimeeCollected ? "✓ 回収済み" : "請求中"}
+                          </span>
+                        )}
                       </div>
                     ) : canModifyItem(selectedItem) ? (
                       <div>
@@ -3643,6 +3889,7 @@ export default function UnifiedChat({
                                   )}
                                 </div>
                                 <span className="text-xs text-slate-700 flex-1 truncate">{m.name}</span>
+                                {/* 差額コピーボタン */}
                                 <button
                                   type="button"
                                   onClick={() => navigator.clipboard.writeText(String(Math.abs(m.diff)))}
@@ -3661,6 +3908,24 @@ export default function UnifiedChat({
                                       ? `-¥${Math.abs(m.diff).toLocaleString()} 支払`
                                       : "±0"}
                                 </button>
+                                {/* 回収済みトグル（金額の右・投稿者/ADMINのみ操作可） */}
+                                {m.userId && (selectedItem.userId === currentUserId || userRoles.find(r => r.circleId === selectedItem.circleId)?.role === "ADMIN") ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleWarikanMemberCollected(selectedItem, m.userId!)}
+                                    disabled={isTogglingCollected}
+                                    className={`flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full text-[12px] font-bold transition active:scale-95 disabled:opacity-50 ${
+                                      wkDetail.collectedUserIds?.includes(m.userId)
+                                        ? "bg-emerald-100 text-emerald-600 border border-emerald-200"
+                                        : "bg-slate-100 text-slate-400 border border-slate-200"
+                                    }`}
+                                    title={wkDetail.collectedUserIds?.includes(m.userId) ? "未回収に戻す" : "回収済みにする"}
+                                  >
+                                    {wkDetail.collectedUserIds?.includes(m.userId) ? "✓" : "○"}
+                                  </button>
+                                ) : m.userId && wkDetail.collectedUserIds?.includes(m.userId) ? (
+                                  <span className="text-emerald-500 text-[12px] font-bold flex-shrink-0">✓</span>
+                                ) : null}
                               </div>
                             ))}
                           </div>
@@ -3694,6 +3959,47 @@ export default function UnifiedChat({
                 </div>
               )}
 
+              {/* 残高加算（スナップショットの場合） */}
+              {selectedItem.kind === "snapshot" && canModifyItem(selectedItem) && (
+                <div className="space-y-2 border-t border-slate-100 pt-3">
+                  <span className="text-sm text-slate-500 font-medium">＋ 残高に加算</span>
+                  <div className="flex gap-2 items-center">
+                    <span className="text-sm text-slate-400 flex-shrink-0">＋ ¥</span>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      value={addToSnapshotInput}
+                      onChange={(e) => setAddToSnapshotInput(e.target.value)}
+                      placeholder="追加する金額"
+                      className="flex-1 text-sm border border-slate-300 rounded-lg px-2 py-1.5 focus:outline-none focus:border-sky-400"
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    value={addToSnapshotNote}
+                    onChange={(e) => setAddToSnapshotNote(e.target.value)}
+                    placeholder="メモ（例: FX口座）"
+                    className="w-full text-sm border border-slate-300 rounded-lg px-2 py-1.5 focus:outline-none focus:border-sky-400"
+                  />
+                  {addToSnapshotInput && parseInt(addToSnapshotInput) > 0 && (
+                    <div className="text-xs text-center text-slate-500 bg-slate-50 rounded-lg py-1.5">
+                      ¥{formatYen(selectedItem.amount)} ＋ ¥{formatYen(parseInt(addToSnapshotInput))} ＝{" "}
+                      <span className="font-semibold text-slate-800">
+                        ¥{formatYen(selectedItem.amount + parseInt(addToSnapshotInput))}
+                      </span>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleAddToSnapshot(selectedItem)}
+                    disabled={isAddingToSnapshot || !addToSnapshotInput || parseInt(addToSnapshotInput) <= 0}
+                    className="w-full bg-sky-500 text-white rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50 active:scale-95 transition"
+                  >
+                    {isAddingToSnapshot ? "登録中..." : "加算して登録"}
+                  </button>
+                </div>
+              )}
+
               {/* 投稿者 */}
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-500">投稿者</span>
@@ -3711,13 +4017,29 @@ export default function UnifiedChat({
               </div>
             </div>
 
+            {/* タイムライン最新移動ボタン（claimeeまたは割り勘の場合のみ） */}
+            {((selectedItem.kind === "expense" && (selectedItem.claimeeUserId || selectedItem.claimeeNameCache)) ||
+              (selectedItem.kind === "notification" && parseWarikan(selectedItem.notificationMessage))) &&
+              (selectedItem.userId === currentUserId || userRoles.find(r => r.circleId === selectedItem.circleId)?.role === "ADMIN") && (
+              <button
+                type="button"
+                onClick={() => handleBump(selectedItem)}
+                disabled={isBumping}
+                className="w-full mt-4 bg-sky-50 text-sky-600 border border-sky-200 rounded-lg px-4 py-2 text-sm font-medium hover:bg-sky-100 transition active:scale-95 disabled:opacity-50"
+              >
+                {isBumping ? "移動中..." : "↑ タイムラインの最新に移動"}
+              </button>
+            )}
+
             {/* ボタン */}
-            <div className="flex gap-2 mt-6">
+            <div className="flex gap-2 mt-3">
               <button
                 type="button"
                 onClick={() => {
                   setSelectedItem(null);
                   setTagInput("");
+                  setAddToSnapshotInput("");
+                  setAddToSnapshotNote("");
                 }}
                 className="flex-1 bg-slate-100 text-slate-700 rounded-lg px-4 py-2 text-sm font-medium"
               >

@@ -2114,6 +2114,8 @@ export const ExpenseScalarFieldEnum = {
   expenseDate: 'expenseDate',
   claimeeUserId: 'claimeeUserId',
   claimeeNameCache: 'claimeeNameCache',
+  claimeeCollected: 'claimeeCollected',
+  bumpedAt: 'bumpedAt',
   createdAt: 'createdAt'
 } as const
 
@@ -2191,6 +2193,8 @@ export const NotificationScalarFieldEnum = {
   type: 'type',
   actorUserId: 'actorUserId',
   message: 'message',
+  collected: 'collected',
+  bumpedAt: 'bumpedAt',
   createdAt: 'createdAt'
 } as const
 
