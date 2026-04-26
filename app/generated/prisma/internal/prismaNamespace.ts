@@ -403,7 +403,8 @@ export const ModelName = {
   IosAuthToken: 'IosAuthToken',
   UserInsight: 'UserInsight',
   Notification: 'Notification',
-  Notice: 'Notice'
+  Notice: 'Notice',
+  WarikanTemplate: 'WarikanTemplate'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -419,7 +420,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "appLog" | "todo" | "record" | "account" | "session" | "user" | "verificationToken" | "circle" | "circleMember" | "snapshot" | "circleSnapshot" | "monthlySnapshot" | "expense" | "income" | "balanceTransaction" | "reaction" | "iosAuthToken" | "userInsight" | "notification" | "notice"
+    modelProps: "appLog" | "todo" | "record" | "account" | "session" | "user" | "verificationToken" | "circle" | "circleMember" | "snapshot" | "circleSnapshot" | "monthlySnapshot" | "expense" | "income" | "balanceTransaction" | "reaction" | "iosAuthToken" | "userInsight" | "notification" | "notice" | "warikanTemplate"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1903,6 +1904,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    WarikanTemplate: {
+      payload: Prisma.$WarikanTemplatePayload<ExtArgs>
+      fields: Prisma.WarikanTemplateFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.WarikanTemplateFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WarikanTemplatePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.WarikanTemplateFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WarikanTemplatePayload>
+        }
+        findFirst: {
+          args: Prisma.WarikanTemplateFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WarikanTemplatePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.WarikanTemplateFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WarikanTemplatePayload>
+        }
+        findMany: {
+          args: Prisma.WarikanTemplateFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WarikanTemplatePayload>[]
+        }
+        create: {
+          args: Prisma.WarikanTemplateCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WarikanTemplatePayload>
+        }
+        createMany: {
+          args: Prisma.WarikanTemplateCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.WarikanTemplateCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WarikanTemplatePayload>[]
+        }
+        delete: {
+          args: Prisma.WarikanTemplateDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WarikanTemplatePayload>
+        }
+        update: {
+          args: Prisma.WarikanTemplateUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WarikanTemplatePayload>
+        }
+        deleteMany: {
+          args: Prisma.WarikanTemplateDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.WarikanTemplateUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.WarikanTemplateUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WarikanTemplatePayload>[]
+        }
+        upsert: {
+          args: Prisma.WarikanTemplateUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WarikanTemplatePayload>
+        }
+        aggregate: {
+          args: Prisma.WarikanTemplateAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateWarikanTemplate>
+        }
+        groupBy: {
+          args: Prisma.WarikanTemplateGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WarikanTemplateGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.WarikanTemplateCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WarikanTemplateCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2014,7 +2089,8 @@ export const UserScalarFieldEnum = {
   email: 'email',
   emailVerified: 'emailVerified',
   image: 'image',
-  autoTagEnabled: 'autoTagEnabled'
+  autoTagEnabled: 'autoTagEnabled',
+  notifLastReadAt: 'notifLastReadAt'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -2212,6 +2288,19 @@ export const NoticeScalarFieldEnum = {
 } as const
 
 export type NoticeScalarFieldEnum = (typeof NoticeScalarFieldEnum)[keyof typeof NoticeScalarFieldEnum]
+
+
+export const WarikanTemplateScalarFieldEnum = {
+  id: 'id',
+  circleId: 'circleId',
+  createdBy: 'createdBy',
+  name: 'name',
+  people: 'people',
+  period: 'period',
+  createdAt: 'createdAt'
+} as const
+
+export type WarikanTemplateScalarFieldEnum = (typeof WarikanTemplateScalarFieldEnum)[keyof typeof WarikanTemplateScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2506,6 +2595,7 @@ export type GlobalOmitConfig = {
   userInsight?: Prisma.UserInsightOmit
   notification?: Prisma.NotificationOmit
   notice?: Prisma.NoticeOmit
+  warikanTemplate?: Prisma.WarikanTemplateOmit
 }
 
 /* Types for Logging */

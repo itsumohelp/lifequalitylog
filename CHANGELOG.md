@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.59] - 2026-04-26
+
+### Added
+- **Notification bell**: Bell icon added next to the logo in the header. Opens a drawer showing: incoming claims (expenses where you are the claimee), warikan uncollected reminders (3+ days since posting with uncollected members), and operations notices. Unread items show a red badge count on the bell icon; opening the drawer marks all as read. Polling every 60 seconds.
+- **Warikan templates**: Save and load warikan configurations (number of people, period) per circle. Templates appear as tag chips in the warikan dialog; tap to apply, long-press area to delete. Stored in `warikan_templates` table.
+- **OGP image for item URLs**: `/item/{type}-{id}` pages now generate a social card image (`opengraph-image.tsx`) showing app name, circle name, ±¥amount, kind label, and JST datetime. Uses Noto Sans JP fetched at render time.
+- **FAB button**: Replaced the separate AI insight and warikan buttons (which took vertical space in the feed) with a single floating `+` button in the bottom-right corner of the feed. Tapping shows a popup menu with ✨ AIに聞いてみる and 💴 割り勘. AI option is hidden if already used today; warikan option is hidden unless the circle has 2+ members and current-month records exist.
+
+### Changed
+- **Detail modal simplified**: Removed サークル残高, サークル, 内容, 投稿者, 日時 rows. Circle balance now shown inline after the amount `（¥X）`. Time shown inline after 処理日. Timeline bump moved to a compact `↓` button in the bottom row alongside 戻る and 削除.
+- **Warikan feed bubble**: Replaced member-row list with a single flex-wrap line: `割り勘（期間）¥XX/人　N人　[N人未回収]`.
+
+### Fixed
+- **Reaction 400 on warikan notifications**: API `targetType` validation was missing `"notification"`, causing all reactions on warikan result feed items to fail with 400. Added `"notification"` to the allowed list.
+
+---
+
+### 追加
+- **通知ベル**: ヘッダーのロゴ右隣にベルアイコンを追加。ドロワーを開くと、自分への請求（未回収の claimee 支出）・割り勘未回収リマインダー（投稿後3日以上経過・未回収メンバーあり）・運営からのお知らせを一覧表示。未読アイテムがある場合はベルアイコンに赤いバッジを表示。ドロワーを開くと全件既読に。60秒ごとにポーリング更新。
+- **割り勘テンプレート**: 人数・期間の割り勘設定をサークル単位で保存・呼び出しできる機能を追加。割り勘ダイアログにテンプレートがタグチップとして表示され、タップで即適用、削除も可能。`warikan_templates`テーブルに保存。
+- **アイテムURLのOGP画像**: `/item/{type}-{id}` ページでソーシャルカード画像（`opengraph-image.tsx`）を生成。アプリ名・サークル名・±¥金額・種別ラベル・JST日時を表示。Noto Sans JP をレンダリング時にフェッチして使用。
+- **FABボタン**: フィードの縦幅を圧迫していた AIインサイトボタンと割り勘ボタンを廃止し、フィード右下の `+` FABボタン1つに集約。タップするとポップアップメニューで ✨ AIに聞いてみる / 💴 割り勘 を選択できる。AIは当日実施済みの場合は非表示。割り勘はサークルに2人以上いて当月の実績がある場合のみ表示。
+
+### 変更
+- **詳細モーダル簡素化**: サークル残高・サークル・内容・投稿者・日時 の各行を削除。サークル残高は金額の右に `（¥X）` で併記。時刻は処理日の右に併記。タイムライン最新移動は `↓` のコンパクトボタンに変更し、戻る・削除と同じ行に配置。
+- **割り勘フィードバブル**: メンバー行一覧を廃止し、`割り勘（期間）¥XX/人　N人　[N人未回収]` の1行表示に変更。
+
+### 修正
+- **割り勘通知へのリアクションが400エラー**: APIの`targetType`バリデーションに`"notification"`が含まれておらず、割り勘結果フィードへのリアクションが全件400エラーになっていた。`"notification"`を許可リストに追加して修正。
+
+---
+
 ## [0.0.58] - 2026-04-28
 
 ### Added

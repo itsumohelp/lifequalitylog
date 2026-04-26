@@ -70,7 +70,8 @@ export const ModelName = {
   IosAuthToken: 'IosAuthToken',
   UserInsight: 'UserInsight',
   Notification: 'Notification',
-  Notice: 'Notice'
+  Notice: 'Notice',
+  WarikanTemplate: 'WarikanTemplate'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -161,7 +162,8 @@ export const UserScalarFieldEnum = {
   email: 'email',
   emailVerified: 'emailVerified',
   image: 'image',
-  autoTagEnabled: 'autoTagEnabled'
+  autoTagEnabled: 'autoTagEnabled',
+  notifLastReadAt: 'notifLastReadAt'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -359,6 +361,19 @@ export const NoticeScalarFieldEnum = {
 } as const
 
 export type NoticeScalarFieldEnum = (typeof NoticeScalarFieldEnum)[keyof typeof NoticeScalarFieldEnum]
+
+
+export const WarikanTemplateScalarFieldEnum = {
+  id: 'id',
+  circleId: 'circleId',
+  createdBy: 'createdBy',
+  name: 'name',
+  people: 'people',
+  period: 'period',
+  createdAt: 'createdAt'
+} as const
+
+export type WarikanTemplateScalarFieldEnum = (typeof WarikanTemplateScalarFieldEnum)[keyof typeof WarikanTemplateScalarFieldEnum]
 
 
 export const SortOrder = {
