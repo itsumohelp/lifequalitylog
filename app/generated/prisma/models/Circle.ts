@@ -264,6 +264,7 @@ export type CircleWhereInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotListRelationFilter
   balanceTransactions?: Prisma.BalanceTransactionListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
+  warikanTemplates?: Prisma.WarikanTemplateListRelationFilter
 }
 
 export type CircleOrderByWithRelationInput = {
@@ -285,6 +286,7 @@ export type CircleOrderByWithRelationInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotOrderByRelationAggregateInput
   balanceTransactions?: Prisma.BalanceTransactionOrderByRelationAggregateInput
   notifications?: Prisma.NotificationOrderByRelationAggregateInput
+  warikanTemplates?: Prisma.WarikanTemplateOrderByRelationAggregateInput
 }
 
 export type CircleWhereUniqueInput = Prisma.AtLeast<{
@@ -309,6 +311,7 @@ export type CircleWhereUniqueInput = Prisma.AtLeast<{
   monthlySnapshots?: Prisma.MonthlySnapshotListRelationFilter
   balanceTransactions?: Prisma.BalanceTransactionListRelationFilter
   notifications?: Prisma.NotificationListRelationFilter
+  warikanTemplates?: Prisma.WarikanTemplateListRelationFilter
 }, "id">
 
 export type CircleOrderByWithAggregationInput = {
@@ -364,6 +367,7 @@ export type CircleCreateInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotCreateNestedManyWithoutCircleInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutCircleInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutCircleInput
+  warikanTemplates?: Prisma.WarikanTemplateCreateNestedManyWithoutCircleInput
 }
 
 export type CircleUncheckedCreateInput = {
@@ -385,6 +389,7 @@ export type CircleUncheckedCreateInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotUncheckedCreateNestedManyWithoutCircleInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutCircleInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutCircleInput
+  warikanTemplates?: Prisma.WarikanTemplateUncheckedCreateNestedManyWithoutCircleInput
 }
 
 export type CircleUpdateInput = {
@@ -406,6 +411,7 @@ export type CircleUpdateInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotUpdateManyWithoutCircleNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutCircleNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutCircleNestedInput
+  warikanTemplates?: Prisma.WarikanTemplateUpdateManyWithoutCircleNestedInput
 }
 
 export type CircleUncheckedUpdateInput = {
@@ -427,6 +433,7 @@ export type CircleUncheckedUpdateInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotUncheckedUpdateManyWithoutCircleNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutCircleNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutCircleNestedInput
+  warikanTemplates?: Prisma.WarikanTemplateUncheckedUpdateManyWithoutCircleNestedInput
 }
 
 export type CircleCreateManyInput = {
@@ -632,6 +639,20 @@ export type CircleUpdateOneRequiredWithoutNotificationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.CircleUpdateToOneWithWhereWithoutNotificationsInput, Prisma.CircleUpdateWithoutNotificationsInput>, Prisma.CircleUncheckedUpdateWithoutNotificationsInput>
 }
 
+export type CircleCreateNestedOneWithoutWarikanTemplatesInput = {
+  create?: Prisma.XOR<Prisma.CircleCreateWithoutWarikanTemplatesInput, Prisma.CircleUncheckedCreateWithoutWarikanTemplatesInput>
+  connectOrCreate?: Prisma.CircleCreateOrConnectWithoutWarikanTemplatesInput
+  connect?: Prisma.CircleWhereUniqueInput
+}
+
+export type CircleUpdateOneRequiredWithoutWarikanTemplatesNestedInput = {
+  create?: Prisma.XOR<Prisma.CircleCreateWithoutWarikanTemplatesInput, Prisma.CircleUncheckedCreateWithoutWarikanTemplatesInput>
+  connectOrCreate?: Prisma.CircleCreateOrConnectWithoutWarikanTemplatesInput
+  upsert?: Prisma.CircleUpsertWithoutWarikanTemplatesInput
+  connect?: Prisma.CircleWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CircleUpdateToOneWithWhereWithoutWarikanTemplatesInput, Prisma.CircleUpdateWithoutWarikanTemplatesInput>, Prisma.CircleUncheckedUpdateWithoutWarikanTemplatesInput>
+}
+
 export type CircleCreateWithoutMembersInput = {
   id?: string
   name: string
@@ -650,6 +671,7 @@ export type CircleCreateWithoutMembersInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotCreateNestedManyWithoutCircleInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutCircleInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutCircleInput
+  warikanTemplates?: Prisma.WarikanTemplateCreateNestedManyWithoutCircleInput
 }
 
 export type CircleUncheckedCreateWithoutMembersInput = {
@@ -670,6 +692,7 @@ export type CircleUncheckedCreateWithoutMembersInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotUncheckedCreateNestedManyWithoutCircleInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutCircleInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutCircleInput
+  warikanTemplates?: Prisma.WarikanTemplateUncheckedCreateNestedManyWithoutCircleInput
 }
 
 export type CircleCreateOrConnectWithoutMembersInput = {
@@ -706,6 +729,7 @@ export type CircleUpdateWithoutMembersInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotUpdateManyWithoutCircleNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutCircleNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutCircleNestedInput
+  warikanTemplates?: Prisma.WarikanTemplateUpdateManyWithoutCircleNestedInput
 }
 
 export type CircleUncheckedUpdateWithoutMembersInput = {
@@ -726,6 +750,7 @@ export type CircleUncheckedUpdateWithoutMembersInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotUncheckedUpdateManyWithoutCircleNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutCircleNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutCircleNestedInput
+  warikanTemplates?: Prisma.WarikanTemplateUncheckedUpdateManyWithoutCircleNestedInput
 }
 
 export type CircleCreateWithoutSnapshotsInput = {
@@ -746,6 +771,7 @@ export type CircleCreateWithoutSnapshotsInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotCreateNestedManyWithoutCircleInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutCircleInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutCircleInput
+  warikanTemplates?: Prisma.WarikanTemplateCreateNestedManyWithoutCircleInput
 }
 
 export type CircleUncheckedCreateWithoutSnapshotsInput = {
@@ -766,6 +792,7 @@ export type CircleUncheckedCreateWithoutSnapshotsInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotUncheckedCreateNestedManyWithoutCircleInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutCircleInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutCircleInput
+  warikanTemplates?: Prisma.WarikanTemplateUncheckedCreateNestedManyWithoutCircleInput
 }
 
 export type CircleCreateOrConnectWithoutSnapshotsInput = {
@@ -802,6 +829,7 @@ export type CircleUpdateWithoutSnapshotsInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotUpdateManyWithoutCircleNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutCircleNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutCircleNestedInput
+  warikanTemplates?: Prisma.WarikanTemplateUpdateManyWithoutCircleNestedInput
 }
 
 export type CircleUncheckedUpdateWithoutSnapshotsInput = {
@@ -822,6 +850,7 @@ export type CircleUncheckedUpdateWithoutSnapshotsInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotUncheckedUpdateManyWithoutCircleNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutCircleNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutCircleNestedInput
+  warikanTemplates?: Prisma.WarikanTemplateUncheckedUpdateManyWithoutCircleNestedInput
 }
 
 export type CircleCreateWithoutCircleSnapshotsInput = {
@@ -842,6 +871,7 @@ export type CircleCreateWithoutCircleSnapshotsInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotCreateNestedManyWithoutCircleInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutCircleInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutCircleInput
+  warikanTemplates?: Prisma.WarikanTemplateCreateNestedManyWithoutCircleInput
 }
 
 export type CircleUncheckedCreateWithoutCircleSnapshotsInput = {
@@ -862,6 +892,7 @@ export type CircleUncheckedCreateWithoutCircleSnapshotsInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotUncheckedCreateNestedManyWithoutCircleInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutCircleInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutCircleInput
+  warikanTemplates?: Prisma.WarikanTemplateUncheckedCreateNestedManyWithoutCircleInput
 }
 
 export type CircleCreateOrConnectWithoutCircleSnapshotsInput = {
@@ -898,6 +929,7 @@ export type CircleUpdateWithoutCircleSnapshotsInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotUpdateManyWithoutCircleNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutCircleNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutCircleNestedInput
+  warikanTemplates?: Prisma.WarikanTemplateUpdateManyWithoutCircleNestedInput
 }
 
 export type CircleUncheckedUpdateWithoutCircleSnapshotsInput = {
@@ -918,6 +950,7 @@ export type CircleUncheckedUpdateWithoutCircleSnapshotsInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotUncheckedUpdateManyWithoutCircleNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutCircleNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutCircleNestedInput
+  warikanTemplates?: Prisma.WarikanTemplateUncheckedUpdateManyWithoutCircleNestedInput
 }
 
 export type CircleCreateWithoutMonthlySnapshotsInput = {
@@ -938,6 +971,7 @@ export type CircleCreateWithoutMonthlySnapshotsInput = {
   incomes?: Prisma.IncomeCreateNestedManyWithoutCircleInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutCircleInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutCircleInput
+  warikanTemplates?: Prisma.WarikanTemplateCreateNestedManyWithoutCircleInput
 }
 
 export type CircleUncheckedCreateWithoutMonthlySnapshotsInput = {
@@ -958,6 +992,7 @@ export type CircleUncheckedCreateWithoutMonthlySnapshotsInput = {
   incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutCircleInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutCircleInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutCircleInput
+  warikanTemplates?: Prisma.WarikanTemplateUncheckedCreateNestedManyWithoutCircleInput
 }
 
 export type CircleCreateOrConnectWithoutMonthlySnapshotsInput = {
@@ -994,6 +1029,7 @@ export type CircleUpdateWithoutMonthlySnapshotsInput = {
   incomes?: Prisma.IncomeUpdateManyWithoutCircleNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutCircleNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutCircleNestedInput
+  warikanTemplates?: Prisma.WarikanTemplateUpdateManyWithoutCircleNestedInput
 }
 
 export type CircleUncheckedUpdateWithoutMonthlySnapshotsInput = {
@@ -1014,6 +1050,7 @@ export type CircleUncheckedUpdateWithoutMonthlySnapshotsInput = {
   incomes?: Prisma.IncomeUncheckedUpdateManyWithoutCircleNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutCircleNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutCircleNestedInput
+  warikanTemplates?: Prisma.WarikanTemplateUncheckedUpdateManyWithoutCircleNestedInput
 }
 
 export type CircleCreateWithoutExpensesInput = {
@@ -1034,6 +1071,7 @@ export type CircleCreateWithoutExpensesInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotCreateNestedManyWithoutCircleInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutCircleInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutCircleInput
+  warikanTemplates?: Prisma.WarikanTemplateCreateNestedManyWithoutCircleInput
 }
 
 export type CircleUncheckedCreateWithoutExpensesInput = {
@@ -1054,6 +1092,7 @@ export type CircleUncheckedCreateWithoutExpensesInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotUncheckedCreateNestedManyWithoutCircleInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutCircleInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutCircleInput
+  warikanTemplates?: Prisma.WarikanTemplateUncheckedCreateNestedManyWithoutCircleInput
 }
 
 export type CircleCreateOrConnectWithoutExpensesInput = {
@@ -1090,6 +1129,7 @@ export type CircleUpdateWithoutExpensesInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotUpdateManyWithoutCircleNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutCircleNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutCircleNestedInput
+  warikanTemplates?: Prisma.WarikanTemplateUpdateManyWithoutCircleNestedInput
 }
 
 export type CircleUncheckedUpdateWithoutExpensesInput = {
@@ -1110,6 +1150,7 @@ export type CircleUncheckedUpdateWithoutExpensesInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotUncheckedUpdateManyWithoutCircleNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutCircleNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutCircleNestedInput
+  warikanTemplates?: Prisma.WarikanTemplateUncheckedUpdateManyWithoutCircleNestedInput
 }
 
 export type CircleCreateWithoutIncomesInput = {
@@ -1130,6 +1171,7 @@ export type CircleCreateWithoutIncomesInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotCreateNestedManyWithoutCircleInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutCircleInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutCircleInput
+  warikanTemplates?: Prisma.WarikanTemplateCreateNestedManyWithoutCircleInput
 }
 
 export type CircleUncheckedCreateWithoutIncomesInput = {
@@ -1150,6 +1192,7 @@ export type CircleUncheckedCreateWithoutIncomesInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotUncheckedCreateNestedManyWithoutCircleInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutCircleInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutCircleInput
+  warikanTemplates?: Prisma.WarikanTemplateUncheckedCreateNestedManyWithoutCircleInput
 }
 
 export type CircleCreateOrConnectWithoutIncomesInput = {
@@ -1186,6 +1229,7 @@ export type CircleUpdateWithoutIncomesInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotUpdateManyWithoutCircleNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutCircleNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutCircleNestedInput
+  warikanTemplates?: Prisma.WarikanTemplateUpdateManyWithoutCircleNestedInput
 }
 
 export type CircleUncheckedUpdateWithoutIncomesInput = {
@@ -1206,6 +1250,7 @@ export type CircleUncheckedUpdateWithoutIncomesInput = {
   monthlySnapshots?: Prisma.MonthlySnapshotUncheckedUpdateManyWithoutCircleNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutCircleNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutCircleNestedInput
+  warikanTemplates?: Prisma.WarikanTemplateUncheckedUpdateManyWithoutCircleNestedInput
 }
 
 export type CircleCreateWithoutBalanceTransactionsInput = {
@@ -1226,6 +1271,7 @@ export type CircleCreateWithoutBalanceTransactionsInput = {
   incomes?: Prisma.IncomeCreateNestedManyWithoutCircleInput
   monthlySnapshots?: Prisma.MonthlySnapshotCreateNestedManyWithoutCircleInput
   notifications?: Prisma.NotificationCreateNestedManyWithoutCircleInput
+  warikanTemplates?: Prisma.WarikanTemplateCreateNestedManyWithoutCircleInput
 }
 
 export type CircleUncheckedCreateWithoutBalanceTransactionsInput = {
@@ -1246,6 +1292,7 @@ export type CircleUncheckedCreateWithoutBalanceTransactionsInput = {
   incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutCircleInput
   monthlySnapshots?: Prisma.MonthlySnapshotUncheckedCreateNestedManyWithoutCircleInput
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutCircleInput
+  warikanTemplates?: Prisma.WarikanTemplateUncheckedCreateNestedManyWithoutCircleInput
 }
 
 export type CircleCreateOrConnectWithoutBalanceTransactionsInput = {
@@ -1282,6 +1329,7 @@ export type CircleUpdateWithoutBalanceTransactionsInput = {
   incomes?: Prisma.IncomeUpdateManyWithoutCircleNestedInput
   monthlySnapshots?: Prisma.MonthlySnapshotUpdateManyWithoutCircleNestedInput
   notifications?: Prisma.NotificationUpdateManyWithoutCircleNestedInput
+  warikanTemplates?: Prisma.WarikanTemplateUpdateManyWithoutCircleNestedInput
 }
 
 export type CircleUncheckedUpdateWithoutBalanceTransactionsInput = {
@@ -1302,6 +1350,7 @@ export type CircleUncheckedUpdateWithoutBalanceTransactionsInput = {
   incomes?: Prisma.IncomeUncheckedUpdateManyWithoutCircleNestedInput
   monthlySnapshots?: Prisma.MonthlySnapshotUncheckedUpdateManyWithoutCircleNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutCircleNestedInput
+  warikanTemplates?: Prisma.WarikanTemplateUncheckedUpdateManyWithoutCircleNestedInput
 }
 
 export type CircleCreateWithoutNotificationsInput = {
@@ -1322,6 +1371,7 @@ export type CircleCreateWithoutNotificationsInput = {
   incomes?: Prisma.IncomeCreateNestedManyWithoutCircleInput
   monthlySnapshots?: Prisma.MonthlySnapshotCreateNestedManyWithoutCircleInput
   balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutCircleInput
+  warikanTemplates?: Prisma.WarikanTemplateCreateNestedManyWithoutCircleInput
 }
 
 export type CircleUncheckedCreateWithoutNotificationsInput = {
@@ -1342,6 +1392,7 @@ export type CircleUncheckedCreateWithoutNotificationsInput = {
   incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutCircleInput
   monthlySnapshots?: Prisma.MonthlySnapshotUncheckedCreateNestedManyWithoutCircleInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutCircleInput
+  warikanTemplates?: Prisma.WarikanTemplateUncheckedCreateNestedManyWithoutCircleInput
 }
 
 export type CircleCreateOrConnectWithoutNotificationsInput = {
@@ -1378,6 +1429,7 @@ export type CircleUpdateWithoutNotificationsInput = {
   incomes?: Prisma.IncomeUpdateManyWithoutCircleNestedInput
   monthlySnapshots?: Prisma.MonthlySnapshotUpdateManyWithoutCircleNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutCircleNestedInput
+  warikanTemplates?: Prisma.WarikanTemplateUpdateManyWithoutCircleNestedInput
 }
 
 export type CircleUncheckedUpdateWithoutNotificationsInput = {
@@ -1398,6 +1450,107 @@ export type CircleUncheckedUpdateWithoutNotificationsInput = {
   incomes?: Prisma.IncomeUncheckedUpdateManyWithoutCircleNestedInput
   monthlySnapshots?: Prisma.MonthlySnapshotUncheckedUpdateManyWithoutCircleNestedInput
   balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutCircleNestedInput
+  warikanTemplates?: Prisma.WarikanTemplateUncheckedUpdateManyWithoutCircleNestedInput
+}
+
+export type CircleCreateWithoutWarikanTemplatesInput = {
+  id?: string
+  name: string
+  description?: string | null
+  walletName?: string | null
+  currency?: string
+  currentBalance?: number
+  isPublic?: boolean
+  allowNewMembers?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  members?: Prisma.CircleMemberCreateNestedManyWithoutCircleInput
+  snapshots?: Prisma.SnapshotCreateNestedManyWithoutCircleInput
+  circleSnapshots?: Prisma.CircleSnapshotCreateNestedManyWithoutCircleInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutCircleInput
+  incomes?: Prisma.IncomeCreateNestedManyWithoutCircleInput
+  monthlySnapshots?: Prisma.MonthlySnapshotCreateNestedManyWithoutCircleInput
+  balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutCircleInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutCircleInput
+}
+
+export type CircleUncheckedCreateWithoutWarikanTemplatesInput = {
+  id?: string
+  name: string
+  description?: string | null
+  walletName?: string | null
+  currency?: string
+  currentBalance?: number
+  isPublic?: boolean
+  allowNewMembers?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  members?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutCircleInput
+  snapshots?: Prisma.SnapshotUncheckedCreateNestedManyWithoutCircleInput
+  circleSnapshots?: Prisma.CircleSnapshotUncheckedCreateNestedManyWithoutCircleInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutCircleInput
+  incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutCircleInput
+  monthlySnapshots?: Prisma.MonthlySnapshotUncheckedCreateNestedManyWithoutCircleInput
+  balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutCircleInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutCircleInput
+}
+
+export type CircleCreateOrConnectWithoutWarikanTemplatesInput = {
+  where: Prisma.CircleWhereUniqueInput
+  create: Prisma.XOR<Prisma.CircleCreateWithoutWarikanTemplatesInput, Prisma.CircleUncheckedCreateWithoutWarikanTemplatesInput>
+}
+
+export type CircleUpsertWithoutWarikanTemplatesInput = {
+  update: Prisma.XOR<Prisma.CircleUpdateWithoutWarikanTemplatesInput, Prisma.CircleUncheckedUpdateWithoutWarikanTemplatesInput>
+  create: Prisma.XOR<Prisma.CircleCreateWithoutWarikanTemplatesInput, Prisma.CircleUncheckedCreateWithoutWarikanTemplatesInput>
+  where?: Prisma.CircleWhereInput
+}
+
+export type CircleUpdateToOneWithWhereWithoutWarikanTemplatesInput = {
+  where?: Prisma.CircleWhereInput
+  data: Prisma.XOR<Prisma.CircleUpdateWithoutWarikanTemplatesInput, Prisma.CircleUncheckedUpdateWithoutWarikanTemplatesInput>
+}
+
+export type CircleUpdateWithoutWarikanTemplatesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  walletName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  currentBalance?: Prisma.IntFieldUpdateOperationsInput | number
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNewMembers?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.CircleMemberUpdateManyWithoutCircleNestedInput
+  snapshots?: Prisma.SnapshotUpdateManyWithoutCircleNestedInput
+  circleSnapshots?: Prisma.CircleSnapshotUpdateManyWithoutCircleNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutCircleNestedInput
+  incomes?: Prisma.IncomeUpdateManyWithoutCircleNestedInput
+  monthlySnapshots?: Prisma.MonthlySnapshotUpdateManyWithoutCircleNestedInput
+  balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutCircleNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutCircleNestedInput
+}
+
+export type CircleUncheckedUpdateWithoutWarikanTemplatesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  walletName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  currentBalance?: Prisma.IntFieldUpdateOperationsInput | number
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  allowNewMembers?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.CircleMemberUncheckedUpdateManyWithoutCircleNestedInput
+  snapshots?: Prisma.SnapshotUncheckedUpdateManyWithoutCircleNestedInput
+  circleSnapshots?: Prisma.CircleSnapshotUncheckedUpdateManyWithoutCircleNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutCircleNestedInput
+  incomes?: Prisma.IncomeUncheckedUpdateManyWithoutCircleNestedInput
+  monthlySnapshots?: Prisma.MonthlySnapshotUncheckedUpdateManyWithoutCircleNestedInput
+  balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutCircleNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutCircleNestedInput
 }
 
 
@@ -1414,6 +1567,7 @@ export type CircleCountOutputType = {
   monthlySnapshots: number
   balanceTransactions: number
   notifications: number
+  warikanTemplates: number
 }
 
 export type CircleCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1425,6 +1579,7 @@ export type CircleCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions
   monthlySnapshots?: boolean | CircleCountOutputTypeCountMonthlySnapshotsArgs
   balanceTransactions?: boolean | CircleCountOutputTypeCountBalanceTransactionsArgs
   notifications?: boolean | CircleCountOutputTypeCountNotificationsArgs
+  warikanTemplates?: boolean | CircleCountOutputTypeCountWarikanTemplatesArgs
 }
 
 /**
@@ -1493,6 +1648,13 @@ export type CircleCountOutputTypeCountNotificationsArgs<ExtArgs extends runtime.
   where?: Prisma.NotificationWhereInput
 }
 
+/**
+ * CircleCountOutputType without action
+ */
+export type CircleCountOutputTypeCountWarikanTemplatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.WarikanTemplateWhereInput
+}
+
 
 export type CircleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1513,6 +1675,7 @@ export type CircleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   monthlySnapshots?: boolean | Prisma.Circle$monthlySnapshotsArgs<ExtArgs>
   balanceTransactions?: boolean | Prisma.Circle$balanceTransactionsArgs<ExtArgs>
   notifications?: boolean | Prisma.Circle$notificationsArgs<ExtArgs>
+  warikanTemplates?: boolean | Prisma.Circle$warikanTemplatesArgs<ExtArgs>
   _count?: boolean | Prisma.CircleCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["circle"]>
 
@@ -1565,6 +1728,7 @@ export type CircleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   monthlySnapshots?: boolean | Prisma.Circle$monthlySnapshotsArgs<ExtArgs>
   balanceTransactions?: boolean | Prisma.Circle$balanceTransactionsArgs<ExtArgs>
   notifications?: boolean | Prisma.Circle$notificationsArgs<ExtArgs>
+  warikanTemplates?: boolean | Prisma.Circle$warikanTemplatesArgs<ExtArgs>
   _count?: boolean | Prisma.CircleCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CircleIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1581,6 +1745,7 @@ export type $CirclePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     monthlySnapshots: Prisma.$MonthlySnapshotPayload<ExtArgs>[]
     balanceTransactions: Prisma.$BalanceTransactionPayload<ExtArgs>[]
     notifications: Prisma.$NotificationPayload<ExtArgs>[]
+    warikanTemplates: Prisma.$WarikanTemplatePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1995,6 +2160,7 @@ export interface Prisma__CircleClient<T, Null = never, ExtArgs extends runtime.T
   monthlySnapshots<T extends Prisma.Circle$monthlySnapshotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Circle$monthlySnapshotsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MonthlySnapshotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   balanceTransactions<T extends Prisma.Circle$balanceTransactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Circle$balanceTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BalanceTransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notifications<T extends Prisma.Circle$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Circle$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  warikanTemplates<T extends Prisma.Circle$warikanTemplatesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Circle$warikanTemplatesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WarikanTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2611,6 +2777,30 @@ export type Circle$notificationsArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.NotificationScalarFieldEnum | Prisma.NotificationScalarFieldEnum[]
+}
+
+/**
+ * Circle.warikanTemplates
+ */
+export type Circle$warikanTemplatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the WarikanTemplate
+   */
+  select?: Prisma.WarikanTemplateSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the WarikanTemplate
+   */
+  omit?: Prisma.WarikanTemplateOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WarikanTemplateInclude<ExtArgs> | null
+  where?: Prisma.WarikanTemplateWhereInput
+  orderBy?: Prisma.WarikanTemplateOrderByWithRelationInput | Prisma.WarikanTemplateOrderByWithRelationInput[]
+  cursor?: Prisma.WarikanTemplateWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.WarikanTemplateScalarFieldEnum | Prisma.WarikanTemplateScalarFieldEnum[]
 }
 
 /**

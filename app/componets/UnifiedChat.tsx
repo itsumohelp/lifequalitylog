@@ -296,6 +296,14 @@ export default function UnifiedChat({
   const [warikanPeople, setWarikanPeople] = useState(0);
   const [isWarikanLoading, setIsWarikanLoading] = useState(false);
   const [isWarikanPosting, setIsWarikanPosting] = useState(false);
+  const [showActionMenu, setShowActionMenu] = useState(false);
+
+  // 割り勘テンプレート
+  type WarikanTemplate = { id: string; name: string; people: number; period: string; createdBy: string };
+  const [warikanTemplates, setWarikanTemplates] = useState<WarikanTemplate[]>([]);
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
+  const [templateName, setTemplateName] = useState("");
+  const [isSavingTemplate, setIsSavingTemplate] = useState(false);
 
   // 請求先
   type ClaimeeMember = { userId: string; name: string; image: string | null };
@@ -308,6 +316,8 @@ export default function UnifiedChat({
   const [addToSnapshotInput, setAddToSnapshotInput] = useState("");
   const [addToSnapshotNote, setAddToSnapshotNote] = useState("");
   const [isAddingToSnapshot, setIsAddingToSnapshot] = useState(false);
+
+  const [circleMemberCounts, setCircleMemberCounts] = useState<Record<string, number>>({});
 
   const isTimeline = selectedCircleId === TIMELINE_VALUE;
   const selectedCircle = circlesState.find((c) => c.id === selectedCircleId);
@@ -374,6 +384,68 @@ export default function UnifiedChat({
       // silent
     } finally {
       setIsWarikanLoading(false);
+    }
+  };
+
+  // 割り勘テンプレート取得
+  const fetchWarikanTemplates = async (circleId: string) => {
+    try {
+      const res = await fetch(`/api/warikan/templates?circleId=${circleId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setWarikanTemplates(data.templates ?? []);
+      }
+    } catch {
+      // silent
+    }
+  };
+
+  // テンプレート保存
+  const handleSaveTemplate = async () => {
+    if (!templateName.trim() || !selectedCircleId) return;
+    setIsSavingTemplate(true);
+    try {
+      const res = await fetch("/api/warikan/templates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          circleId: selectedCircleId,
+          name: templateName.trim(),
+          people: warikanPeople,
+          period: warikanPeriod,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setWarikanTemplates((prev) => [data.template, ...prev]);
+        setTemplateName("");
+        setShowSaveTemplate(false);
+      }
+    } catch {
+      // silent
+    } finally {
+      setIsSavingTemplate(false);
+    }
+  };
+
+  // テンプレート削除
+  const handleDeleteTemplate = async (templateId: string) => {
+    try {
+      const res = await fetch(`/api/warikan/templates/${templateId}`, { method: "DELETE" });
+      if (res.ok) {
+        setWarikanTemplates((prev) => prev.filter((t) => t.id !== templateId));
+      }
+    } catch {
+      // silent
+    }
+  };
+
+  // テンプレート適用
+  const handleApplyTemplate = (template: WarikanTemplate) => {
+    setWarikanPeople(template.people);
+    if (template.period !== warikanPeriod) {
+      setWarikanPeriod(template.period);
+      fetchWarikan(selectedCircleId, template.period);
     }
   };
 
@@ -1150,6 +1222,23 @@ export default function UnifiedChat({
     fetchReactions(feed);
   }, [feed, fetchReactions]);
 
+  // アドミンサークル切り替え時にメンバー数を取得（FAB表示条件用）
+  useEffect(() => {
+    if (!selectedCircleId || !adminCircleIds.includes(selectedCircleId)) return;
+    if (circleMemberCounts[selectedCircleId] !== undefined) return;
+    fetch(`/api/circles/${selectedCircleId}/members`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data?.members) {
+          setCircleMemberCounts((prev) => ({
+            ...prev,
+            [selectedCircleId]: data.members.length,
+          }));
+        }
+      })
+      .catch(() => {});
+  }, [selectedCircleId, adminCircleIds, circleMemberCounts]);
+
   // openItemId: URL共有からの自動ダイアログ表示
   useEffect(() => {
     if (!openItemId) return;
@@ -1859,6 +1948,113 @@ export default function UnifiedChat({
             </svg>
           </button>
         )}
+
+        {/* FAB：AIインサイト / 割り勘 */}
+        {(() => {
+          if (isTimeline || !adminCircleIds.includes(selectedCircleId)) return null;
+
+          // 今日（JST）にこのサークルのインサイトが既にあるか
+          const todayJST = new Date().toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo" });
+          const insightDoneToday = filteredFeed.some(
+            (item) =>
+              item.kind === "insight" &&
+              item.circleId === selectedCircleId &&
+              new Date(item.createdAt).toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo" }) === todayJST,
+          );
+
+          // 当月に支出/収入の実績があるか
+          const now = new Date();
+          const thisYear = now.getFullYear();
+          const thisMonth = now.getMonth();
+          const hasThisMonthRecord = filteredFeed.some((item) => {
+            if (item.kind !== "expense" && item.kind !== "income") return false;
+            if (item.circleId !== selectedCircleId) return false;
+            const d = new Date(item.createdAt);
+            return d.getFullYear() === thisYear && d.getMonth() === thisMonth;
+          });
+
+          // サークルに複数人いるか
+          const memberCount = circleMemberCounts[selectedCircleId] ?? 0;
+          const hasMultipleMembers = memberCount > 1;
+
+          const showWarikanOption = hasThisMonthRecord && hasMultipleMembers;
+          const showInsightOption = !insightDoneToday;
+
+          if (!showWarikanOption && !showInsightOption) return null;
+
+          return (
+          <div className="absolute bottom-1 right-1 z-10 flex flex-col items-end gap-2 pointer-events-none">
+            {/* ポップアップメニュー */}
+            {showActionMenu && (
+              <>
+                <div
+                  className="fixed inset-0 pointer-events-auto"
+                  onClick={() => setShowActionMenu(false)}
+                />
+                <div className="relative flex flex-col items-end gap-1.5 mb-1 pointer-events-auto">
+                  {showInsightOption && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowActionMenu(false);
+                      runInsight(selectedCircleId, selectedCircle?.name ?? "");
+                    }}
+                    className="flex items-center gap-2 bg-white text-slate-700 text-xs font-medium px-3 py-2 rounded-full shadow-lg border border-slate-200 hover:bg-slate-50 transition whitespace-nowrap"
+                  >
+                    <span>✨</span> AIに聞いてみる
+                  </button>
+                  )}
+                  {showWarikanOption && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowActionMenu(false);
+                      setShowWarikanDialog(true);
+                      fetchWarikanTemplates(selectedCircleId);
+                    }}
+                    className="flex items-center gap-2 bg-white text-slate-700 text-xs font-medium px-3 py-2 rounded-full shadow-lg border border-slate-200 hover:bg-slate-50 transition whitespace-nowrap"
+                  >
+                    <span>💴</span> 割り勘
+                  </button>
+                  )}
+                </div>
+              </>
+            )}
+
+            {/* FABボタン本体 */}
+            <button
+              type="button"
+              onClick={() => setShowActionMenu((v) => !v)}
+              className="w-8 h-8 rounded-full bg-sky-500 text-white shadow-md flex items-center justify-center hover:bg-sky-600 active:scale-95 transition opacity-70 hover:opacity-100 pointer-events-auto"
+              aria-label="アクションメニュー"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                {showActionMenu ? (
+                  <>
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </>
+                ) : (
+                  <>
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </>
+                )}
+              </svg>
+            </button>
+          </div>
+          );
+        })()}
         <div
           ref={scrollRef}
           className="absolute inset-0 overflow-y-auto px-3 py-1 space-y-1 bg-slate-50"
@@ -2297,75 +2493,25 @@ export default function UnifiedChat({
                                 {(() => {
                                   const wk = parseWarikan(item.notificationMessage);
                                   if (wk) {
+                                    const uncollectedCount = wk.members.filter(
+                                      (m) => m.userId && !wk.collectedUserIds?.includes(m.userId)
+                                    ).length;
                                     return (
-                                      <div className="space-y-1.5 w-full">
-                                        {/* ヘッダー */}
-                                        <div className="flex items-center justify-between">
+                                      <div className="w-full">
+                                        <div className="flex items-center flex-wrap gap-x-2 gap-y-0.5">
                                           <span className={`text-[11px] font-semibold ${isOwnMessage ? "text-white" : "text-slate-700"}`}>
                                             割り勘（{wk.period}）
                                           </span>
-                                          <span className={`text-[10px] ${isOwnMessage ? "text-white/70" : "text-slate-400"}`}>
-                                            {wk.people}人
+                                          <span className={`text-sm font-bold ${isOwnMessage ? "text-white" : "text-slate-800"}`}>
+                                            ¥{wk.perPerson.toLocaleString()}<span className={`text-[10px] font-normal ${isOwnMessage ? "text-white/70" : "text-slate-400"}`}>/人</span>
                                           </span>
+                                          <span className={`text-[10px] ${isOwnMessage ? "text-white/70" : "text-slate-400"}`}>{wk.people}人</span>
+                                          {uncollectedCount > 0 && (
+                                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isOwnMessage ? "bg-white/20 text-white/80" : "bg-orange-100 text-orange-600"}`}>
+                                              {uncollectedCount}人未回収
+                                            </span>
+                                          )}
                                         </div>
-                                        {/* 合計・1人あたり */}
-                                        <div className={`flex items-center gap-1.5 text-[10px] ${isOwnMessage ? "text-white/80" : "text-slate-500"}`}>
-                                          <span>¥{wk.total.toLocaleString()}</span>
-                                          <span>÷</span>
-                                          <span>{wk.people}人</span>
-                                          <span>=</span>
-                                          <span className={`font-semibold ${isOwnMessage ? "text-white" : "text-slate-700"}`}>
-                                            ¥{wk.perPerson.toLocaleString()}/人
-                                          </span>
-                                        </div>
-                                        {/* メンバー行 */}
-                                        <div className="space-y-1">
-                                          {wk.members.map((m, i) => (
-                                            <div key={i} className="flex items-center gap-2">
-                                              {/* アバター */}
-                                              <div
-                                                className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] text-white font-bold overflow-hidden"
-                                                style={{ backgroundColor: m.image ? undefined : getAvatarColor(m.name) }}
-                                              >
-                                                {m.image ? (
-                                                  <img src={m.image} alt={m.name} className="w-6 h-6 object-cover" />
-                                                ) : (
-                                                  getAvatarInitial(m.name)
-                                                )}
-                                              </div>
-                                              {/* 名前 */}
-                                              <span className={`text-[11px] flex-1 truncate ${isOwnMessage ? "text-white/90" : "text-slate-700"}`}>
-                                                {m.name}
-                                              </span>
-                                              {/* 差額バッジ */}
-                                              <span
-                                                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${
-                                                  m.diff > 0
-                                                    ? "bg-sky-100 text-sky-700"
-                                                    : m.diff < 0
-                                                      ? "bg-red-100 text-red-600"
-                                                      : isOwnMessage ? "bg-white/20 text-white/70" : "bg-slate-100 text-slate-400"
-                                                }`}
-                                              >
-                                                {m.diff > 0
-                                                  ? `¥${m.diff.toLocaleString()} 受取`
-                                                  : m.diff < 0
-                                                    ? `¥${Math.abs(m.diff).toLocaleString()} 支払`
-                                                    : "±0"}
-                                              </span>
-                                              {/* 回収済みインジケータ（金額の右） */}
-                                              {m.userId && wk.collectedUserIds?.includes(m.userId) && (
-                                                <span className="text-emerald-500 text-[11px] font-bold flex-shrink-0">✓</span>
-                                              )}
-                                            </div>
-                                          ))}
-                                        </div>
-                                      {item.notificationCollected && (
-                                        <div className="flex items-center gap-1 mt-1">
-                                          <span className="text-emerald-500 text-[11px] font-bold">✓</span>
-                                          <span className={`text-[10px] text-emerald-500`}>回収済み</span>
-                                        </div>
-                                      )}
                                       </div>
                                     );
                                   }
@@ -2585,89 +2731,6 @@ export default function UnifiedChat({
         </div>
       </div>
 
-      {/* AIインサイトボタン（管理者サークルのみ、今日未取得かつ新規アクティビティがある場合のみ） */}
-      {!isTimeline &&
-        adminCircleIds.includes(selectedCircleId) &&
-        (() => {
-          const todayJST = new Date(Date.now() + 9 * 60 * 60 * 1000)
-            .toISOString()
-            .slice(0, 10);
-          const lastInsight = feed
-            .filter(
-              (item) =>
-                item.kind === "insight" && item.circleId === selectedCircleId,
-            )
-            .sort(
-              (a, b) =>
-                new Date(b.createdAt).getTime() -
-                new Date(a.createdAt).getTime(),
-            )[0];
-          const hasTodayInsight =
-            lastInsight &&
-            new Date(
-              new Date(lastInsight.createdAt).getTime() + 9 * 60 * 60 * 1000,
-            )
-              .toISOString()
-              .slice(0, 10) === todayJST;
-          if (hasTodayInsight) return null;
-          const lastUserPost = feed
-            .filter(
-              (item) =>
-                item.circleId === selectedCircleId &&
-                item.userId === currentUserId &&
-                item.kind !== "insight",
-            )
-            .sort(
-              (a, b) =>
-                new Date(b.createdAt).getTime() -
-                new Date(a.createdAt).getTime(),
-            )[0];
-          const hasNewActivity =
-            lastUserPost &&
-            (!lastInsight ||
-              new Date(lastUserPost.createdAt) >
-                new Date(lastInsight.createdAt));
-          if (!hasNewActivity) return null;
-          const AI_CONSENT_KEY = "aiInsightConsented";
-          const hasConsented =
-            isLocalStorageAvailable() &&
-            localStorage.getItem(AI_CONSENT_KEY) === "true";
-          return (
-            <div className="flex-shrink-0 px-3 pt-2 pb-0 bg-slate-50 flex justify-center">
-              <button
-                type="button"
-                onClick={() => {
-                  if (hasConsented) {
-                    runInsight(selectedCircleId, selectedCircle?.name ?? "");
-                  } else {
-                    pendingInsightCircleIdRef.current = selectedCircleId;
-                    setShowInsightConsentDialog(true);
-                  }
-                }}
-                disabled={isInsightLoading}
-                className="text-[11px] text-sky-600 border border-sky-200 bg-sky-50 rounded-full px-3 py-0.5 hover:bg-sky-100 disabled:opacity-50 transition"
-              >
-                {isInsightLoading ? "分析中..." : "✨ 昨日までの傾向をAIに聞いてみる"}
-              </button>
-            </div>
-          );
-        })()}
-
-      {/* 割り勘ボタン（管理者サークルのみ、常時表示） */}
-      {!isTimeline && adminCircleIds.includes(selectedCircleId) && (
-        <div className="flex-shrink-0 px-3 py-2 bg-slate-50 flex justify-center">
-          <button
-            type="button"
-            onClick={() => {
-              setShowWarikanDialog(true);
-              fetchWarikan(selectedCircleId, warikanPeriod);
-            }}
-            className="text-[11px] text-emerald-600 border border-emerald-200 bg-emerald-50 rounded-full px-3 py-0.5 hover:bg-emerald-100 transition"
-          >
-            💴 割り勘
-          </button>
-        </div>
-      )}
 
       {/* 入力エリア（画面下部に固定） */}
       <div className="flex-shrink-0 bg-white border-t border-slate-200">
@@ -3093,6 +3156,33 @@ export default function UnifiedChat({
               </select>
             </div>
 
+            {/* テンプレート呼び出し */}
+            {warikanTemplates.length > 0 && (
+              <div className="mb-4">
+                <p className="text-[11px] text-slate-400 mb-1.5">保存済みテンプレート</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {warikanTemplates.map((t) => (
+                    <div key={t.id} className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleApplyTemplate(t)}
+                        className="text-[11px] bg-sky-50 text-sky-700 border border-sky-200 rounded-full px-2.5 py-0.5 hover:bg-sky-100 transition"
+                      >
+                        {t.name} ({t.people}人)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteTemplate(t.id)}
+                        className="text-[10px] text-slate-300 hover:text-red-400 transition leading-none"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {isWarikanLoading ? (
               <p className="text-sm text-slate-400 text-center py-6">計算中...</p>
             ) : warikanData ? (
@@ -3173,10 +3263,49 @@ export default function UnifiedChat({
                   type="button"
                   onClick={() => handleWarikanPost(selectedCircleId)}
                   disabled={isWarikanPosting || warikanData.total === 0}
-                  className="w-full text-sm py-2.5 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:opacity-50 transition"
+                  className="w-full text-sm py-2.5 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:opacity-50 transition mb-3"
                 >
                   {isWarikanPosting ? "投稿中..." : "フィードに投稿"}
                 </button>
+
+                {/* テンプレート保存 */}
+                {!showSaveTemplate ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowSaveTemplate(true)}
+                    className="w-full text-xs text-slate-400 hover:text-slate-600 py-1 transition"
+                  >
+                    + この設定をテンプレートとして保存
+                  </button>
+                ) : (
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="text"
+                      value={templateName}
+                      onChange={(e) => setTemplateName(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") handleSaveTemplate(); if (e.key === "Escape") setShowSaveTemplate(false); }}
+                      placeholder="テンプレート名（例：いつメン飲み会）"
+                      maxLength={30}
+                      autoFocus
+                      className="flex-1 text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-sky-400"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSaveTemplate}
+                      disabled={isSavingTemplate || !templateName.trim()}
+                      className="text-xs bg-slate-700 text-white rounded-lg px-3 py-1.5 disabled:opacity-40 hover:bg-slate-900 transition"
+                    >
+                      保存
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowSaveTemplate(false)}
+                      className="text-xs text-slate-400 hover:text-slate-600"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
               </>
             ) : (
               <p className="text-sm text-slate-400 text-center py-6">データを取得できませんでした</p>
@@ -3481,53 +3610,33 @@ export default function UnifiedChat({
               {/* 金額 */}
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-500">金額</span>
-                <span
-                  className={`text-lg font-semibold ${
-                    selectedItem.kind === "expense"
-                      ? "text-red-600"
+                <div className="flex items-baseline gap-1.5">
+                  <span
+                    className={`text-lg font-semibold ${
+                      selectedItem.kind === "expense"
+                        ? "text-red-600"
+                        : selectedItem.kind === "income"
+                          ? "text-emerald-600"
+                          : "text-slate-900"
+                    }`}
+                  >
+                    {selectedItem.kind === "expense"
+                      ? "-"
                       : selectedItem.kind === "income"
-                        ? "text-emerald-600"
-                        : "text-slate-900"
-                  }`}
-                >
-                  {selectedItem.kind === "expense"
-                    ? "-"
-                    : selectedItem.kind === "income"
-                      ? "+"
-                      : ""}
-                  ¥{formatYen(Math.abs(selectedItem.amount))}
-                </span>
-              </div>
-
-              {/* サークル残高 */}
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-500">サークル残高</span>
-                <span className="text-sm font-medium text-slate-900">
-                  ¥
-                  {formatYen(
-                    balances.find((b) => b.circleId === selectedItem.circleId)
-                      ?.balance || 0,
-                  )}
-                </span>
-              </div>
-
-              {/* サークル名 */}
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-500">サークル</span>
-                <span className="text-sm text-slate-700">
-                  {selectedItem.circleName || "（名前なし）"}
-                </span>
-              </div>
-
-              {/* 説明（支出・収入の場合） */}
-              {selectedItem.description && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-slate-500">内容</span>
-                  <span className="text-sm text-slate-700">
-                    {selectedItem.description}
+                        ? "+"
+                        : ""}
+                    ¥{formatYen(Math.abs(selectedItem.amount))}
                   </span>
+                  {(() => {
+                    const bal = balances.find((b) => b.circleId === selectedItem.circleId);
+                    return bal ? (
+                      <span className="text-xs text-slate-400">
+                        （¥{formatYen(bal.balance)}）
+                      </span>
+                    ) : null;
+                  })()}
                 </div>
-              )}
+              </div>
 
               {/* 収入源（収入の場合） */}
               {selectedItem.source && (
@@ -3545,32 +3654,41 @@ export default function UnifiedChat({
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-slate-500">処理日</span>
                   {canModifyItem(selectedItem) ? (
-                    <input
-                      type="date"
-                      defaultValue={
-                        selectedItem.transactionDate
-                          ? new Date(selectedItem.transactionDate)
-                              .toLocaleDateString("sv-SE", {
-                                timeZone: "Asia/Tokyo",
-                              })
-                          : new Date(selectedItem.createdAt)
-                              .toLocaleDateString("sv-SE", {
-                                timeZone: "Asia/Tokyo",
-                              })
-                      }
-                      max={new Date().toLocaleDateString("sv-SE", {
-                        timeZone: "Asia/Tokyo",
-                      })}
-                      onChange={(e) => {
-                        if (e.target.value) {
-                          handleUpdateTransactionDate(
-                            selectedItem,
-                            e.target.value,
-                          );
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="date"
+                        defaultValue={
+                          selectedItem.transactionDate
+                            ? new Date(selectedItem.transactionDate)
+                                .toLocaleDateString("sv-SE", {
+                                  timeZone: "Asia/Tokyo",
+                                })
+                            : new Date(selectedItem.createdAt)
+                                .toLocaleDateString("sv-SE", {
+                                  timeZone: "Asia/Tokyo",
+                                })
                         }
-                      }}
-                      className="text-sm text-slate-700 border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-sky-400"
-                    />
+                        max={new Date().toLocaleDateString("sv-SE", {
+                          timeZone: "Asia/Tokyo",
+                        })}
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            handleUpdateTransactionDate(
+                              selectedItem,
+                              e.target.value,
+                            );
+                          }
+                        }}
+                        className="text-sm text-slate-700 border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-sky-400"
+                      />
+                      <span className="text-xs text-slate-400">
+                        {new Date(selectedItem.createdAt).toLocaleTimeString("ja-JP", {
+                          timeZone: "Asia/Tokyo",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
                   ) : (
                     <span className="text-sm text-slate-700">
                       {new Date(
@@ -3581,6 +3699,13 @@ export default function UnifiedChat({
                         month: "long",
                         day: "numeric",
                       })}
+                      <span className="text-xs text-slate-400 ml-1.5">
+                        {new Date(selectedItem.createdAt).toLocaleTimeString("ja-JP", {
+                          timeZone: "Asia/Tokyo",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
                     </span>
                   )}
                 </div>
@@ -3815,38 +3940,7 @@ export default function UnifiedChat({
                           </span>
                         )}
                       </div>
-                    ) : canModifyItem(selectedItem) ? (
-                      <div>
-                        <p className="text-xs text-slate-400 mb-2">請求するメンバーを選んでください</p>
-                        <div className="flex flex-wrap gap-2">
-                          {claimeeMembers
-                            .filter((m) => m.userId !== selectedItem.userId)
-                            .map((m) => (
-                              <button
-                                key={m.userId}
-                                type="button"
-                                onClick={() => handleSetClaimee(selectedItem, m.userId)}
-                                disabled={isUpdatingClaimee}
-                                className="flex items-center gap-1.5 bg-slate-100 hover:bg-orange-50 border border-slate-200 hover:border-orange-300 rounded-full px-2.5 py-1 transition disabled:opacity-50 active:scale-95"
-                              >
-                                {m.image ? (
-                                  <img src={m.image} className="w-5 h-5 rounded-full object-cover" alt={m.name} />
-                                ) : (
-                                  <div
-                                    className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] text-white font-bold"
-                                    style={{ backgroundColor: getAvatarColor(m.name) }}
-                                  >
-                                    {getAvatarInitial(m.name)}
-                                  </div>
-                                )}
-                                <span className="text-xs text-slate-700">{m.name}</span>
-                              </button>
-                            ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="text-xs text-slate-400">請求なし</p>
-                    )}
+                    ) : null}
                   </div>
                 );
               })()}
@@ -4000,39 +4094,10 @@ export default function UnifiedChat({
                 </div>
               )}
 
-              {/* 投稿者 */}
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-500">投稿者</span>
-                <span className="text-sm text-slate-700">
-                  {selectedItem.userName}
-                </span>
-              </div>
-
-              {/* 日時 */}
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-500">日時</span>
-                <span className="text-sm text-slate-700">
-                  {new Date(selectedItem.createdAt).toLocaleString("ja-JP")}
-                </span>
-              </div>
             </div>
 
-            {/* タイムライン最新移動ボタン（claimeeまたは割り勘の場合のみ） */}
-            {((selectedItem.kind === "expense" && (selectedItem.claimeeUserId || selectedItem.claimeeNameCache)) ||
-              (selectedItem.kind === "notification" && parseWarikan(selectedItem.notificationMessage))) &&
-              (selectedItem.userId === currentUserId || userRoles.find(r => r.circleId === selectedItem.circleId)?.role === "ADMIN") && (
-              <button
-                type="button"
-                onClick={() => handleBump(selectedItem)}
-                disabled={isBumping}
-                className="w-full mt-4 bg-sky-50 text-sky-600 border border-sky-200 rounded-lg px-4 py-2 text-sm font-medium hover:bg-sky-100 transition active:scale-95 disabled:opacity-50"
-              >
-                {isBumping ? "移動中..." : "↑ タイムラインの最新に移動"}
-              </button>
-            )}
-
             {/* ボタン */}
-            <div className="flex gap-2 mt-3">
+            <div className="flex gap-2 mt-4">
               <button
                 type="button"
                 onClick={() => {
@@ -4060,6 +4125,17 @@ export default function UnifiedChat({
                     {isDeleting ? "削除中..." : "削除"}
                   </button>
                 )}
+              {canModifyItem(selectedItem) && (
+                <button
+                  type="button"
+                  onClick={() => handleBump(selectedItem)}
+                  disabled={isBumping}
+                  className="rounded-lg px-3 py-2 text-sm font-medium bg-sky-50 text-sky-600 border border-sky-200 hover:bg-sky-100 transition active:scale-95 disabled:opacity-50"
+                  title="タイムラインの最新に移動"
+                >
+                  {isBumping ? "…" : "↓"}
+                </button>
+              )}
             </div>
           </div>
         </div>

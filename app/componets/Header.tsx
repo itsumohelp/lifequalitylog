@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Session } from "next-auth";
 import { signIn, signOut } from "@/auth";
 import { getAvatarColor, getAvatarInitial } from "@/lib/avatar";
+import NotificationBell from "@/app/componets/NotificationBell";
 
 type HeaderProps = {
   session: Session | null;
@@ -32,13 +33,16 @@ export default function Header({ session }: HeaderProps) {
   return (
     <header className="bg-sky-200">
       <div className="mx-auto max-w-md px-4 py-2 flex items-center justify-between">
-        {/* 左：ロゴ + アイコン */}
-        <Link
-          href="/dashboard"
-          className="text-sm font-extrabold text-slate-900 tracking-tight"
-        >
-          Circlerun
-        </Link>
+        {/* 左：ロゴ + 通知ベル */}
+        <div className="flex items-center gap-1">
+          <Link
+            href="/dashboard"
+            className="text-sm font-extrabold text-slate-900 tracking-tight"
+          >
+            Circlerun
+          </Link>
+          {user && <NotificationBell />}
+        </div>
 
         {/* 右：ユーザー状態 + ハンバーガー */}
         <div className="flex items-center gap-2">

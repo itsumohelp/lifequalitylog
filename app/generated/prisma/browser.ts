@@ -117,3 +117,8 @@ export type Notification = Prisma.NotificationModel
  * 
  */
 export type Notice = Prisma.NoticeModel
+/**
+ * Model WarikanTemplate
+ * 
+ */
+export type WarikanTemplate = Prisma.WarikanTemplateModel
