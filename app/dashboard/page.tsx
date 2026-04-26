@@ -39,10 +39,18 @@ type FeedItem = {
   claimeeUserName?: string;
   claimeeUserImage?: string | null;
   claimeeNameCache?: string;
+  claimeeCollected?: boolean;
+  bumpedAt?: string | null;
+  notificationCollected?: boolean;
   createdAt: string;
 };
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ openItem?: string }>;
+}) {
+  const { openItem } = await searchParams;
   const session = await auth();
   if (!session || !session.user?.id) {
     redirect("/");
@@ -379,6 +387,8 @@ export default async function DashboardPage() {
           claimeeUserName: e.claimee?.displayName || e.claimee?.name || undefined,
           claimeeUserImage: e.claimee?.image || null,
           claimeeNameCache: e.claimeeNameCache || undefined,
+          claimeeCollected: e.claimeeCollected,
+          bumpedAt: e.bumpedAt?.toISOString() ?? null,
           createdAt: e.createdAt.toISOString(),
         })),
       ...incomes
@@ -412,12 +422,17 @@ export default async function DashboardPage() {
           userImage: n.actor?.image || null,
           amount: 0,
           notificationMessage: n.message,
+          notificationCollected: n.collected,
+          bumpedAt: n.bumpedAt?.toISOString() ?? null,
           createdAt: n.createdAt.toISOString(),
         })),
-    ].sort(
-      (a, b) =>
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-    );
+    ].sort((a, b) => {
+      const aT = a as FeedItem;
+      const bT = b as FeedItem;
+      const aTime = aT.bumpedAt ? new Date(aT.bumpedAt).getTime() : new Date(a.createdAt).getTime();
+      const bTime = bT.bumpedAt ? new Date(bT.bumpedAt).getTime() : new Date(b.createdAt).getTime();
+      return aTime - bTime;
+    });
 
     // 過去7日分のインサイトをフィードに追加（サークル単位）
     const insights = await prisma.userInsight.findMany({
@@ -445,10 +460,11 @@ export default async function DashboardPage() {
       createdAt: ins.generatedAt.toISOString(),
     }));
 
-    feed = [...feed, ...insightItems].sort(
-      (a, b) =>
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-    );
+    feed = [...feed, ...insightItems].sort((a, b) => {
+      const aTime = a.bumpedAt ? new Date(a.bumpedAt).getTime() : new Date(a.createdAt).getTime();
+      const bTime = b.bumpedAt ? new Date(b.bumpedAt).getTime() : new Date(b.createdAt).getTime();
+      return aTime - bTime;
+    });
   }
 
   return (
@@ -471,6 +487,7 @@ export default async function DashboardPage() {
           initialMonthlyExpense={monthlyExpense}
           initialDailyExpense={dailyExpense}
           adminCircleIds={adminCircleIds}
+          openItemId={openItem}
         />
       </div>
     </div>
