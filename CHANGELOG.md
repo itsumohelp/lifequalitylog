@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.60] - 2026-04-29
+
+### Changed
+- **Good reaction button**: Reduced from 4 reaction types (CHECK / GOOD / BAD / DOGEZA) to Good only. Button is now a circle overlapping the bottom-right corner of the bubble. Shows press count at all times.
+- **AI insight / warikan buttons**: Reverted from FAB popup to individual inline buttons displayed side by side below the feed. Warikan button is now hidden when there are no expenses in the current month.
+
+---
+
+### 変更
+- **Goodリアクションボタン**: リアクション種別を4種（CHECK / GOOD / BAD / DOGEZA）からGoodのみに削減。ボタンはバブル右下に重なる円形に変更。押下数を常時表示。
+- **AIインサイト / 割り勘ボタン**: FABポップアップ方式をやめ、フィード下部に横並びで個別ボタンとして表示する方式に戻した。割り勘ボタンは当月の支出がない場合は非表示。
+
+---
+
 ## [0.0.59] - 2026-04-26
 
 ### Added
