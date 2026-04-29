@@ -1949,112 +1949,6 @@ export default function UnifiedChat({
           </button>
         )}
 
-        {/* FAB：AIインサイト / 割り勘 */}
-        {(() => {
-          if (isTimeline || !adminCircleIds.includes(selectedCircleId)) return null;
-
-          // 今日（JST）にこのサークルのインサイトが既にあるか
-          const todayJST = new Date().toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo" });
-          const insightDoneToday = filteredFeed.some(
-            (item) =>
-              item.kind === "insight" &&
-              item.circleId === selectedCircleId &&
-              new Date(item.createdAt).toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo" }) === todayJST,
-          );
-
-          // 当月に支出/収入の実績があるか
-          const now = new Date();
-          const thisYear = now.getFullYear();
-          const thisMonth = now.getMonth();
-          const hasThisMonthRecord = filteredFeed.some((item) => {
-            if (item.kind !== "expense" && item.kind !== "income") return false;
-            if (item.circleId !== selectedCircleId) return false;
-            const d = new Date(item.createdAt);
-            return d.getFullYear() === thisYear && d.getMonth() === thisMonth;
-          });
-
-          // サークルに複数人いるか
-          const memberCount = circleMemberCounts[selectedCircleId] ?? 0;
-          const hasMultipleMembers = memberCount > 1;
-
-          const showWarikanOption = hasThisMonthRecord && hasMultipleMembers;
-          const showInsightOption = !insightDoneToday;
-
-          if (!showWarikanOption && !showInsightOption) return null;
-
-          return (
-          <div className="absolute bottom-1 right-1 z-10 flex flex-col items-end gap-2 pointer-events-none">
-            {/* ポップアップメニュー */}
-            {showActionMenu && (
-              <>
-                <div
-                  className="fixed inset-0 pointer-events-auto"
-                  onClick={() => setShowActionMenu(false)}
-                />
-                <div className="relative flex flex-col items-end gap-1.5 mb-1 pointer-events-auto">
-                  {showInsightOption && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowActionMenu(false);
-                      runInsight(selectedCircleId, selectedCircle?.name ?? "");
-                    }}
-                    className="flex items-center gap-2 bg-white text-slate-700 text-xs font-medium px-3 py-2 rounded-full shadow-lg border border-slate-200 hover:bg-slate-50 transition whitespace-nowrap"
-                  >
-                    <span>✨</span> AIに聞いてみる
-                  </button>
-                  )}
-                  {showWarikanOption && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowActionMenu(false);
-                      setShowWarikanDialog(true);
-                      fetchWarikanTemplates(selectedCircleId);
-                    }}
-                    className="flex items-center gap-2 bg-white text-slate-700 text-xs font-medium px-3 py-2 rounded-full shadow-lg border border-slate-200 hover:bg-slate-50 transition whitespace-nowrap"
-                  >
-                    <span>💴</span> 割り勘
-                  </button>
-                  )}
-                </div>
-              </>
-            )}
-
-            {/* FABボタン本体 */}
-            <button
-              type="button"
-              onClick={() => setShowActionMenu((v) => !v)}
-              className="w-8 h-8 rounded-full bg-sky-500 text-white shadow-md flex items-center justify-center hover:bg-sky-600 active:scale-95 transition opacity-70 hover:opacity-100 pointer-events-auto"
-              aria-label="アクションメニュー"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                {showActionMenu ? (
-                  <>
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                  </>
-                ) : (
-                  <>
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </>
-                )}
-              </svg>
-            </button>
-          </div>
-          );
-        })()}
         <div
           ref={scrollRef}
           className="absolute inset-0 overflow-y-auto px-3 py-1 space-y-1 bg-slate-50"
@@ -2151,6 +2045,11 @@ export default function UnifiedChat({
                           )}
 
                           {/* メッセージバブル */}
+                          <div className={`relative ${
+                            (item.kind === "expense" || item.kind === "income" || item.kind === "snapshot" || item.kind === "notice" || item.kind === "notification")
+                              ? "mb-[9px]"
+                              : ""
+                          }`}>
                           <button
                             type="button"
                             onClick={() => {
@@ -2657,69 +2556,37 @@ export default function UnifiedChat({
                             )}
                           </button>
 
-                          {/* リアクションボタン（expense, income, snapshot, notice, notification） */}
+                          {/* GOODリアクション（バブル右下に重ねて表示） */}
                           {(item.kind === "expense" ||
                             item.kind === "income" ||
                             item.kind === "snapshot" ||
                             item.kind === "notice" ||
-                            item.kind === "notification") && (
-                            <div
-                              className={`flex items-center gap-1 mt-1 ${
-                                isOwnMessage ? "justify-end" : "justify-start"
-                              }`}
-                            >
-                              {(
-                                [
-                                  "CHECK",
-                                  "GOOD",
-                                  "BAD",
-                                  "DOGEZA",
-                                ] as ReactionType[]
-                              ).map((type) => {
-                                const itemKey = `${item.kind}:${item.id.replace(`${item.kind}-`, "")}`;
-                                const reactionData = reactions[itemKey];
-                                const count = reactionData?.counts[type] || 0;
-                                const hasReacted =
-                                  reactionData?.userReactions.includes(type);
-                                const isToggling =
-                                  togglingReaction === `${item.id}:${type}`;
-                                const emoji =
-                                  type === "CHECK"
-                                    ? "✅"
-                                    : type === "GOOD"
-                                      ? "👍"
-                                      : type === "BAD"
-                                        ? "👎"
-                                        : "🙇";
-
-                                return (
-                                  <button
-                                    key={type}
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      toggleReaction(item, type);
-                                    }}
-                                    disabled={
-                                      reactionsLoading || !!togglingReaction
-                                    }
-                                    className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs transition ${
-                                      hasReacted
-                                        ? "bg-slate-700 text-white"
-                                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                                    } ${reactionsLoading || isToggling ? "opacity-50" : ""}`}
-                                  >
-                                    <TwemojiImg emoji={emoji} size={14} />
-                                    {count > 0 && (
-                                      <span className="text-[10px] min-w-[12px] text-center">
-                                        {count}
-                                      </span>
-                                    )}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          )}
+                            item.kind === "notification") && (() => {
+                              const itemKey = `${item.kind}:${item.id.replace(`${item.kind}-`, "")}`;
+                              const reactionData = reactions[itemKey];
+                              const count = reactionData?.counts["GOOD"] || 0;
+                              const hasReacted = reactionData?.userReactions.includes("GOOD");
+                              const isToggling = togglingReaction === `${item.id}:GOOD`;
+                              return (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleReaction(item, "GOOD");
+                                  }}
+                                  disabled={reactionsLoading || !!togglingReaction}
+                                  className={`absolute -bottom-[9px] -right-[23px] z-10 w-8 h-8 rounded-full flex flex-col items-center justify-center shadow border transition ${
+                                    hasReacted
+                                      ? "bg-slate-700 text-white border-slate-700"
+                                      : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                                  } ${reactionsLoading || isToggling ? "opacity-50" : ""}`}
+                                >
+                                  <TwemojiImg emoji="👍" size={14} />
+                                  <span className="text-[9px] font-medium leading-none">{count}</span>
+                                </button>
+                              );
+                            })()}
+                          </div>
                         </div>
                       </div>
                     );
@@ -2731,6 +2598,71 @@ export default function UnifiedChat({
         </div>
       </div>
 
+      {/* AIインサイト / 割り勘ボタン（管理者サークルのみ、横並び） */}
+      {!isTimeline && adminCircleIds.includes(selectedCircleId) && (() => {
+        const todayJST = new Date(Date.now() + 9 * 60 * 60 * 1000)
+          .toISOString()
+          .slice(0, 10);
+        const lastInsight = feed
+          .filter((item) => item.kind === "insight" && item.circleId === selectedCircleId)
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+        const hasTodayInsight =
+          lastInsight &&
+          new Date(new Date(lastInsight.createdAt).getTime() + 9 * 60 * 60 * 1000)
+            .toISOString()
+            .slice(0, 10) === todayJST;
+        const lastUserPost = feed
+          .filter((item) => item.circleId === selectedCircleId && item.userId === currentUserId && item.kind !== "insight")
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+        const hasNewActivity =
+          lastUserPost &&
+          (!lastInsight || new Date(lastUserPost.createdAt) > new Date(lastInsight.createdAt));
+        const showInsight = !hasTodayInsight && hasNewActivity;
+        const now = new Date();
+        const hasThisMonthExpense = filteredFeed.some((item) => {
+          if (item.kind !== "expense") return false;
+          const d = new Date(item.createdAt);
+          return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+        });
+        const AI_CONSENT_KEY = "aiInsightConsented";
+        const hasConsented = isLocalStorageAvailable() && localStorage.getItem(AI_CONSENT_KEY) === "true";
+
+        if (!showInsight && !hasThisMonthExpense) return null;
+
+        return (
+          <div className="flex-shrink-0 px-3 py-1.5 bg-slate-50 flex justify-center gap-2">
+            {showInsight && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (hasConsented) {
+                    runInsight(selectedCircleId, selectedCircle?.name ?? "");
+                  } else {
+                    pendingInsightCircleIdRef.current = selectedCircleId;
+                    setShowInsightConsentDialog(true);
+                  }
+                }}
+                disabled={isInsightLoading}
+                className="text-[11px] text-sky-600 border border-sky-200 bg-sky-50 rounded-full px-3 py-0.5 hover:bg-sky-100 disabled:opacity-50 transition"
+              >
+                {isInsightLoading ? "分析中..." : "✨ 昨日までの傾向をAIに聞いてみる"}
+              </button>
+            )}
+            {hasThisMonthExpense && (
+              <button
+                type="button"
+                onClick={() => {
+                  setShowWarikanDialog(true);
+                  fetchWarikan(selectedCircleId, warikanPeriod);
+                }}
+                className="text-[11px] text-emerald-600 border border-emerald-200 bg-emerald-50 rounded-full px-3 py-0.5 hover:bg-emerald-100 transition"
+              >
+                💴 割り勘
+              </button>
+            )}
+          </div>
+        );
+      })()}
 
       {/* 入力エリア（画面下部に固定） */}
       <div className="flex-shrink-0 bg-white border-t border-slate-200">

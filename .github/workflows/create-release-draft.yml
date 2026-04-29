@@ -15,17 +15,22 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Extract version from CHANGELOG.md
+      - name: Extract version and changelog from CHANGELOG.md
         id: changelog
         run: |
           VERSION=$(grep -m1 '## \[' CHANGELOG.md | sed 's/## \[\(.*\)\].*/\1/')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          CONTENT=$(awk '/^## \[/{count++; if(count==1){next} if(count==2){exit}} count==1{print}' CHANGELOG.md)
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          echo "$CONTENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create or update draft release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.changelog.outputs.version }}
           name: v${{ steps.changelog.outputs.version }}
-          body_path: CHANGELOG.md
+          body: ${{ steps.changelog.outputs.content }}
           generate_release_notes: true
           draft: true
