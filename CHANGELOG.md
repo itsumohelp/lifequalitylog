@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.61] - 2026-05-02
+
+### Added
+- **Quick registration mode**: When "簡易登録モード" (formerly auto-tag) is enabled, quick amount buttons (¥500 / ¥1,000 / ¥2,000) appear in the insights/warikan row for one-tap expense registration.
+- **Blur auto-submit**: With 簡易登録モード on, focusing out of the amount field auto-submits when the input is numeric — no need to tap the send button.
+
+### Changed
+- **Icon refresh**: Replaced the old dark circle + ¥ icon with the new "circle / run" wordmark across all surfaces (login page inline SVG, OGP image, iOS app icon).
+- **AI insight button label**: Shortened "昨日までの傾向をAIに聞いてみる" → "AIに分析してもらう".
+- **Settings label**: "自動タグ付け" renamed to "簡易登録モード" to reflect the broader feature scope.
+
+---
+
+### 追加
+- **簡易登録モード（クイックボタン）**: 簡易登録モードがONのとき、インサイト/割り勘行に ¥500・¥1,000・¥2,000 のクイック登録ボタンを表示。ワンタップで即登録できる。
+- **フォーカスアウト自動登録**: 簡易登録モードON時、入力欄に数字のみが入力された状態でフォーカスアウトすると自動送信。登録ボタンを押す手間を省略。
+
+### 変更
+- **アイコン刷新**: 旧デザイン（ダーク背景 + ¥記号）から新デザイン（"circle / run" ワードマーク）に全面切り替え。ログインページのインラインSVG・OGP画像・iOSアプリアイコンを更新。
+- **AIインサイトボタンのラベル**: "昨日までの傾向をAIに聞いてみる" → "AIに分析してもらう" に短縮。
+- **設定ラベル変更**: "自動タグ付け" → "簡易登録モード" に改名（機能の実態に合わせて）。
+
+---
+
 ## [0.0.60] - 2026-04-29
 
 ### Changed

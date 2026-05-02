@@ -627,7 +627,7 @@ export default function SettingsPage() {
               </h2>
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm text-slate-700">自動タグ付け</div>
+                  <div className="text-sm text-slate-700">簡易登録モード</div>
                   <div className="text-xs text-slate-500 mt-0.5">
                     過去の支出パターンからタグを自動提案します
                   </div>
