@@ -182,6 +182,7 @@ type Props = {
   initialMonthlyExpense: number;
   initialDailyExpense: number;
   adminCircleIds: string[];
+  initialAutoTagEnabled: boolean;
   openItemId?: string;
 };
 
@@ -232,6 +233,7 @@ export default function UnifiedChat({
   initialMonthlyExpense,
   initialDailyExpense,
   adminCircleIds,
+  initialAutoTagEnabled,
   openItemId,
 }: Props) {
   const [feed, setFeed] = useState<FeedItem[]>(initialFeed);
@@ -242,6 +244,7 @@ export default function UnifiedChat({
     initialMonthlyExpense,
   );
   const [dailyExpense, setDailyExpense] = useState<number>(initialDailyExpense);
+  const [autoTagEnabled] = useState(initialAutoTagEnabled);
   const [selectedCircleId, setSelectedCircleId] = useState<string>(
     circles[0]?.id || "",
   );
@@ -1398,25 +1401,26 @@ export default function UnifiedChat({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading || !selectedCircleId) return;
+  const handleSubmit = async (e: React.FormEvent | null, overrideInput?: string) => {
+    e?.preventDefault();
+    const submitInput = overrideInput !== undefined ? overrideInput : input;
+    if (!submitInput.trim() || isLoading || !selectedCircleId) return;
 
     // 招待コマンドの処理
-    if (isInviteCommand(input)) {
+    if (isInviteCommand(submitInput)) {
       handleInvite();
       return;
     }
 
     // サークル追加コマンドの処理（モーダルを表示）
-    if (isCircleAddCommand(input)) {
+    if (isCircleAddCommand(submitInput)) {
       setInput("");
       setIsCircleModalOpen(true);
       return;
     }
 
     // 集計コマンドの処理（タグ別集計を表示）
-    if (isSummaryCommand(input)) {
+    if (isSummaryCommand(submitInput)) {
       setInput("");
       setIsLoading(true);
       try {
@@ -1450,7 +1454,7 @@ export default function UnifiedChat({
     }
 
     // ヘルプコマンドの処理（ショートカット一覧を表示）
-    if (isHelpCommand(input)) {
+    if (isHelpCommand(submitInput)) {
       const helpItem: FeedItem = {
         id: `help-${Date.now()}`,
         kind: "help",
@@ -1478,7 +1482,7 @@ export default function UnifiedChat({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             circleId: selectedCircleId,
-            text: input.trim(),
+            text: submitInput.trim(),
           }),
         });
 
@@ -1552,7 +1556,7 @@ export default function UnifiedChat({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             circleId: selectedCircleId,
-            text: input.trim(),
+            text: submitInput.trim(),
           }),
         });
 
@@ -1608,7 +1612,7 @@ export default function UnifiedChat({
         setShowMiniChart(true);
       } else {
         // 残高更新
-        const amount = parseInt(input.replace(/[^0-9]/g, ""), 10);
+        const amount = parseInt(submitInput.replace(/[^0-9]/g, ""), 10);
         if (isNaN(amount) || amount <= 0) {
           setError("金額を入力してください");
           return;
@@ -2630,7 +2634,22 @@ export default function UnifiedChat({
         if (!showInsight && !hasThisMonthExpense) return null;
 
         return (
-          <div className="flex-shrink-0 px-3 py-1.5 bg-slate-50 flex justify-center gap-2">
+          <div className="flex-shrink-0 px-3 py-1.5 bg-slate-50 flex flex-wrap justify-center gap-2">
+            {autoTagEnabled && !isTimeline && (
+              <>
+                {[500, 1000, 2000].map((amount) => (
+                  <button
+                    key={amount}
+                    type="button"
+                    disabled={isLoading || !selectedCircleId}
+                    onClick={() => handleSubmit(null, String(amount))}
+                    className="text-[11px] text-slate-600 border border-slate-300 bg-white rounded-full px-3 py-0.5 hover:bg-slate-100 disabled:opacity-40 transition font-medium"
+                  >
+                    ¥{amount.toLocaleString()}
+                  </button>
+                ))}
+              </>
+            )}
             {showInsight && (
               <button
                 type="button"
@@ -2645,7 +2664,7 @@ export default function UnifiedChat({
                 disabled={isInsightLoading}
                 className="text-[11px] text-sky-600 border border-sky-200 bg-sky-50 rounded-full px-3 py-0.5 hover:bg-sky-100 disabled:opacity-50 transition"
               >
-                {isInsightLoading ? "分析中..." : "✨ 昨日までの傾向をAIに聞いてみる"}
+                {isInsightLoading ? "分析中..." : "✨ AIに分析してもらう"}
               </button>
             )}
             {hasThisMonthExpense && (
@@ -2823,7 +2842,18 @@ export default function UnifiedChat({
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onFocus={() => setIsInputFocused(true)}
-                onBlur={() => setIsInputFocused(false)}
+                onBlur={() => {
+                  setIsInputFocused(false);
+                  if (
+                    autoTagEnabled &&
+                    /^\d+$/.test(input.trim()) &&
+                    input.trim() &&
+                    !isLoading &&
+                    selectedCircleId
+                  ) {
+                    handleSubmit(null);
+                  }
+                }}
                 placeholder={
                   inputMode === "expense"
                     ? "金額を入力"

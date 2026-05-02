@@ -58,6 +58,12 @@ export default async function DashboardPage({
 
   const userId = session.user.id as string;
 
+  const userPref = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { autoTagEnabled: true },
+  });
+  const autoTagEnabled = userPref?.autoTagEnabled ?? false;
+
   // ユーザーが参加しているサークルを取得（ロール情報も含む）
   const memberships = await prisma.circleMember.findMany({
     where: { userId },
@@ -487,6 +493,7 @@ export default async function DashboardPage({
           initialMonthlyExpense={monthlyExpense}
           initialDailyExpense={dailyExpense}
           adminCircleIds={adminCircleIds}
+          initialAutoTagEnabled={autoTagEnabled}
           openItemId={openItem}
         />
       </div>
