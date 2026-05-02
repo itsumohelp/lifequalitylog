@@ -3841,8 +3841,8 @@ export default function UnifiedChat({
                 </div>
               ) : null}
 
-              {/* 請求先（支出の場合） */}
-              {selectedItem.kind === "expense" && (() => {
+              {/* 請求先（支出 かつ 複数メンバーのサークルの場合） */}
+              {selectedItem.kind === "expense" && (claimeeMembers.length >= 2 || !!selectedItem.claimeeUserId || !!selectedItem.claimeeNameCache) && (() => {
                 const isDeleted = !selectedItem.claimeeUserId && !!selectedItem.claimeeNameCache;
                 const hasClaimee = !!selectedItem.claimeeUserId || isDeleted;
                 return (
@@ -3901,6 +3901,30 @@ export default function UnifiedChat({
                             {selectedItem.claimeeCollected ? "✓ 回収済み" : "請求中"}
                           </span>
                         )}
+                      </div>
+                    ) : canModifyItem(selectedItem) && claimeeMembers.length >= 2 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {claimeeMembers.map((member) => (
+                          <button
+                            key={member.userId}
+                            type="button"
+                            disabled={isUpdatingClaimee}
+                            onClick={() => handleSetClaimee(selectedItem, member.userId)}
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-orange-50 hover:border-orange-200 text-sm disabled:opacity-50 transition active:scale-95"
+                          >
+                            {member.image ? (
+                              <img src={member.image} className="w-5 h-5 rounded-full object-cover flex-shrink-0" alt={member.name} />
+                            ) : (
+                              <div
+                                className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] text-white font-bold"
+                                style={{ backgroundColor: getAvatarColor(member.name) }}
+                              >
+                                {getAvatarInitial(member.name)}
+                              </div>
+                            )}
+                            <span className="text-slate-700">{member.name}</span>
+                          </button>
+                        ))}
                       </div>
                     ) : null}
                   </div>
