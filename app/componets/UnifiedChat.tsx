@@ -2664,7 +2664,7 @@ export default function UnifiedChat({
                 disabled={isInsightLoading}
                 className="text-[11px] text-sky-600 border border-sky-200 bg-sky-50 rounded-full px-3 py-0.5 hover:bg-sky-100 disabled:opacity-50 transition"
               >
-                {isInsightLoading ? "分析中..." : "✨ AIに分析してもらう"}
+                {isInsightLoading ? "分析中..." : "✨ AI分析"}
               </button>
             )}
             {hasThisMonthExpense && (
