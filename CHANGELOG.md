@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.67] - 2026-05-09
+
+### Changed
+- **Category tags added to suggestions**: Time-of-day tag suggestions now include broad category tags (食費, 交通費, 交際費, 雑費) at the top. These category tags are also excluded from the "existing tags" picker so they do not appear twice.
+- **Remove page title text**: Removed the "CircleRun" `<h1>` heading from the home page.
+
+---
+
+### 変更
+- **カテゴリタグをサジェストに追加**: 時間帯別タグサジェストに大分類タグ（食費・交通費・交際費・雑費）を先頭に追加。既存タグのピッカーからはカテゴリタグを除外し、重複表示を防ぐ。
+- **ページタイトルテキストを削除**: ホームページの「CircleRun」`<h1>` 見出しを削除。
+
+---
+
 ## [0.0.66] - 2026-05-09
 
 ### Changed
