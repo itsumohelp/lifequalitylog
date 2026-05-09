@@ -6,6 +6,7 @@ on:
 permissions:
   contents: read
   pull-requests: write
+  id-token: write # ← 追加
 
 jobs:
   review:
