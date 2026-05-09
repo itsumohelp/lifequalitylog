@@ -32,7 +32,7 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
             このPRの差分のみをレビューしてください。リポジトリ全体を探索しないでください。
-            バグ、セキュリティ問題、改善点があればPRにコメントとして投稿してください。
-            問題がない場合もその旨をPRにコメントしてください。
+            レビューが完全に終わってから、結果をまとめて1回だけPRにコメントとして投稿してください。
+            途中経過は投稿しないでください。
           claude_args: "--dangerously-skip-permissions"
-          show_full_output: "true"
+          use_sticky_comment: "true"
