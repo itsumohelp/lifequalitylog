@@ -33,6 +33,20 @@ type ShortcutItem = {
   description: string;
 };
 
+type MonthlyReportCircle = {
+  id: string;
+  name: string;
+  totalExpense: number;
+  totalIncome: number;
+  balance: number;
+  dailySnapshots: Array<{ date: string; amount: number }>;
+};
+
+type MonthlyReportData = {
+  month: string;
+  circles: MonthlyReportCircle[];
+};
+
 type FeedItem = {
   id: string;
   kind:
@@ -44,7 +58,8 @@ type FeedItem = {
     | "help"
     | "notice"
     | "notification"
-    | "insight";
+    | "insight"
+    | "monthly_report";
   circleId: string;
   circleName?: string;
   userId: string;
@@ -70,6 +85,7 @@ type FeedItem = {
   noticeLink?: string | null;
   insightText?: string;
   insightSummary?: string;
+  monthlyReportData?: MonthlyReportData;
   notificationMessage?: string;
   transactionDate?: string;
   claimeeUserId?: string;
@@ -331,6 +347,7 @@ export default function UnifiedChat({
   const [circlesState, setCirclesState] = useState<Circle[]>(circles);
   const [togglingPublic, setTogglingPublic] = useState(false);
   const [isInsightLoading, setIsInsightLoading] = useState(false);
+  const [isMonthlyReportLoading, setIsMonthlyReportLoading] = useState(false);
   const [insightDialog, setInsightDialog] = useState<{
     text: string;
     circleName: string;
@@ -425,6 +442,43 @@ export default function UnifiedChat({
     },
     [isInsightLoading],
   );
+
+  const handleMonthlyReport = useCallback(async () => {
+    if (isMonthlyReportLoading) return;
+    setIsMonthlyReportLoading(true);
+    try {
+      const res = await fetch("/api/analytics/monthly-report");
+      if (!res.ok) return;
+      const data = await res.json();
+      const newItem: FeedItem = {
+        id: "monthly-report",
+        kind: "monthly_report",
+        circleId: "__timeline__",
+        userId: "system",
+        userName: "CircleRun",
+        userImage: null,
+        amount: 0,
+        monthlyReportData: data,
+        createdAt: new Date().toISOString(),
+      };
+      setFeed((prev) => {
+        const filtered = prev.filter((i) => i.kind !== "monthly_report");
+        return [...filtered, newItem].sort((a, b) => {
+          const aTime = a.bumpedAt ? new Date(a.bumpedAt).getTime() : new Date(a.createdAt).getTime();
+          const bTime = b.bumpedAt ? new Date(b.bumpedAt).getTime() : new Date(b.createdAt).getTime();
+          return aTime - bTime;
+        });
+      });
+      if (isLocalStorageAvailable()) {
+        const todayJST = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+        localStorage.setItem("monthlyReportDate", todayJST);
+      }
+    } catch {
+      // silent
+    } finally {
+      setIsMonthlyReportLoading(false);
+    }
+  }, [isMonthlyReportLoading]);
 
   // 割り勘データ取得
   const fetchWarikan = async (circleId: string, period: string) => {
@@ -1290,6 +1344,38 @@ export default function UnifiedChat({
         ]);
       })
       .catch((e) => console.error("Failed to fetch notices:", e));
+
+    // 当月実績レポートを自動復元（当日すでに確認済みの場合）
+    if (isLocalStorageAvailable()) {
+      const todayJST = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      if (localStorage.getItem("monthlyReportDate") === todayJST) {
+        fetch("/api/analytics/monthly-report")
+          .then((r) => (r.ok ? r.json() : null))
+          .then((data) => {
+            if (!data) return;
+            const item: FeedItem = {
+              id: "monthly-report",
+              kind: "monthly_report",
+              circleId: "__timeline__",
+              userId: "system",
+              userName: "CircleRun",
+              userImage: null,
+              amount: 0,
+              monthlyReportData: data,
+              createdAt: new Date().toISOString(),
+            };
+            setFeed((prev) => {
+              if (prev.some((i) => i.kind === "monthly_report")) return prev;
+              return [...prev, item].sort((a, b) => {
+                const aTime = a.bumpedAt ? new Date(a.bumpedAt).getTime() : new Date(a.createdAt).getTime();
+                const bTime = b.bumpedAt ? new Date(b.bumpedAt).getTime() : new Date(b.createdAt).getTime();
+                return aTime - bTime;
+              });
+            });
+          })
+          .catch(() => {});
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -2096,7 +2182,7 @@ export default function UnifiedChat({
                 <div className="space-y-0.5">
                   {items.map((item, idx) => {
                     const isOwnMessage =
-                      item.kind !== "insight" && item.userId === currentUserId;
+                      item.kind !== "insight" && item.kind !== "monthly_report" && item.userId === currentUserId;
                     const prevItem = idx > 0 ? items[idx - 1] : null;
                     const isSameUserAsPrev =
                       prevItem && prevItem.userId === item.userId;
@@ -2128,11 +2214,15 @@ export default function UnifiedChat({
                                   backgroundColor:
                                     item.kind === "insight"
                                       ? "#0ea5e9"
+                                      : item.kind === "monthly_report"
+                                      ? "#7c3aed"
                                       : getAvatarColor(item.userId),
                                 }}
                               >
                                 {item.kind === "insight"
                                   ? "AI"
+                                  : item.kind === "monthly_report"
+                                  ? "📊"
                                   : getAvatarInitial(item.userName)}
                               </div>
                             )}
@@ -2150,7 +2240,7 @@ export default function UnifiedChat({
                                 isOwnMessage ? "text-right" : ""
                               }`}
                             >
-                              {item.kind === "insight" ? "AI" : item.userName}
+                              {item.kind === "insight" ? "AI" : item.kind === "monthly_report" ? "実績レポート" : item.userName}
                             </div>
                           )}
 
@@ -2169,7 +2259,7 @@ export default function UnifiedChat({
                                   circleName: item.circleName ?? "",
                                   createdAt: item.createdAt,
                                 });
-                              } else {
+                              } else if (item.kind !== "monthly_report") {
                                 setSelectedItem(item);
                               }
                             }}
@@ -2192,6 +2282,10 @@ export default function UnifiedChat({
                                   `📣 ${item.noticeTitle}`
                                 ) : item.kind === "notification" ? (
                                   `🔔 ${item.circleName}`
+                                ) : item.kind === "monthly_report" ? (
+                                  <span className="text-violet-600">
+                                    📊 今月の実績
+                                  </span>
                                 ) : item.kind === "insight" ? (
                                   <>
                                     {item.circleName && (
@@ -2588,6 +2682,37 @@ export default function UnifiedChat({
                                     </div>
                                   )}
                               </>
+                            ) : item.kind === "monthly_report" ? (
+                              <>
+                                {item.monthlyReportData && (
+                                  <div className="space-y-2 max-h-72 overflow-y-auto">
+                                    {item.monthlyReportData.circles.map((circle) => (
+                                      <div key={circle.id} className="rounded-lg bg-slate-100 px-2.5 py-1.5">
+                                        <p className="text-xs font-medium text-slate-700 mb-1">{circle.name}</p>
+                                        <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px]">
+                                          <span>支出 <span className="text-red-600 font-medium">¥{formatYen(circle.totalExpense)}</span></span>
+                                          <span>収入 <span className="text-emerald-600 font-medium">¥{formatYen(circle.totalIncome)}</span></span>
+                                          <span>残高 <span className="text-slate-800 font-medium">¥{formatYen(circle.balance)}</span></span>
+                                        </div>
+                                        {circle.dailySnapshots.length > 0 && (
+                                          <div className="mt-1.5 border-t border-slate-200 pt-1">
+                                            <p className="text-[10px] text-slate-500 mb-0.5">スナップショット</p>
+                                            <div className="space-y-0.5">
+                                              {circle.dailySnapshots.map((s) => (
+                                                <div key={s.date} className="flex justify-between text-[10px] text-slate-600">
+                                                  <span>{s.date.slice(5).replace("-", "/")}</span>
+                                                  <span className="font-medium">¥{formatYen(s.amount)}</span>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                                <p className="text-[10px] text-slate-400 mt-1">{item.monthlyReportData?.month}</p>
+                              </>
                             ) : item.kind === "insight" ? (
                               <>
                                 {/* AIインサイト：数値サマリー */}
@@ -2788,6 +2913,20 @@ export default function UnifiedChat({
           </div>
         );
       })()}
+
+      {/* 今月の実績確認ボタン（タイムライン選択時のみ、未確認の場合） */}
+      {isTimeline && !feed.some((i) => i.kind === "monthly_report") && (
+        <div className="flex-shrink-0 px-3 py-1.5 bg-slate-50 flex justify-center">
+          <button
+            type="button"
+            onClick={handleMonthlyReport}
+            disabled={isMonthlyReportLoading}
+            className="text-[11px] text-violet-600 border border-violet-200 bg-violet-50 rounded-full px-3 py-0.5 hover:bg-violet-100 disabled:opacity-50 transition"
+          >
+            {isMonthlyReportLoading ? "読み込み中..." : "📊 今月の実績確認"}
+          </button>
+        </div>
+      )}
 
       {/* 入力エリア（画面下部に固定） */}
       <div className="flex-shrink-0 bg-white border-t border-slate-200">
