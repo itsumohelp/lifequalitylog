@@ -260,6 +260,7 @@ function saveRecentAmount(circleId: string, amount: number): number[] {
       const parsed = JSON.parse(stored);
       if (Array.isArray(parsed)) history = parsed;
     }
+    if (amount >= 100000) return computeTopAmounts(history);
     const updated = [...history, amount].slice(-30);
     localStorage.setItem(`${QUICK_AMOUNTS_KEY_PREFIX}${circleId}`, JSON.stringify(updated));
     return computeTopAmounts(updated);

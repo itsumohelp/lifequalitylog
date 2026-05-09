@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.65] - 2026-05-09
+
+### Changed
+- **Quick-register button high-amount filter**: Amounts ≥ ¥100,000 are excluded from the quick-register button history. Large one-off expenses won't displace frequently-used amounts from the buttons.
+
+---
+
+### 変更
+- **クイック登録ボタンの高額フィルタ**: ¥100,000以上の金額はクイックボタンの履歴対象外に。高額の一時支出が頻度上位に入り込まないようにする。
+
+---
+
 ## [0.0.64] - 2026-05-09
 
 ### Changed
