@@ -71,7 +71,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
               </text>
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-slate-950">CircleRun</h1>
           <p className="mt-2 text-sm text-slate-950">
             みんなのお金のタイムラインを共有する
             <br />
