@@ -14,7 +14,7 @@ export async function PATCH(
 
   const { id } = await params;
   const body = await request.json();
-  const { tags, autoTags, expenseDate, claimeeUserId, claimeeCollected, bump } = body;
+  const { tags, autoTags, expenseDate, claimeeUserId, claimeeCollected, bump, amount } = body;
 
   if (tags !== undefined && !Array.isArray(tags)) {
     return NextResponse.json({ error: "tags must be an array" }, { status: 400 });
@@ -22,13 +22,17 @@ export async function PATCH(
   if (autoTags !== undefined && !Array.isArray(autoTags)) {
     return NextResponse.json({ error: "autoTags must be an array" }, { status: 400 });
   }
+  if (amount !== undefined && (typeof amount !== "number" || amount <= 0 || !Number.isInteger(amount))) {
+    return NextResponse.json({ error: "amount must be a positive integer" }, { status: 400 });
+  }
   const hasAnyField =
     tags !== undefined ||
     autoTags !== undefined ||
     expenseDate !== undefined ||
     "claimeeUserId" in body ||
     claimeeCollected !== undefined ||
-    bump === true;
+    bump === true ||
+    amount !== undefined;
   if (!hasAnyField) {
     return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
   }
@@ -72,9 +76,45 @@ export async function PATCH(
     }
   }
 
+  // 金額変更時は残高・BalanceTransaction・monthlySnapshotを更新
+  if (amount !== undefined && amount !== expense.amount) {
+    const amountDiff = amount - expense.amount;
+    const circleData = await prisma.circle.findUnique({
+      where: { id: expense.circleId },
+      select: { currentBalance: true },
+    });
+    const balanceBefore = circleData!.currentBalance;
+    const balanceAfter = balanceBefore - amountDiff;
+
+    await prisma.circle.update({
+      where: { id: expense.circleId },
+      data: { currentBalance: { decrement: amountDiff } },
+    });
+
+    await prisma.balanceTransaction.create({
+      data: {
+        circleId: expense.circleId,
+        userId: session.user.id,
+        type: "EXPENSE",
+        isDelete: false,
+        amount: amountDiff,
+        balanceBefore,
+        balanceAfter,
+      },
+    });
+
+    const ed = new Date(expense.expenseDate);
+    const yearMonth = `${ed.getFullYear()}${String(ed.getMonth() + 1).padStart(2, "0")}`;
+    await prisma.monthlySnapshot.updateMany({
+      where: { circleId: expense.circleId, yearMonth },
+      data: { totalExpense: { increment: amountDiff } },
+    });
+  }
+
   const updated = await prisma.expense.update({
     where: { id },
     data: {
+      ...(amount !== undefined && { amount }),
       ...(tags !== undefined && { tags }),
       ...(autoTags !== undefined && { autoTags }),
       ...(expenseDate !== undefined && { expenseDate: new Date(expenseDate) }),

@@ -348,6 +348,8 @@ export default function UnifiedChat({
   const [isWarikanPosting, setIsWarikanPosting] = useState(false);
   const [showActionMenu, setShowActionMenu] = useState(false);
   const [recentAmounts, setRecentAmounts] = useState<number[]>([]);
+  const [isEditingAmount, setIsEditingAmount] = useState(false);
+  const [editAmountValue, setEditAmountValue] = useState("");
 
   // 割り勘テンプレート
   type WarikanTemplate = { id: string; name: string; people: number; period: string; createdBy: string };
@@ -1188,6 +1190,50 @@ export default function UnifiedChat({
       } else {
         const data = await res.json();
         setError(data.error || "処理日の更新に失敗しました");
+      }
+    } catch {
+      setError("通信エラーが発生しました");
+    }
+  };
+
+  const handleUpdateAmount = async (item: FeedItem, newAmount: number) => {
+    const isIncome = item.kind === "income";
+    const rawId = isIncome ? item.id.replace("income-", "") : item.id.replace("expense-", "");
+    const apiPath = isIncome ? `/api/income/${rawId}` : `/api/expense/${rawId}`;
+    const oldAmount = Math.abs(item.amount);
+    if (newAmount === oldAmount) return;
+
+    try {
+      const res = await fetch(apiPath, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: newAmount }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "金額の更新に失敗しました");
+        return;
+      }
+
+      const amountDiff = newAmount - oldAmount;
+      const signedAmount = isIncome ? newAmount : -newAmount;
+
+      setFeed((prev) =>
+        prev.map((f) => f.id === item.id ? { ...f, amount: signedAmount } : f),
+      );
+      setSelectedItem((prev) =>
+        prev && prev.id === item.id ? { ...prev, amount: signedAmount } : prev,
+      );
+
+      const balanceDiff = isIncome ? amountDiff : -amountDiff;
+      setBalances((prev) =>
+        prev.map((b) =>
+          b.circleId === item.circleId ? { ...b, balance: b.balance + balanceDiff } : b,
+        ),
+      );
+      if (adminCircleIds.includes(item.circleId)) {
+        setTotalBalance((prev) => prev + balanceDiff);
+        if (!isIncome) setMonthlyExpense((prev) => prev + amountDiff);
       }
     } catch {
       setError("通信エラーが発生しました");
@@ -3589,7 +3635,7 @@ export default function UnifiedChat({
       {selectedItem && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          onClick={() => setSelectedItem(null)}
+          onClick={() => { setSelectedItem(null); setIsEditingAmount(false); }}
         >
           <div
             className="bg-white rounded-xl w-full max-w-sm p-4"
@@ -3628,32 +3674,76 @@ export default function UnifiedChat({
               {/* 金額 */}
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-500">金額</span>
-                <div className="flex items-baseline gap-1.5">
-                  <span
-                    className={`text-lg font-semibold ${
-                      selectedItem.kind === "expense"
-                        ? "text-red-600"
+                {isEditingAmount && (selectedItem.kind === "expense" || selectedItem.kind === "income") ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-slate-400">¥</span>
+                    <input
+                      type="number"
+                      min={1}
+                      value={editAmountValue}
+                      onChange={(e) => setEditAmountValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          const v = parseInt(editAmountValue, 10);
+                          if (v > 0) { handleUpdateAmount(selectedItem, v); setIsEditingAmount(false); }
+                        }
+                        if (e.key === "Escape") setIsEditingAmount(false);
+                      }}
+                      className="w-28 text-right text-base font-semibold border border-slate-300 rounded-lg px-2 py-0.5 focus:outline-none focus:border-sky-400"
+                      autoFocus
+                    />
+                    <button
+                      onClick={() => {
+                        const v = parseInt(editAmountValue, 10);
+                        if (v > 0) { handleUpdateAmount(selectedItem, v); setIsEditingAmount(false); }
+                      }}
+                      className="text-xs bg-slate-900 text-white px-2.5 py-1 rounded-lg"
+                    >
+                      確定
+                    </button>
+                    <button
+                      onClick={() => setIsEditingAmount(false)}
+                      className="text-xs text-slate-400 px-1 py-1"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-baseline gap-1.5">
+                    <span
+                      className={`text-lg font-semibold ${
+                        selectedItem.kind === "expense"
+                          ? "text-red-600"
+                          : selectedItem.kind === "income"
+                            ? "text-emerald-600"
+                            : "text-slate-900"
+                      }`}
+                    >
+                      {selectedItem.kind === "expense"
+                        ? "-"
                         : selectedItem.kind === "income"
-                          ? "text-emerald-600"
-                          : "text-slate-900"
-                    }`}
-                  >
-                    {selectedItem.kind === "expense"
-                      ? "-"
-                      : selectedItem.kind === "income"
-                        ? "+"
-                        : ""}
-                    ¥{formatYen(Math.abs(selectedItem.amount))}
-                  </span>
-                  {(() => {
-                    const bal = balances.find((b) => b.circleId === selectedItem.circleId);
-                    return bal ? (
-                      <span className="text-xs text-slate-400">
-                        （¥{formatYen(bal.balance)}）
-                      </span>
-                    ) : null;
-                  })()}
-                </div>
+                          ? "+"
+                          : ""}
+                      ¥{formatYen(Math.abs(selectedItem.amount))}
+                    </span>
+                    {(() => {
+                      const bal = balances.find((b) => b.circleId === selectedItem.circleId);
+                      return bal ? (
+                        <span className="text-xs text-slate-400">
+                          （¥{formatYen(bal.balance)}）
+                        </span>
+                      ) : null;
+                    })()}
+                    {canModifyItem(selectedItem) && (selectedItem.kind === "expense" || selectedItem.kind === "income") && (
+                      <button
+                        onClick={() => { setEditAmountValue(String(Math.abs(selectedItem.amount))); setIsEditingAmount(true); }}
+                        className="ml-1 text-[11px] text-slate-400 hover:text-sky-500 transition"
+                      >
+                        編集
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* 収入源（収入の場合） */}

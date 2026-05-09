@@ -14,7 +14,11 @@ export async function PATCH(
 
   const { id } = await params;
   const body = await request.json();
-  const { tags, autoTags, incomeDate } = body;
+  const { tags, autoTags, incomeDate, amount } = body;
+
+  if (amount !== undefined && (typeof amount !== "number" || amount <= 0 || !Number.isInteger(amount))) {
+    return NextResponse.json({ error: "amount must be a positive integer" }, { status: 400 });
+  }
 
   const income = await prisma.income.findUnique({ where: { id } });
   if (!income) {
@@ -33,9 +37,38 @@ export async function PATCH(
     return NextResponse.json({ error: "Permission denied" }, { status: 403 });
   }
 
+  // 金額変更時は残高・BalanceTransactionを更新
+  if (amount !== undefined && amount !== income.amount) {
+    const amountDiff = amount - income.amount;
+    const circleData = await prisma.circle.findUnique({
+      where: { id: income.circleId },
+      select: { currentBalance: true },
+    });
+    const balanceBefore = circleData!.currentBalance;
+    const balanceAfter = balanceBefore + amountDiff;
+
+    await prisma.circle.update({
+      where: { id: income.circleId },
+      data: { currentBalance: { increment: amountDiff } },
+    });
+
+    await prisma.balanceTransaction.create({
+      data: {
+        circleId: income.circleId,
+        userId: session.user.id,
+        type: "INCOME",
+        isDelete: false,
+        amount: amountDiff,
+        balanceBefore,
+        balanceAfter,
+      },
+    });
+  }
+
   const updated = await prisma.income.update({
     where: { id },
     data: {
+      ...(amount !== undefined && { amount }),
       ...(tags !== undefined && { tags }),
       ...(autoTags !== undefined && { autoTags }),
       ...(incomeDate !== undefined && { incomeDate: new Date(incomeDate) }),
