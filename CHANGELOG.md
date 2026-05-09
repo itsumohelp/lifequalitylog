@@ -8,12 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.0.64] - 2026-05-09
 
 ### Changed
-- **Dynamic quick-register buttons**: Replaced the fixed ¥500 / ¥1,000 / ¥2,000 quick buttons with up to 3 buttons showing the most recently registered amounts for each circle. Amounts are stored per circle in localStorage (no server required) and update immediately after each registration. Duplicate amounts are deduplicated; latest amount always appears first. Buttons are hidden until the first expense is registered.
+- **Dynamic quick-register buttons**: Replaced the fixed ¥500 / ¥1,000 / ¥2,000 quick buttons with up to 3 buttons showing the most-used amounts per circle. The last 30 registrations are stored in localStorage per circle; the top 3 by frequency (tiebroken by recency) are displayed in ascending order. Buttons update immediately after each registration and are hidden until the first expense is recorded.
 
 ---
 
 ### 変更
-- **クイック登録ボタンを動的化**: 固定の ¥500・¥1,000・¥2,000 ボタンを廃止し、サークルごとの直近登録金額（最大3件）を表示するよう変更。金額はlocalStorage（サークル単位）に保存され、登録のたびにリアルタイム更新。重複金額は排除し、最新が先頭に表示される。初回登録前はボタン非表示。
+- **クイック登録ボタンを動的化＆頻度ベースに改善**: 固定の ¥500・¥1,000・¥2,000 ボタンを廃止。直近30件の登録履歴をlocalStorage（サークル単位）に保存し、頻度の高い上位3件を金額昇順で表示。同頻度の場合は直近使用を優先。登録のたびにリアルタイム更新。初回登録前はボタン非表示。
 
 ---
 
