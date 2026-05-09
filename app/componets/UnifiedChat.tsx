@@ -221,6 +221,32 @@ function isLocalStorageAvailable(): boolean {
     return false;
   }
 }
+
+const QUICK_AMOUNTS_KEY_PREFIX = "quickAmounts_";
+
+function getRecentAmounts(circleId: string): number[] {
+  if (!isLocalStorageAvailable()) return [];
+  try {
+    const stored = localStorage.getItem(`${QUICK_AMOUNTS_KEY_PREFIX}${circleId}`);
+    if (!stored) return [];
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? parsed.slice(0, 3) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveRecentAmount(circleId: string, amount: number): number[] {
+  if (!isLocalStorageAvailable()) return [];
+  try {
+    const current = getRecentAmounts(circleId);
+    const updated = [amount, ...current.filter((a) => a !== amount)].slice(0, 3);
+    localStorage.setItem(`${QUICK_AMOUNTS_KEY_PREFIX}${circleId}`, JSON.stringify(updated));
+    return updated;
+  } catch {
+    return [];
+  }
+}
 const TIMELINE_VALUE = "__timeline__";
 
 export default function UnifiedChat({
@@ -300,6 +326,7 @@ export default function UnifiedChat({
   const [isWarikanLoading, setIsWarikanLoading] = useState(false);
   const [isWarikanPosting, setIsWarikanPosting] = useState(false);
   const [showActionMenu, setShowActionMenu] = useState(false);
+  const [recentAmounts, setRecentAmounts] = useState<number[]>([]);
 
   // 割り勘テンプレート
   type WarikanTemplate = { id: string; name: string; people: number; period: string; createdBy: string };
@@ -1220,6 +1247,11 @@ export default function UnifiedChat({
     }, 50);
   }, [selectedCircleId, filterCircleId]);
 
+  // サークル切り替え時にクイック登録ボタンを更新
+  useEffect(() => {
+    setRecentAmounts(getRecentAmounts(selectedCircleId));
+  }, [selectedCircleId]);
+
   // リアクションを遅延読み込み
   useEffect(() => {
     fetchReactions(feed);
@@ -1529,6 +1561,9 @@ export default function UnifiedChat({
           ),
           newItem,
         ]);
+
+        // 登録金額をlocalStorageに保存してクイックボタンを更新
+        setRecentAmounts(saveRecentAmount(selectedCircleId, data.expense.amount));
 
         // サークル残高と当月支出を更新（支出なので引く）
         setBalances((prev) =>
@@ -2631,13 +2666,13 @@ export default function UnifiedChat({
         const AI_CONSENT_KEY = "aiInsightConsented";
         const hasConsented = isLocalStorageAvailable() && localStorage.getItem(AI_CONSENT_KEY) === "true";
 
-        if (!showInsight && !hasThisMonthExpense) return null;
+        if (!showInsight && !hasThisMonthExpense && recentAmounts.length === 0) return null;
 
         return (
           <div className="flex-shrink-0 px-3 py-1.5 bg-slate-50 flex flex-wrap justify-center gap-2">
-            {autoTagEnabled && !isTimeline && (
+            {autoTagEnabled && !isTimeline && recentAmounts.length > 0 && (
               <>
-                {[500, 1000, 2000].map((amount) => (
+                {recentAmounts.map((amount) => (
                   <button
                     key={amount}
                     type="button"
