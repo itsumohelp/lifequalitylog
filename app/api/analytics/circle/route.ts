@@ -73,14 +73,17 @@ export async function GET(request: Request) {
   const balance = selectedCircle?.currentBalance ?? 0;
 
   const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const yearParam = searchParams.get("year");
+  const monthParam = searchParams.get("month");
+  const viewYear = yearParam ? parseInt(yearParam) : now.getFullYear();
+  const viewMonth = monthParam ? parseInt(monthParam) : now.getMonth() + 1;
 
-  const thirtyDaysAgo = new Date(now);
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
-  thirtyDaysAgo.setHours(0, 0, 0, 0);
-
-  const endOfToday = new Date(now);
-  endOfToday.setHours(23, 59, 59, 999);
+  const startOfPeriod = new Date(viewYear, viewMonth - 1, 1);
+  const isCurrentMonth =
+    viewYear === now.getFullYear() && viewMonth === now.getMonth() + 1;
+  const endOfPeriod = isCurrentMonth
+    ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999)
+    : new Date(viewYear, viewMonth, 0, 23, 59, 59, 999);
 
   const [
     monthlyExpenses,
@@ -89,33 +92,28 @@ export async function GET(request: Request) {
     dailyIncomes,
     dailySnapshots,
   ] = await Promise.all([
-    // 当月の支出（タグ付きで全件返す → クライアントでフィルタ）
     prisma.expense.findMany({
-      where: { circleId, expenseDate: { gte: startOfMonth } },
+      where: { circleId, expenseDate: { gte: startOfPeriod, lte: endOfPeriod } },
       select: { amount: true, tags: true, autoTags: true },
     }),
-    // 当月の収入合計
     prisma.income.aggregate({
-      where: { circleId, incomeDate: { gte: startOfMonth } },
+      where: { circleId, incomeDate: { gte: startOfPeriod, lte: endOfPeriod } },
       _sum: { amount: true },
     }),
-    // 過去30日の支出（タグ付き）
     prisma.expense.findMany({
-      where: { circleId, expenseDate: { gte: thirtyDaysAgo, lte: endOfToday } },
+      where: { circleId, expenseDate: { gte: startOfPeriod, lte: endOfPeriod } },
       select: { amount: true, tags: true, autoTags: true, expenseDate: true },
       orderBy: { expenseDate: "asc" },
     }),
-    // 過去30日の収入
     prisma.income.findMany({
-      where: { circleId, incomeDate: { gte: thirtyDaysAgo, lte: endOfToday } },
+      where: { circleId, incomeDate: { gte: startOfPeriod, lte: endOfPeriod } },
       select: { amount: true, incomeDate: true },
       orderBy: { incomeDate: "asc" },
     }),
-    // 過去30日の残高スナップショット
     prisma.circleSnapshot.findMany({
       where: {
         circleId,
-        snapshotDate: { gte: thirtyDaysAgo, lte: endOfToday },
+        snapshotDate: { gte: startOfPeriod, lte: endOfPeriod },
       },
       select: { amount: true, snapshotDate: true },
       orderBy: { snapshotDate: "asc" },

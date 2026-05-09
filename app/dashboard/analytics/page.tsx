@@ -51,13 +51,28 @@ function CalendarTab({ circles, initialCircleId }: { circles: CircleInfo[]; init
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [circleData, setCircleData] = useState<CircleData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const now = new Date();
+  const [viewYear, setViewYear] = useState(now.getFullYear());
+  const [viewMonth, setViewMonth] = useState(now.getMonth() + 1);
+
+  const isCurrentMonth = viewYear === now.getFullYear() && viewMonth === now.getMonth() + 1;
+
+  const goToPrevMonth = () => {
+    if (viewMonth === 1) { setViewYear(y => y - 1); setViewMonth(12); }
+    else setViewMonth(m => m - 1);
+  };
+  const goToNextMonth = () => {
+    if (isCurrentMonth) return;
+    if (viewMonth === 12) { setViewYear(y => y + 1); setViewMonth(1); }
+    else setViewMonth(m => m + 1);
+  };
 
   useEffect(() => {
     if (!selectedCircleId) return;
     setIsLoading(true);
     setSelectedTags(new Set());
     fetch(
-      `/api/analytics/circle?circleId=${encodeURIComponent(selectedCircleId)}`,
+      `/api/analytics/circle?circleId=${encodeURIComponent(selectedCircleId)}&year=${viewYear}&month=${viewMonth}`,
     )
       .then((r) => r.json())
       .then((data) => {
@@ -72,7 +87,7 @@ function CalendarTab({ circles, initialCircleId }: { circles: CircleInfo[]; init
         });
       })
       .finally(() => setIsLoading(false));
-  }, [selectedCircleId]);
+  }, [selectedCircleId, viewYear, viewMonth]);
 
   const filtered = useMemo(() => {
     if (!circleData) return null;
@@ -120,25 +135,26 @@ function CalendarTab({ circles, initialCircleId }: { circles: CircleInfo[]; init
   }, [circleData, selectedTags]);
 
   const calendarWeeks = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const start = new Date(today);
-    start.setDate(start.getDate() - 29);
-    const startSunday = new Date(start);
-    startSunday.setDate(start.getDate() - start.getDay());
+    const firstDay = new Date(viewYear, viewMonth - 1, 1);
+    const lastDay = new Date(viewYear, viewMonth, 0);
+    const startSunday = new Date(firstDay);
+    startSunday.setDate(firstDay.getDate() - firstDay.getDay());
+    const endSaturday = new Date(lastDay);
+    endSaturday.setDate(lastDay.getDate() + (6 - lastDay.getDay()));
     const weeks: (Date | null)[][] = [];
     const cursor = new Date(startSunday);
-    while (cursor <= today) {
+    while (cursor <= endSaturday) {
       const week: (Date | null)[] = [];
       for (let d = 0; d < 7; d++) {
         const day = new Date(cursor);
-        week.push(day < start || day > today ? null : day);
+        const inMonth = day.getMonth() === viewMonth - 1 && day.getFullYear() === viewYear;
+        week.push(inMonth ? day : null);
         cursor.setDate(cursor.getDate() + 1);
       }
       weeks.push(week);
     }
     return weeks;
-  }, []);
+  }, [viewYear, viewMonth]);
 
   const toDateKey = (d: Date) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -173,15 +189,30 @@ function CalendarTab({ circles, initialCircleId }: { circles: CircleInfo[]; init
         </div>
       ) : filtered ? (
         <>
-          {/* 月次サマリー */}
+          {/* 月ナビゲーション＋サマリー */}
           <div className="px-4">
-            <div className="text-[11px] text-slate-400 mb-2 font-medium">
-              {new Date().getFullYear()}年{new Date().getMonth() + 1}月
-              {selectedTags.size > 0 && (
-                <span className="ml-1 text-sky-500">
-                  {[...selectedTags].map((t) => `#${t}`).join(" ")}
-                </span>
-              )}
+            <div className="flex items-center justify-between mb-2">
+              <button
+                onClick={goToPrevMonth}
+                className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-200 text-slate-500 transition text-sm"
+              >
+                ←
+              </button>
+              <div className="text-[13px] font-semibold text-slate-700">
+                {viewYear}年{viewMonth}月
+                {selectedTags.size > 0 && (
+                  <span className="ml-1 text-[11px] text-sky-500 font-normal">
+                    {[...selectedTags].map((t) => `#${t}`).join(" ")}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={goToNextMonth}
+                disabled={isCurrentMonth}
+                className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-200 text-slate-500 transition text-sm disabled:opacity-30 disabled:cursor-default"
+              >
+                →
+              </button>
             </div>
             <div className="grid grid-cols-3 gap-2">
               <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-sm">
@@ -198,12 +229,13 @@ function CalendarTab({ circles, initialCircleId }: { circles: CircleInfo[]; init
               </div>
               <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-sm">
                 <div className="text-[10px] text-slate-400 mb-1">残高</div>
-                <div
-                  className={`text-sm font-bold ${filtered.balance >= 0 ? "text-emerald-600" : "text-red-600"}`}
-                >
-                  {filtered.balance >= 0 ? "" : "-"}
-                  {formatYenFull(filtered.balance)}
-                </div>
+                {isCurrentMonth ? (
+                  <div className={`text-sm font-bold ${filtered.balance >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+                    {filtered.balance >= 0 ? "" : "-"}{formatYenFull(filtered.balance)}
+                  </div>
+                ) : (
+                  <div className="text-sm font-bold text-slate-300">—</div>
+                )}
               </div>
             </div>
           </div>
@@ -466,7 +498,7 @@ function AnalyticsContent() {
                   : "text-slate-500"
               }`}
             >
-              当月の実績集計
+              カレンダー
             </button>
             <button
               onClick={() => setTab("monthly")}
