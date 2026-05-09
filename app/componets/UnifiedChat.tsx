@@ -2057,7 +2057,7 @@ export default function UnifiedChat({
 
         <div
           ref={scrollRef}
-          className="absolute inset-0 overflow-y-auto px-3 py-1 space-y-1 bg-slate-50"
+          className="absolute inset-0 overflow-y-auto overflow-x-hidden px-3 py-1 space-y-1 bg-slate-50"
         >
           {/* 以前の実績を取得ボタン（特定ウォレット表示時のみ） */}
           {filterCircleId && hasMoreHistory[filterCircleId] !== false && (
