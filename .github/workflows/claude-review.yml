@@ -2,6 +2,8 @@ name: Claude PR Review
 on:
   pull_request:
     types: [opened, synchronize]
+  issue_comment:
+    types: [created]
 
 permissions:
   contents: read
@@ -11,7 +13,12 @@ permissions:
 
 jobs:
   review:
-    if: github.actor != 'dependabot[bot]' && github.event.pull_request.user.type != 'Bot'
+    if: |
+      (github.event_name == 'pull_request' &&
+       github.actor != 'dependabot[bot]' &&
+       github.event.pull_request.user.type != 'Bot') ||
+      (github.event_name == 'issue_comment' &&
+       contains(github.event.comment.body, '@claude'))
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -24,7 +31,9 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
-            このPRの変更内容をレビューしてください。
+            このPRの差分のみをレビューしてください。リポジトリ全体を探索しないでください。
             バグ、セキュリティ問題、改善点があればPRにコメントとして投稿してください。
             問題がない場合もその旨をPRにコメントしてください。
+          claude_args: "--max-turns 5"
           use_sticky_comment: "true"
+          show_full_output: "true"
