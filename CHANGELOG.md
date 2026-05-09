@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.68] - 2026-05-09
+
+### Added
+- **Monthly performance report**: Added a `/api/analytics/monthly-report` endpoint that aggregates the current month's total expenses, total income, current balance, and daily snapshots per circle. A new `monthly_report` feed item type surfaces this data in the chat timeline with a purple avatar and "📊 今月の実績" header. The report is fetched on demand and automatically restored from localStorage on the next page load if already viewed today.
+
+---
+
+### 追加
+- **月次実績レポート**: 当月の支出合計・収入合計・現在残高・日次スナップショットをサークルごとに集計する `/api/analytics/monthly-report` エンドポイントを追加。タイムラインに新しい `monthly_report` フィードアイテムとして表示（紫アバター・「📊 今月の実績」ヘッダー）。オンデマンドで取得し、当日すでに確認済みの場合は次回ページ読み込み時に localStorage から自動復元する。
+
+---
+
 ## [0.0.67] - 2026-05-09
 
 ### Changed
