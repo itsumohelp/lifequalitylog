@@ -14,10 +14,10 @@ permissions:
 jobs:
   review:
     if: |
-      (github.event_name == 'pull_request' &&
-       github.actor != 'dependabot[bot]' &&
+      (github.event_name == 'pull_request' && 
+       github.actor != 'dependabot[bot]' && 
        github.event.pull_request.user.type != 'Bot') ||
-      (github.event_name == 'issue_comment' &&
+      (github.event_name == 'issue_comment' && 
        contains(github.event.comment.body, '@claude'))
     runs-on: ubuntu-latest
     steps:
@@ -34,6 +34,5 @@ jobs:
             このPRの差分のみをレビューしてください。リポジトリ全体を探索しないでください。
             バグ、セキュリティ問題、改善点があればPRにコメントとして投稿してください。
             問題がない場合もその旨をPRにコメントしてください。
-          claude_args: "--max-turns 5"
           use_sticky_comment: "true"
           show_full_output: "true"
