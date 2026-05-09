@@ -84,14 +84,18 @@ type FeedItem = {
 
 // 大分類タグ（時間帯別サジェスト）
 const CATEGORY_TAGS_BY_HOUR: Record<string, string[]> = {
-  morning: ["朝食", "カフェ", "コンビニ", "電車", "バス"],
-  lunch: ["ランチ", "外食", "カフェ", "コンビニ", "電車"],
-  afternoon: ["カフェ", "おやつ", "買い物", "スーパー", "電車"],
-  evening: ["夕食", "外食", "飲み会", "スーパー", "コンビニ"],
-  night: ["コンビニ", "外食", "タクシー", "飲み会"],
+  morning: ["食費", "朝食", "交通費", "カフェ", "コンビニ", "電車", "バス"],
+  lunch: ["食費", "ランチ", "外食", "交際費", "カフェ", "コンビニ", "交通費", "電車"],
+  afternoon: ["食費", "カフェ", "おやつ", "買い物", "スーパー", "交通費", "電車", "雑費"],
+  evening: ["食費", "夕食", "外食", "交際費", "飲み会", "スーパー", "コンビニ", "雑費"],
+  night: ["食費", "コンビニ", "外食", "交際費", "タクシー", "飲み会", "雑費"],
 };
 
 const ALL_CATEGORY_TAGS = [
+  "食費",
+  "交通費",
+  "交際費",
+  "雑費",
   "朝食",
   "ランチ",
   "夕食",
@@ -3909,9 +3913,9 @@ export default function UnifiedChat({
                     );
                   })()}
 
-                  {/* 既存タグから選択 */}
+                  {/* 既存タグから選択（カテゴリタグは除外） */}
                   {existingCircleTags.filter(
-                    (t) => !(selectedItem.tags || []).includes(t),
+                    (t) => !(selectedItem.tags || []).includes(t) && !ALL_CATEGORY_TAGS.includes(t),
                   ).length > 0 && (
                     <div>
                       <div className="text-[11px] text-slate-400 mb-1">
@@ -3919,7 +3923,7 @@ export default function UnifiedChat({
                       </div>
                       <div className="flex flex-wrap gap-1.5">
                         {existingCircleTags
-                          .filter((t) => !(selectedItem.tags || []).includes(t))
+                          .filter((t) => !(selectedItem.tags || []).includes(t) && !ALL_CATEGORY_TAGS.includes(t))
                           .map((tag, idx) => (
                             <button
                               key={idx}
