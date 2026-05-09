@@ -1,0 +1,72 @@
+name: Update CHANGELOG on merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [master]
+
+permissions:
+  contents: write
+
+jobs:
+  update-changelog:
+    if: github.event.pull_request.merged == true && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get PR diff
+        id: changes
+        run: |
+          BASE="${{ github.event.pull_request.base.sha }}"
+          HEAD="${{ github.sha }}"
+
+          DIFF=$(git diff "${BASE}" "${HEAD}" -- . \
+            ':(exclude)CHANGELOG.md' \
+            ':(exclude)*.lock' \
+            ':(exclude)package-lock.json' \
+            ':(exclude)yarn.lock' \
+            | head -c 12000)
+
+          {
+            echo "diff<<EOF"
+            echo "$DIFF"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Update CHANGELOG with Claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          direct_prompt: |
+            CHANGELOG.mdを更新してください。
+
+            ## PRタイトル
+            ${{ github.event.pull_request.title }}
+
+            ## PR本文
+            ${{ github.event.pull_request.body }}
+
+            ## 変更内容（git diff、最大12KB）
+            ${{ steps.changes.outputs.diff }}
+
+            ## 指示
+            - まずCHANGELOG.mdを読み、現在の最新バージョン番号を確認する
+            - パッチバージョンを+1した新しいエントリをファイル先頭のエントリの直前に挿入する
+            - 日付は ${{ github.event.pull_request.merged_at }} を使う（YYYY-MM-DD形式に変換）
+            - 既存の日英バイリンガル形式を必ず踏襲する（英語セクション → --- → 日本語セクション → ---）
+            - Keep a Changelog形式（Added / Changed / Fixed / Removed）を使う
+            - typoやコメント修正など些細な変更は省略してよい
+            - CHANGELOG.md以外のファイルは編集しないこと
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          git diff --staged --quiet && echo "No changes to commit" && exit 0
+          git commit -m "docs: auto-update CHANGELOG [skip ci]"
+          git push
