@@ -19,7 +19,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: anthropics/claude-code-action@v1
+      - name: Run Claude Review
+        uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          prompt: "このPRのコードをレビューして、問題点や改善点をコメントしてください。"
+          direct_prompt: |
+            このPRの変更内容をレビューしてください。
+            バグ、セキュリティ問題、改善点があればPRにコメントとして投稿してください。
+            問題がない場合もその旨をPRにコメントしてください。
