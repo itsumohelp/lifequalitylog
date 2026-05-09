@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.63] - 2026-05-02
+
+### Fixed
+- **Claimee picker missing**: Expense detail had no way to set a claimee when none was assigned. Added a member button list so tapping a member sets them as the claimee directly.
+
+### Changed
+- **Claimee section hidden for solo circles**: The 請求先 row is now suppressed when the circle has only one member.
+
+---
+
+### 修正
+- **請求先を設定できない**: 支出詳細で請求先が未設定のとき選択UIがなく登録不可だった。メンバーボタン一覧を追加し、タップで即登録できるよう修正。
+
+### 変更
+- **1人サークルでは請求欄を非表示**: サークルメンバーが1人のみの場合、請求先セクションを表示しないよう変更。
+
+---
+
 ## [0.0.62] - 2026-05-02
 
 ### Changed
