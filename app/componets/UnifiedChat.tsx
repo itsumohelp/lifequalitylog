@@ -222,15 +222,30 @@ function isLocalStorageAvailable(): boolean {
   }
 }
 
-const QUICK_AMOUNTS_KEY_PREFIX = "quickAmounts_";
+// v2: stores raw history (up to 30) for frequency-based top-3 computation
+const QUICK_AMOUNTS_KEY_PREFIX = "quickAmountsV2_";
+
+function computeTopAmounts(history: number[]): number[] {
+  if (history.length === 0) return [];
+  const freqMap = new Map<number, { count: number; lastIndex: number }>();
+  history.forEach((amount, index) => {
+    const existing = freqMap.get(amount);
+    freqMap.set(amount, { count: (existing?.count ?? 0) + 1, lastIndex: index });
+  });
+  return Array.from(freqMap.entries())
+    .sort((a, b) => b[1].count - a[1].count || b[1].lastIndex - a[1].lastIndex)
+    .slice(0, 3)
+    .map(([amount]) => amount)
+    .sort((a, b) => a - b);
+}
 
 function getRecentAmounts(circleId: string): number[] {
   if (!isLocalStorageAvailable()) return [];
   try {
     const stored = localStorage.getItem(`${QUICK_AMOUNTS_KEY_PREFIX}${circleId}`);
     if (!stored) return [];
-    const parsed = JSON.parse(stored);
-    return Array.isArray(parsed) ? parsed.slice(0, 3) : [];
+    const history = JSON.parse(stored);
+    return Array.isArray(history) ? computeTopAmounts(history) : [];
   } catch {
     return [];
   }
@@ -239,10 +254,15 @@ function getRecentAmounts(circleId: string): number[] {
 function saveRecentAmount(circleId: string, amount: number): number[] {
   if (!isLocalStorageAvailable()) return [];
   try {
-    const current = getRecentAmounts(circleId);
-    const updated = [amount, ...current.filter((a) => a !== amount)].slice(0, 3);
+    const stored = localStorage.getItem(`${QUICK_AMOUNTS_KEY_PREFIX}${circleId}`);
+    let history: number[] = [];
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) history = parsed;
+    }
+    const updated = [...history, amount].slice(-30);
     localStorage.setItem(`${QUICK_AMOUNTS_KEY_PREFIX}${circleId}`, JSON.stringify(updated));
-    return updated;
+    return computeTopAmounts(updated);
   } catch {
     return [];
   }
