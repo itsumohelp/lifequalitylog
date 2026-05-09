@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.69] - 2026-05-09
+
+### Changed
+- **Release draft workflow: remove branch filter**: Removed the `branches: [master]` filter from the `create-release-draft` workflow's `workflow_run` trigger so that release drafts are created regardless of the branch on which the changelog update runs.
+
+---
+
+### 変更
+- **リリースドラフトワークフロー: ブランチフィルタ削除**: `create-release-draft` ワークフローの `workflow_run` トリガーから `branches: [master]` フィルタを削除。チェンジログ更新がどのブランチで実行された場合でもリリースドラフトが作成されるようにした。
+
+---
+
 ## [0.0.68] - 2026-05-09
 
 ### Added
