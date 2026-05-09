@@ -29,3 +29,4 @@ jobs:
             問題がない場合もその旨をPRにコメントしてください。
           claude_args: "--dangerously-skip-permissions"
           use_sticky_comment: "true"
+          show_full_output: "true"
