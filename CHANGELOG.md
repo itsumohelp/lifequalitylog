@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.70] - 2026-05-20
+
+### Added
+- **Batch expense import API** (`POST /api/circles/[id]/batch-expense`): New endpoint for bulk-registering multiple expenses at once, intended for CSV imports and integrations with external accounting tools.
+- **Monthly summary API** (`GET /api/circles/[id]/monthly-summary`): New endpoint that returns a per-circle monthly aggregation report, including per-member expense totals, per-capita calculation, and target-user itemized breakdown.
+- **MemberUsecase**: New use-case class covering member lifecycle management — invitation acceptance, circle settings update, and monthly activity ranking.
+- **SettlementUsecase**: New use-case class for settlement-related domain logic.
+
+---
+
+### 追加
+- **一括支出インポートAPI** (`POST /api/circles/[id]/batch-expense`): 複数の支出を一括登録するエンドポイントを追加。CSVインポートや外部会計ツールとの連携を想定。
+- **月次サマリーAPI** (`GET /api/circles/[id]/monthly-summary`): サークル単位の月次集計レポートを返すエンドポイントを追加。メンバーごとの支出合計・一人あたり金額・対象ユーザーの明細内訳を含む。
+- **MemberUsecase**: サークルへの招待承認・設定変更・月次アクティビティランキングを管理するユースケースクラスを追加。
+- **SettlementUsecase**: 精算処理に関するドメインロジックを担うユースケースクラスを追加。
+
+---
+
 ## [0.0.69] - 2026-05-09
 
 ### Changed
