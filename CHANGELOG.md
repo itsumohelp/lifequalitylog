@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.71] - 2026-05-24
+
+### Added
+- **PaymentUsecase**: New use-case class supporting payment session initiation for Stripe, PayPay, and bank transfer; webhook-driven status and balance updates; and balance adjustments on payment completion or refund.
+- **AuditUsecase**: New use-case class that records operation history for expenses, income, member actions, and settings changes; provides admin-scoped log retrieval by date range; and includes a helper for diffing circle settings on update.
+- **CSV export endpoint** (`GET /api/reports/export`): New endpoint that outputs expense and income data for a specified period as CSV, formatted for import into external accounting tools.
+
+### Changed
+- **Input mode persistence across circle switches** (`UnifiedChat`): The selected input mode (expense / income / snapshot) is now saved to `localStorage` per circle and restored automatically when switching circles.
+
+### Removed
+- **Batch expense import API** (`POST /api/circles/[id]/batch-expense`): Removed due to lack of idempotency and transaction safety; superseded by the new CSV export workflow.
+- **Monthly summary API** (`GET /api/circles/[id]/monthly-summary`): Removed; contained N+1 queries, balance double-update, and missing audit-log recording.
+- **MemberUsecase**: Removed previous implementation; superseded by a revised version with corrected lifecycle handling.
+
+---
+
+### 追加
+- **PaymentUsecase**: Stripe・PayPay・銀行振込に対応した支払いセッション開始、Webhook によるステータス・残高の自動反映、支払い完了・返金時の残高更新処理を管理するユースケースクラスを追加。
+- **AuditUsecase**: 支出・収入・メンバー操作・設定変更の操作履歴記録、管理者向け期間指定ログ取得、サークル設定変更時の差分記録ヘルパーを管理するユースケースクラスを追加。
+- **CSVエクスポートエンドポイント** (`GET /api/reports/export`): 期間指定で支出・収入データをCSV出力し、外部会計ツールへの取り込みを想定したフォーマットで提供する新エンドポイントを追加。
+
+### 変更
+- **サークル切り替え時の入力モード保持** (`UnifiedChat`): 選択した入力モード（支出・収入・スナップショット）をサークルごとに `localStorage` へ保存し、サークル切り替え時に自動復元するよう変更。
+
+### 削除
+- **一括支出インポートAPI** (`POST /api/circles/[id]/batch-expense`): 冪等性・トランザクション安全性の欠如により削除。CSVエクスポートワークフローに置き換え。
+- **月次サマリーAPI** (`GET /api/circles/[id]/monthly-summary`): N+1クエリ・残高二重更新・監査ログ未記録の問題があったため削除。
+- **MemberUsecase**: 既存実装を削除。ライフサイクル処理を修正した新バージョンに置き換え。
+
+---
+
 ## [0.0.70] - 2026-05-20
 
 ### Added
