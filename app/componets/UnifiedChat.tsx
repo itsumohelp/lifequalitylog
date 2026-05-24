@@ -1404,9 +1404,17 @@ export default function UnifiedChat({
     }, 50);
   }, [selectedCircleId, filterCircleId]);
 
-  // サークル切り替え時にクイック登録ボタンを更新
+  // サークル切り替え時にクイック登録ボタンと入力モードを更新
   useEffect(() => {
     setRecentAmounts(getRecentAmounts(selectedCircleId));
+    if (isLocalStorageAvailable() && selectedCircleId && selectedCircleId !== TIMELINE_VALUE) {
+      const saved = localStorage.getItem(`inputMode_${selectedCircleId}`);
+      if (saved === "expense" || saved === "income" || saved === "snapshot") {
+        setInputMode(saved);
+      } else {
+        setInputMode("expense");
+      }
+    }
   }, [selectedCircleId]);
 
   // リアクションを遅延読み込み
@@ -3045,7 +3053,10 @@ export default function UnifiedChat({
               <div className="flex-shrink-0 flex bg-slate-100 rounded-lg p-0.5">
                 <button
                   type="button"
-                  onClick={() => setInputMode("expense")}
+                  onClick={() => {
+                    setInputMode("expense");
+                    if (isLocalStorageAvailable() && selectedCircleId) localStorage.setItem(`inputMode_${selectedCircleId}`, "expense");
+                  }}
                   className={`px-2 py-1.5 text-[10px] font-medium rounded-md transition ${
                     inputMode === "expense"
                       ? "bg-white text-slate-900 shadow-sm"
@@ -3056,7 +3067,10 @@ export default function UnifiedChat({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setInputMode("income")}
+                  onClick={() => {
+                    setInputMode("income");
+                    if (isLocalStorageAvailable() && selectedCircleId) localStorage.setItem(`inputMode_${selectedCircleId}`, "income");
+                  }}
                   className={`px-2 py-1.5 text-[10px] font-medium rounded-md transition ${
                     inputMode === "income"
                       ? "bg-white text-slate-900 shadow-sm"
@@ -3067,7 +3081,10 @@ export default function UnifiedChat({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setInputMode("snapshot")}
+                  onClick={() => {
+                    setInputMode("snapshot");
+                    if (isLocalStorageAvailable() && selectedCircleId) localStorage.setItem(`inputMode_${selectedCircleId}`, "snapshot");
+                  }}
                   className={`px-2 py-1.5 text-[10px] font-medium rounded-md transition ${
                     inputMode === "snapshot"
                       ? "bg-white text-slate-900 shadow-sm"
