@@ -1,0 +1,41 @@
+name: Claude on Vertex AI
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write  # WIFに必須
+
+jobs:
+  call-claude:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: 'projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+          service_account: 'github-actions-claude@PROJECT_ID.iam.gserviceaccount.com'
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Call Claude on Vertex AI
+        run: |
+          ACCESS_TOKEN=$(gcloud auth print-access-token)
+          
+          curl -X POST \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "https://us-east5-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/us-east5/publishers/anthropic/models/claude-opus-4-5@20251101:rawPredict" \
+            -d '{
+              "anthropic_version": "vertex-2023-10-16",
+              "max_tokens": 1024,
+              "messages": [
+                {"role": "user", "content": "Hello, Claude!"}
+              ]
+            }'
