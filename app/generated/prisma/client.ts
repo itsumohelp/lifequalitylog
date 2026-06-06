@@ -140,6 +140,11 @@ export type Notification = Prisma.NotificationModel
  */
 export type Notice = Prisma.NoticeModel
 /**
+ * Model PersonaProfile
+ * 
+ */
+export type PersonaProfile = Prisma.PersonaProfileModel
+/**
  * Model WarikanTemplate
  * 
  */

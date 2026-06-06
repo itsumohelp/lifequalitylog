@@ -65,6 +65,7 @@ type FeedItem = {
   userId: string;
   userName: string;
   userImage: string | null;
+  isAiPersona?: boolean;
   amount: number;
   circleBalanceAfter?: number; // この操作後のサークル残高
   snapshotDiff?: number | null; // 前回残高との差分（null = 初回）
@@ -2190,7 +2191,7 @@ export default function UnifiedChat({
                 <div className="space-y-0.5">
                   {items.map((item, idx) => {
                     const isOwnMessage =
-                      item.kind !== "insight" && item.kind !== "monthly_report" && item.userId === currentUserId;
+                      item.kind !== "insight" && item.kind !== "monthly_report" && !item.isAiPersona && item.userId === currentUserId;
                     const prevItem = idx > 0 ? items[idx - 1] : null;
                     const isSameUserAsPrev =
                       prevItem && prevItem.userId === item.userId;
@@ -2206,7 +2207,7 @@ export default function UnifiedChat({
                         {isSameUserAsPrev ? (
                           <div className="w-8 flex-shrink-0" />
                         ) : (
-                          <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                          <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 relative">
                             {item.userImage ? (
                               <Image
                                 src={item.userImage}
@@ -2233,6 +2234,11 @@ export default function UnifiedChat({
                                   ? "📊"
                                   : getAvatarInitial(item.userName)}
                               </div>
+                            )}
+                            {item.isAiPersona && (
+                              <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-sky-500 rounded-full flex items-center justify-center text-white leading-none" style={{ fontSize: "7px" }}>
+                                AI
+                              </span>
                             )}
                           </div>
                         )}
