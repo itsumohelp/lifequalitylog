@@ -354,14 +354,15 @@ model Notice {
 }
 
 model PersonaProfile {
-  id          String   @id @default(cuid())
-  userId      String   @unique @map("user_id")
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  personaKey  String   @unique @map("persona_key")
-  circleId    String   @map("circle_id")
-  activatedAt DateTime @map("activated_at")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt     @map("updated_at")
+  id            String   @id @default(cuid())
+  userId        String   @unique @map("user_id")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  personaKey    String   @unique @map("persona_key")
+  circleId      String   @map("circle_id")
+  activatedAt   DateTime @map("activated_at")
+  personaConfig Json?    @map("persona_config") // AI生成ペルソナの定義（null = 静的定義）
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt     @map("updated_at")
   @@map("persona_profiles")
 }
 

@@ -2,7 +2,7 @@
  * ペルソナ投稿エンジン
  * 人間らしい揺らぎを加えた支出・収入データを生成する。
  */
-import { PersonaDef, ExpenseCategoryKey, PERSONA_MAP } from "@/data/personas";
+import { PersonaDef, ExpenseCategoryKey, PERSONA_MAP, PostSchedule } from "@/data/personas";
 
 // ──────────────────────────────────────────
 // 投稿判定
@@ -12,7 +12,7 @@ import { PersonaDef, ExpenseCategoryKey, PERSONA_MAP } from "@/data/personas";
  * この5分枠でペルソナが投稿するかどうかを確率で判定する。
  * アクティブ時間帯・投稿頻度・日次ムラを考慮する。
  */
-export function shouldPostNow(def: PersonaDef, jstHour: number): boolean {
+export function shouldPostNow(def: PostSchedule, jstHour: number): boolean {
   const isActiveHour = def.activeHours.includes(jstHour);
   // 1日あたりのアクティブ5分枠数
   const activeSlotsPerDay = def.activeHours.length * 12;

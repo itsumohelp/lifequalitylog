@@ -2372,6 +2372,7 @@ export const PersonaProfileScalarFieldEnum = {
   personaKey: 'personaKey',
   circleId: 'circleId',
   activatedAt: 'activatedAt',
+  personaConfig: 'personaConfig',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

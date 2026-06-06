@@ -50,6 +50,7 @@ export type PersonaProfileCountAggregateOutputType = {
   personaKey: number
   circleId: number
   activatedAt: number
+  personaConfig: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -82,6 +83,7 @@ export type PersonaProfileCountAggregateInputType = {
   personaKey?: true
   circleId?: true
   activatedAt?: true
+  personaConfig?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -165,6 +167,7 @@ export type PersonaProfileGroupByOutputType = {
   personaKey: string
   circleId: string
   activatedAt: Date
+  personaConfig: runtime.JsonValue | null
   createdAt: Date
   updatedAt: Date
   _count: PersonaProfileCountAggregateOutputType | null
@@ -196,6 +199,7 @@ export type PersonaProfileWhereInput = {
   personaKey?: Prisma.StringFilter<"PersonaProfile"> | string
   circleId?: Prisma.StringFilter<"PersonaProfile"> | string
   activatedAt?: Prisma.DateTimeFilter<"PersonaProfile"> | Date | string
+  personaConfig?: Prisma.JsonNullableFilter<"PersonaProfile">
   createdAt?: Prisma.DateTimeFilter<"PersonaProfile"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PersonaProfile"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -207,6 +211,7 @@ export type PersonaProfileOrderByWithRelationInput = {
   personaKey?: Prisma.SortOrder
   circleId?: Prisma.SortOrder
   activatedAt?: Prisma.SortOrder
+  personaConfig?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
@@ -221,6 +226,7 @@ export type PersonaProfileWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.PersonaProfileWhereInput | Prisma.PersonaProfileWhereInput[]
   circleId?: Prisma.StringFilter<"PersonaProfile"> | string
   activatedAt?: Prisma.DateTimeFilter<"PersonaProfile"> | Date | string
+  personaConfig?: Prisma.JsonNullableFilter<"PersonaProfile">
   createdAt?: Prisma.DateTimeFilter<"PersonaProfile"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PersonaProfile"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -232,6 +238,7 @@ export type PersonaProfileOrderByWithAggregationInput = {
   personaKey?: Prisma.SortOrder
   circleId?: Prisma.SortOrder
   activatedAt?: Prisma.SortOrder
+  personaConfig?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.PersonaProfileCountOrderByAggregateInput
@@ -248,6 +255,7 @@ export type PersonaProfileScalarWhereWithAggregatesInput = {
   personaKey?: Prisma.StringWithAggregatesFilter<"PersonaProfile"> | string
   circleId?: Prisma.StringWithAggregatesFilter<"PersonaProfile"> | string
   activatedAt?: Prisma.DateTimeWithAggregatesFilter<"PersonaProfile"> | Date | string
+  personaConfig?: Prisma.JsonNullableWithAggregatesFilter<"PersonaProfile">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PersonaProfile"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"PersonaProfile"> | Date | string
 }
@@ -257,6 +265,7 @@ export type PersonaProfileCreateInput = {
   personaKey: string
   circleId: string
   activatedAt: Date | string
+  personaConfig?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutPersonaProfileInput
@@ -268,6 +277,7 @@ export type PersonaProfileUncheckedCreateInput = {
   personaKey: string
   circleId: string
   activatedAt: Date | string
+  personaConfig?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -277,6 +287,7 @@ export type PersonaProfileUpdateInput = {
   personaKey?: Prisma.StringFieldUpdateOperationsInput | string
   circleId?: Prisma.StringFieldUpdateOperationsInput | string
   activatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  personaConfig?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutPersonaProfileNestedInput
@@ -288,6 +299,7 @@ export type PersonaProfileUncheckedUpdateInput = {
   personaKey?: Prisma.StringFieldUpdateOperationsInput | string
   circleId?: Prisma.StringFieldUpdateOperationsInput | string
   activatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  personaConfig?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -298,6 +310,7 @@ export type PersonaProfileCreateManyInput = {
   personaKey: string
   circleId: string
   activatedAt: Date | string
+  personaConfig?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -307,6 +320,7 @@ export type PersonaProfileUpdateManyMutationInput = {
   personaKey?: Prisma.StringFieldUpdateOperationsInput | string
   circleId?: Prisma.StringFieldUpdateOperationsInput | string
   activatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  personaConfig?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -317,6 +331,7 @@ export type PersonaProfileUncheckedUpdateManyInput = {
   personaKey?: Prisma.StringFieldUpdateOperationsInput | string
   circleId?: Prisma.StringFieldUpdateOperationsInput | string
   activatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  personaConfig?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -332,6 +347,7 @@ export type PersonaProfileCountOrderByAggregateInput = {
   personaKey?: Prisma.SortOrder
   circleId?: Prisma.SortOrder
   activatedAt?: Prisma.SortOrder
+  personaConfig?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -393,6 +409,7 @@ export type PersonaProfileCreateWithoutUserInput = {
   personaKey: string
   circleId: string
   activatedAt: Date | string
+  personaConfig?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -402,6 +419,7 @@ export type PersonaProfileUncheckedCreateWithoutUserInput = {
   personaKey: string
   circleId: string
   activatedAt: Date | string
+  personaConfig?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -427,6 +445,7 @@ export type PersonaProfileUpdateWithoutUserInput = {
   personaKey?: Prisma.StringFieldUpdateOperationsInput | string
   circleId?: Prisma.StringFieldUpdateOperationsInput | string
   activatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  personaConfig?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -436,6 +455,7 @@ export type PersonaProfileUncheckedUpdateWithoutUserInput = {
   personaKey?: Prisma.StringFieldUpdateOperationsInput | string
   circleId?: Prisma.StringFieldUpdateOperationsInput | string
   activatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  personaConfig?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -448,6 +468,7 @@ export type PersonaProfileSelect<ExtArgs extends runtime.Types.Extensions.Intern
   personaKey?: boolean
   circleId?: boolean
   activatedAt?: boolean
+  personaConfig?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -459,6 +480,7 @@ export type PersonaProfileSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   personaKey?: boolean
   circleId?: boolean
   activatedAt?: boolean
+  personaConfig?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -470,6 +492,7 @@ export type PersonaProfileSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   personaKey?: boolean
   circleId?: boolean
   activatedAt?: boolean
+  personaConfig?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -481,11 +504,12 @@ export type PersonaProfileSelectScalar = {
   personaKey?: boolean
   circleId?: boolean
   activatedAt?: boolean
+  personaConfig?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type PersonaProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "personaKey" | "circleId" | "activatedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["personaProfile"]>
+export type PersonaProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "personaKey" | "circleId" | "activatedAt" | "personaConfig" | "createdAt" | "updatedAt", ExtArgs["result"]["personaProfile"]>
 export type PersonaProfileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -507,6 +531,7 @@ export type $PersonaProfilePayload<ExtArgs extends runtime.Types.Extensions.Inte
     personaKey: string
     circleId: string
     activatedAt: Date
+    personaConfig: runtime.JsonValue | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["personaProfile"]>
@@ -938,6 +963,7 @@ export interface PersonaProfileFieldRefs {
   readonly personaKey: Prisma.FieldRef<"PersonaProfile", 'String'>
   readonly circleId: Prisma.FieldRef<"PersonaProfile", 'String'>
   readonly activatedAt: Prisma.FieldRef<"PersonaProfile", 'DateTime'>
+  readonly personaConfig: Prisma.FieldRef<"PersonaProfile", 'Json'>
   readonly createdAt: Prisma.FieldRef<"PersonaProfile", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"PersonaProfile", 'DateTime'>
 }

@@ -4,6 +4,28 @@
  * daysAfterLaunch で段階的にサービスへ参加させ、自然なユーザー増加を演出する。
  */
 
+/**
+ * 投稿スケジュール判定に必要な最小インターフェース。
+ * PersonaDef と PersonaConfig 両方が満たす。
+ */
+export type PostSchedule = {
+  postFreqPerDay: number;
+  activeHours: number[];
+};
+
+/**
+ * Vertex AI が動的生成するペルソナ設定。PersonaProfile.personaConfig に格納。
+ */
+export type PersonaConfig = PostSchedule & {
+  name: string;
+  displayName: string;
+  age: number;
+  gender: "male" | "female";
+  familyType: string;
+  personalityTags: string[];
+  description: string;
+};
+
 export type ExpenseCategoryKey =
   | "FOOD"
   | "DAILY"
