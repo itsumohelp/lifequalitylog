@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.73] - 2026-06-06
+
+### Added
+- **Persona management page** (`/admin/personas`): New admin page that lists all AI persona profiles with their avatar, age, gender, family type, personality tags, post frequency, post count, circle balance, and a link to the persona's public timeline.
+- **Navigation link between admin pages**: Added a mutual navigation link between the admin notices page and the new persona management page.
+
+### Changed
+- **Cron job structured logging** (`daily`, `persona-generate`, `persona-post`): All three cron job routes now emit a structured JSON log line on completion, including job name, key counters (activated, created, posted, skipped, failed), and a `hasNew` / `hasPost` flag for easier log filtering.
+- **Chat message layout fix** (`PublicFeed`): Added `flex flex-col` and explicit `items-start` / `items-end` alignment to the message wrapper so own and others' messages align correctly.
+
+---
+
+### 追加
+- **ペルソナ管理ページ** (`/admin/personas`): AIペルソナプロフィールを一覧表示する管理者ページを追加。アバター・年齢・性別・家族構成・性格タグ・投稿頻度・投稿数・サークル残高、および公開タイムラインへのリンクを表示。
+- **管理ページ間ナビゲーション**: お知らせ管理ページとペルソナ管理ページ間を相互に移動できるリンクを追加。
+
+### 変更
+- **Cronジョブの構造化ログ出力** (`daily`・`persona-generate`・`persona-post`): 3つのCronジョブルートが完了時に構造化JSONログを出力するよう変更。ジョブ名・主要カウンター（activated・created・posted・skipped・failed）・`hasNew`/`hasPost`フラグを含み、ログ検索が容易になった。
+- **チャットメッセージレイアウト修正** (`PublicFeed`): メッセージラッパーに `flex flex-col` と明示的な `items-start`/`items-end` 配置を追加し、自分と相手のメッセージが正しく整列するよう修正。
+
+---
+
 ## [0.0.72] - 2026-06-06
 
 ### Added
