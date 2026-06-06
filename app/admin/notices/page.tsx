@@ -142,9 +142,15 @@ export default function AdminNoticesPage() {
 
   return (
     <div className="max-w-xl mx-auto px-4 py-8">
-      <h1 className="text-xl font-bold text-slate-900 mb-6">
-        運営からのお知らせ 管理
-      </h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-xl font-bold text-slate-900">運営からのお知らせ 管理</h1>
+        <a
+          href="/admin/personas"
+          className="text-xs text-slate-500 border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50"
+        >
+          ペルソナ管理 →
+        </a>
+      </div>
 
       {/* AIジョブ手動実行 */}
       <section className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-8">
