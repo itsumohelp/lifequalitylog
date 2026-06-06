@@ -176,5 +176,15 @@ export async function POST(req: NextRequest) {
     salaryPosted.push(def.key);
   }
 
+  console.log(JSON.stringify({
+    job: "daily",
+    daysSinceLaunch,
+    jstDate: jstDayOfMonth,
+    activated: activated.length,
+    activatedKeys: activated,
+    salaryPosted: salaryPosted.length,
+    salaryPostedKeys: salaryPosted,
+  }));
+
   return NextResponse.json({ activated, salaryPosted, daysSinceLaunch });
 }
