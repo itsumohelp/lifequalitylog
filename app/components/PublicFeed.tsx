@@ -404,7 +404,7 @@ export default function PublicFeed({
 
                     {/* メッセージ部分 */}
                     <div
-                      className={`max-w-[70%] ${isOwnMessage ? "items-end" : ""}`}
+                      className={`max-w-[70%] flex flex-col ${isOwnMessage ? "items-end" : "items-start"}`}
                     >
                       {/* 投稿者名（バブルの上、連続投稿時は非表示） */}
                       {!isSameUserAsPrev && (
@@ -417,191 +417,109 @@ export default function PublicFeed({
                         </div>
                       )}
 
-                      {/* メッセージバブル */}
-                      <div
-                        className={`rounded-2xl px-3 py-1.5 text-left ${
-                          isOwnMessage
-                            ? "bg-slate-900 text-white rounded-tr-sm"
-                            : "bg-white border border-slate-200 rounded-tl-sm"
-                        }`}
-                      >
-                        {/* 時刻（バブル内上部） */}
-                        <div className="flex items-center gap-2 mb-1">
-                          <span
-                            className={`text-[10px] ${
-                              isOwnMessage ? "text-slate-500" : "text-slate-400"
-                            }`}
-                          >
-                            {formatTime(item.createdAt)}
-                          </span>
+                      {/* メッセージバブル（relative で👍ボタンをオーバーレイ） */}
+                      <div className={`relative ${isOwnMessage ? "mr-5" : "ml-0"}`}>
+                        <div
+                          className={`rounded-2xl px-3 py-1.5 text-left ${
+                            isOwnMessage
+                              ? "bg-slate-900 text-white rounded-tr-sm"
+                              : "bg-white border border-slate-200 rounded-tl-sm"
+                          }`}
+                        >
+                          {/* 時刻 */}
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className={`text-[10px] ${isOwnMessage ? "text-slate-500" : "text-slate-400"}`}>
+                              {formatTime(item.createdAt)}
+                            </span>
+                          </div>
+
+                          {item.kind === "expense" ? (
+                            <>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="text-sm">
+                                  {getCategoryEmoji((item.category || "OTHER") as ExpenseCategory)}
+                                </span>
+                                <span className={`font-semibold text-sm ${isOwnMessage ? "text-red-300" : "text-red-600"}`}>
+                                  ¥{formatYen(item.amount)}
+                                </span>
+                                {item.circleBalanceAfter !== undefined && (
+                                  <span className={`text-xs ${isOwnMessage ? "text-slate-400" : "text-slate-500"}`}>
+                                    (¥{formatYen(item.circleBalanceAfter)})
+                                  </span>
+                                )}
+                                {item.tags && item.tags.map((tag, tagIdx) => (
+                                  <span
+                                    key={tagIdx}
+                                    className={`text-[10px] px-2 py-0.5 rounded-full ${isOwnMessage ? "bg-sky-600 text-sky-100" : "bg-sky-50 text-sky-500"}`}
+                                  >
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            </>
+                          ) : item.kind === "income" ? (
+                            <>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="text-sm">💰</span>
+                                <span className={`font-semibold text-sm ${isOwnMessage ? "text-emerald-300" : "text-emerald-600"}`}>
+                                  +¥{formatYen(item.amount)}
+                                </span>
+                                {item.tags && item.tags.map((tag, tagIdx) => (
+                                  <span
+                                    key={tagIdx}
+                                    className={`text-[10px] px-2 py-0.5 rounded-full ${isOwnMessage ? "bg-emerald-600 text-emerald-100" : "bg-emerald-50 text-emerald-600"}`}
+                                  >
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className={`font-semibold text-sm ${isOwnMessage ? "text-white" : "text-slate-900"}`}>
+                                  ¥{formatYen(item.amount)}
+                                </span>
+                                {item.snapshotDiff !== undefined && (
+                                  <span className={`text-xs ${isOwnMessage ? "text-slate-400" : "text-slate-500"}`}>
+                                    {item.snapshotDiff === null
+                                      ? "(-)"
+                                      : item.snapshotDiff >= 0
+                                        ? `(+¥${formatYen(item.snapshotDiff)})`
+                                        : `(-¥${formatYen(Math.abs(item.snapshotDiff))})`}
+                                  </span>
+                                )}
+                              </div>
+                              {item.note && (
+                                <p className={`text-[10px] mt-0.5 ${isOwnMessage ? "text-slate-300" : "text-slate-600"}`}>
+                                  {item.note}
+                                </p>
+                              )}
+                            </>
+                          )}
                         </div>
 
-                        {item.kind === "expense" ? (
-                          <>
-                            {/* カテゴリ絵文字 + 金額 + 残高 + タグバッジ */}
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="text-sm">
-                                {getCategoryEmoji(
-                                  (item.category || "OTHER") as ExpenseCategory,
-                                )}
-                              </span>
-                              <span
-                                className={`font-semibold text-sm ${
-                                  isOwnMessage ? "text-red-300" : "text-red-600"
-                                }`}
-                              >
-                                ¥{formatYen(item.amount)}
-                              </span>
-                              {item.circleBalanceAfter !== undefined && (
-                                <span
-                                  className={`text-xs ${
-                                    isOwnMessage
-                                      ? "text-slate-400"
-                                      : "text-slate-500"
-                                  }`}
-                                >
-                                  (¥{formatYen(item.circleBalanceAfter)})
-                                </span>
-                              )}
-                              {item.tags && item.tags.length > 0 && (
-                                <>
-                                  {item.tags.map((tag, tagIdx) => (
-                                    <span
-                                      key={tagIdx}
-                                      className={`text-[10px] px-2 py-0.5 rounded-full ${
-                                        isOwnMessage
-                                          ? "bg-sky-600 text-sky-100"
-                                          : "bg-sky-100 text-sky-700"
-                                      }`}
-                                    >
-                                      {tag}
-                                    </span>
-                                  ))}
-                                </>
-                              )}
-                            </div>
-                          </>
-                        ) : item.kind === "income" ? (
-                          <>
-                            {/* 収入 */}
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="text-sm">💰</span>
-                              <span
-                                className={`font-semibold text-sm ${
-                                  isOwnMessage
-                                    ? "text-emerald-300"
-                                    : "text-emerald-600"
-                                }`}
-                              >
-                                +¥{formatYen(item.amount)}
-                              </span>
-                              {item.tags && item.tags.length > 0 && (
-                                <>
-                                  {item.tags.map((tag, tagIdx) => (
-                                    <span
-                                      key={tagIdx}
-                                      className={`text-[10px] px-2 py-0.5 rounded-full ${
-                                        isOwnMessage
-                                          ? "bg-emerald-600 text-emerald-100"
-                                          : "bg-emerald-100 text-emerald-700"
-                                      }`}
-                                    >
-                                      {tag}
-                                    </span>
-                                  ))}
-                                </>
-                              )}
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            {/* 残高スナップショット */}
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span
-                                className={`font-semibold text-sm ${
-                                  isOwnMessage ? "text-white" : "text-slate-900"
-                                }`}
-                              >
-                                ¥{formatYen(item.amount)}
-                              </span>
-                              {item.snapshotDiff !== undefined && (
-                                <span
-                                  className={`text-xs ${
-                                    isOwnMessage
-                                      ? "text-slate-400"
-                                      : "text-slate-500"
-                                  }`}
-                                >
-                                  {item.snapshotDiff === null
-                                    ? "(-)"
-                                    : item.snapshotDiff >= 0
-                                      ? `(+¥${formatYen(item.snapshotDiff)})`
-                                      : `(-¥${formatYen(Math.abs(item.snapshotDiff))})`}
-                                </span>
-                              )}
-                            </div>
-                            {item.note && (
-                              <p
-                                className={`text-[10px] mt-0.5 ${
-                                  isOwnMessage
-                                    ? "text-slate-300"
-                                    : "text-slate-600"
-                                }`}
-                              >
-                                {item.note}
-                              </p>
-                            )}
-                          </>
-                        )}
-                      </div>
-
-                      {/* リアクションボタン */}
-                      <div
-                        className={`flex items-center gap-1 mt-1 ${
-                          isOwnMessage ? "justify-end" : "justify-start"
-                        }`}
-                      >
-                        {(
-                          ["CHECK", "GOOD", "BAD", "DOGEZA"] as ReactionType[]
-                        ).map((type) => {
-                          const count = reactionData?.counts[type] || 0;
-                          const hasReacted =
-                            reactionData?.userReactions.includes(type);
-                          const isToggling =
-                            togglingReaction === `${item.id}:${type}`;
-                          const emoji =
-                            type === "CHECK"
-                              ? "✅"
-                              : type === "GOOD"
-                                ? "👍"
-                                : type === "BAD"
-                                  ? "👎"
-                                  : "🙇";
-
+                        {/* 👍 ボタン（バブル右下オーバーレイ・個人フィードと同じ位置） */}
+                        {(() => {
+                          const goodCount = reactionData?.counts["GOOD"] || 0;
+                          const hasReacted = reactionData?.userReactions.includes("GOOD");
+                          const isToggling = togglingReaction === `${item.id}:GOOD`;
                           return (
                             <button
-                              key={type}
                               type="button"
-                              onClick={() => toggleReaction(item, type)}
-                              disabled={
-                                isLoggedIn &&
-                                (reactionsLoading || !!togglingReaction)
-                              }
-                              className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs transition ${
+                              onClick={() => toggleReaction(item, "GOOD")}
+                              disabled={reactionsLoading || !!togglingReaction}
+                              className={`absolute -bottom-[9px] -right-[23px] z-10 w-8 h-8 rounded-full flex flex-col items-center justify-center shadow border transition ${
                                 hasReacted
-                                  ? "bg-slate-700 text-white"
-                                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                              } ${reactionsLoading || isToggling ? "opacity-50" : ""}`}
+                                  ? "bg-slate-700 text-white border-slate-700"
+                                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                              } ${isToggling ? "opacity-50" : ""}`}
                             >
-                              <span className="text-[11px]">{emoji}</span>
-                              {count > 0 && (
-                                <span className="text-[10px] min-w-[12px] text-center">
-                                  {count}
-                                </span>
-                              )}
+                              <span className="text-sm leading-none">👍</span>
+                              <span className="text-[9px] font-medium leading-none">{goodCount > 0 ? goodCount : ""}</span>
                             </button>
                           );
-                        })}
+                        })()}
                       </div>
                     </div>
                   </div>

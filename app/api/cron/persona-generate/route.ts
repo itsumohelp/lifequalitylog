@@ -57,6 +57,7 @@ export async function POST(req: NextRequest) {
 
   const count = pickCount();
   if (count === 0) {
+    console.log(JSON.stringify({ job: "persona-generate", planned: 0, created: 0, hasNew: false }));
     return NextResponse.json({ created: [], skipped: true });
   }
 
@@ -147,6 +148,14 @@ export async function POST(req: NextRequest) {
       console.error("Failed to generate or save persona:", err);
     }
   }
+
+  console.log(JSON.stringify({
+    job: "persona-generate",
+    planned: count,
+    created: created.length,
+    createdNames: created,
+    hasNew: created.length > 0,
+  }));
 
   return NextResponse.json({ created, count: created.length });
 }

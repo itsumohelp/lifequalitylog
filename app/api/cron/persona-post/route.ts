@@ -201,5 +201,15 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  console.log(JSON.stringify({
+    job: "persona-post",
+    jstHour,
+    activePersonas: profiles.length,
+    posted: posted.length,
+    skipped: skipped.length,
+    failed: failed.length,
+    hasPost: posted.length > 0,
+  }));
+
   return NextResponse.json({ posted, skipped, failed, jstHour });
 }
