@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.72] - 2026-06-06
+
+### Added
+- **Analysis page** (`/analysis`): New public statistics page that aggregates and visualizes platform-wide data — total users, circles, posts, and expense amounts; category breakdown with percentage bars; 6-month expense trend chart; top tags ranking; reaction type breakdown; and hourly posting distribution.
+- **AI job manual trigger UI** (admin notices page): Added a panel to the admin notices page for manually triggering scheduled AI jobs (persona-post, daily, persona-generate) with per-job status feedback and result summaries.
+
+---
+
+### 追加
+- **分析ページ** (`/analysis`): プラットフォーム全体のデータを集計・可視化する公開統計ページを追加。総ユーザー数・サークル数・投稿数・支出金額のサマリー、カテゴリ別支出の割合バー、直近6ヶ月の支出推移、タグランキング、リアクション内訳、時間帯別投稿分布を表示。
+- **AIジョブ手動実行UI**（管理者お知らせページ）: 管理者お知らせページにAIジョブ（ペルソナ投稿・日次ジョブ・ペルソナ生成）を手動トリガーできるパネルを追加。ジョブごとの実行状態と結果サマリーをリアルタイムで表示。
+
+---
+
 ## [0.0.71] - 2026-05-24
 
 ### Added
