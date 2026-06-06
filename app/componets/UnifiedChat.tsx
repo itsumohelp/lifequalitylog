@@ -14,6 +14,7 @@ import type {
 import MiniBalanceChart, {
   type BalanceDataPoint,
 } from "@/app/componets/MiniBalanceChart";
+import { ALL_CATEGORY_TAGS } from "@/lib/tags";
 
 type ReactionData = {
   counts: Record<ReactionType, number>;
@@ -107,42 +108,6 @@ const CATEGORY_TAGS_BY_HOUR: Record<string, string[]> = {
   evening: ["食費", "夕食", "外食", "交際費", "飲み会", "スーパー", "コンビニ", "雑費"],
   night: ["食費", "コンビニ", "外食", "交際費", "タクシー", "飲み会", "雑費"],
 };
-
-const ALL_CATEGORY_TAGS = [
-  "食費",
-  "交通費",
-  "交際費",
-  "雑費",
-  "朝食",
-  "ランチ",
-  "夕食",
-  "外食",
-  "カフェ",
-  "コンビニ",
-  "スーパー",
-  "飲み会",
-  "おやつ",
-  "電車",
-  "バス",
-  "タクシー",
-  "ガソリン",
-  "日用品",
-  "消耗品",
-  "娯楽",
-  "映画",
-  "ゲーム",
-  "本",
-  "美容院",
-  "薬",
-  "ジム",
-  "医療",
-  "衣料",
-  "スマホ",
-  "通信",
-  "給与",
-  "ボーナス",
-  "副収入",
-];
 
 type WarikanPayload = {
   type: "WARIKAN";
@@ -4077,7 +4042,7 @@ export default function UnifiedChat({
 
                   {/* 既存タグから選択（カテゴリタグは除外） */}
                   {existingCircleTags.filter(
-                    (t) => !(selectedItem.tags || []).includes(t) && !ALL_CATEGORY_TAGS.includes(t),
+                    (t) => !(selectedItem.tags || []).includes(t) && !(ALL_CATEGORY_TAGS as readonly string[]).includes(t),
                   ).length > 0 && (
                     <div>
                       <div className="text-[11px] text-slate-400 mb-1">
@@ -4085,7 +4050,7 @@ export default function UnifiedChat({
                       </div>
                       <div className="flex flex-wrap gap-1.5">
                         {existingCircleTags
-                          .filter((t) => !(selectedItem.tags || []).includes(t) && !ALL_CATEGORY_TAGS.includes(t))
+                          .filter((t) => !(selectedItem.tags || []).includes(t) && !(ALL_CATEGORY_TAGS as readonly string[]).includes(t))
                           .map((tag, idx) => (
                             <button
                               key={idx}

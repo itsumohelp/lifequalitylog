@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { ALL_CATEGORY_TAGS } from "@/lib/tags";
 
 const CATEGORY_LABELS: Record<string, string> = {
   FOOD: "食費",
@@ -114,11 +115,14 @@ export default async function AnalysisPage() {
   }));
   const maxMonthly = Math.max(...monthlyTrend.map((m) => m.total), 1);
 
-  // タグ集計
+  // タグ集計（テンプレートタグのみ）
+  const templateTagSet = new Set<string>(ALL_CATEGORY_TAGS);
   const tagCounts = new Map<string, number>();
   for (const e of recentForTags) {
     for (const tag of e.tags) {
-      if (tag) tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+      if (tag && templateTagSet.has(tag)) {
+        tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+      }
     }
   }
   const topTags = [...tagCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 16);
