@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import Header from "@/app/componets/Header";
 import CapacitorDeepLink from "@/app/components/CapacitorDeepLink";
 import WebViewGuard from "@/app/components/WebViewGuard";
+import TrophyNotifier from "@/app/components/TrophyNotifier";
 import { GoogleAnalytics } from "@next/third-parties/google";
 
 const notoSansJP = Noto_Sans_JP({
@@ -54,6 +55,7 @@ export default async function RootLayout({
         </div>
         <CapacitorDeepLink />
         <WebViewGuard />
+        <TrophyNotifier />
       </body>
       <GoogleAnalytics gaId="G-64XWZ672CX" />
     </html>

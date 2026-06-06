@@ -86,6 +86,7 @@ model User {
   autoTagEnabled Boolean   @default(false) @map("auto_tag_enabled")
   isAiPersona   Boolean   @default(false) @map("is_ai_persona")
   personaProfile PersonaProfile?
+  userTrophies   UserTrophy[]
   accounts      Account[]
   sessions      Session[]
   circleMembers CircleMember[]
@@ -364,6 +365,17 @@ model PersonaProfile {
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt     @map("updated_at")
   @@map("persona_profiles")
+}
+
+model UserTrophy {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trophyKey String   @map("trophy_key")
+  earnedAt  DateTime @default(now()) @map("earned_at")
+  @@unique([userId, trophyKey])
+  @@index([userId])
+  @@map("user_trophies")
 }
 
 model WarikanTemplate {

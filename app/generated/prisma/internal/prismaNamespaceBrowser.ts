@@ -72,6 +72,7 @@ export const ModelName = {
   Notification: 'Notification',
   Notice: 'Notice',
   PersonaProfile: 'PersonaProfile',
+  UserTrophy: 'UserTrophy',
   WarikanTemplate: 'WarikanTemplate'
 } as const
 
@@ -377,6 +378,16 @@ export const PersonaProfileScalarFieldEnum = {
 } as const
 
 export type PersonaProfileScalarFieldEnum = (typeof PersonaProfileScalarFieldEnum)[keyof typeof PersonaProfileScalarFieldEnum]
+
+
+export const UserTrophyScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  trophyKey: 'trophyKey',
+  earnedAt: 'earnedAt'
+} as const
+
+export type UserTrophyScalarFieldEnum = (typeof UserTrophyScalarFieldEnum)[keyof typeof UserTrophyScalarFieldEnum]
 
 
 export const WarikanTemplateScalarFieldEnum = {

@@ -1681,6 +1681,7 @@ export default function UnifiedChat({
 
         // 登録後にミニチャートを表示
         setShowMiniChart(true);
+        window.dispatchEvent(new CustomEvent("expense-posted"));
 
         // 一時的なアイテム（集計・ヘルプ・招待）を削除して新しいアイテムを追加
         setFeed((prev) => [
