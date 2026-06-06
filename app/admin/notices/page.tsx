@@ -11,6 +11,48 @@ type Notice = {
   createdAt: string;
 };
 
+type JobStatus = "idle" | "loading" | "ok" | "error";
+
+type JobResult = {
+  // persona-post
+  posted?: string[];
+  skipped?: string[];
+  failed?: string[];
+  jstHour?: number;
+  // daily
+  activated?: string[];
+  salaryPosted?: string[];
+  daysSinceLaunch?: number;
+  // persona-generate
+  created?: string[];
+  count?: number;
+  skippedGen?: boolean;
+};
+
+const JOBS = [
+  {
+    key: "persona-post" as const,
+    label: "ペルソナ投稿",
+    desc: "アクティブなペルソナがVertex AIで支出を生成して投稿",
+    interval: "5分ごと",
+    color: "sky",
+  },
+  {
+    key: "daily" as const,
+    label: "日次ジョブ",
+    desc: "新規ペルソナの活性化・給与収入の登録",
+    interval: "毎日1回",
+    color: "emerald",
+  },
+  {
+    key: "persona-generate" as const,
+    label: "ペルソナ生成",
+    desc: "Vertex AIが新しいペルソナをランダム生成しDBに追加",
+    interval: "1時間ごと",
+    color: "violet",
+  },
+] as const;
+
 export default function AdminNoticesPage() {
   const [notices, setNotices] = useState<Notice[]>([]);
   const [title, setTitle] = useState("");
@@ -18,6 +60,34 @@ export default function AdminNoticesPage() {
   const [link, setLink] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // AIジョブ管理
+  const [jobStatuses, setJobStatuses] = useState<Record<string, JobStatus>>({});
+  const [jobResults, setJobResults] = useState<Record<string, JobResult>>({});
+  const [jobErrors, setJobErrors] = useState<Record<string, string>>({});
+
+  const runJob = async (jobKey: string) => {
+    setJobStatuses((prev) => ({ ...prev, [jobKey]: "loading" }));
+    setJobResults((prev) => ({ ...prev, [jobKey]: {} }));
+    setJobErrors((prev) => ({ ...prev, [jobKey]: "" }));
+
+    try {
+      const res = await fetch("/api/admin/cron-trigger", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ job: jobKey }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.result?.error ?? data.error ?? "エラーが発生しました");
+      }
+      setJobResults((prev) => ({ ...prev, [jobKey]: data.result ?? {} }));
+      setJobStatuses((prev) => ({ ...prev, [jobKey]: "ok" }));
+    } catch (e) {
+      setJobErrors((prev) => ({ ...prev, [jobKey]: (e as Error).message }));
+      setJobStatuses((prev) => ({ ...prev, [jobKey]: "error" }));
+    }
+  };
 
   const load = async () => {
     const res = await fetch("/api/admin/notices");
@@ -75,6 +145,76 @@ export default function AdminNoticesPage() {
       <h1 className="text-xl font-bold text-slate-900 mb-6">
         運営からのお知らせ 管理
       </h1>
+
+      {/* AIジョブ手動実行 */}
+      <section className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-8">
+        <h2 className="text-sm font-semibold text-slate-700 mb-3">AIジョブ 手動実行</h2>
+        <div className="space-y-3">
+          {JOBS.map((job) => {
+            const status = jobStatuses[job.key] ?? "idle";
+            const result = jobResults[job.key];
+            const err = jobErrors[job.key];
+
+            const colorMap: Record<string, string> = {
+              sky: "bg-sky-600 hover:bg-sky-700 disabled:bg-sky-300",
+              emerald: "bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300",
+              violet: "bg-violet-600 hover:bg-violet-700 disabled:bg-violet-300",
+            };
+
+            return (
+              <div key={job.key} className="bg-white border border-slate-200 rounded-lg p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-800">{job.label}</p>
+                    <p className="text-xs text-slate-500">{job.desc}</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">通常: {job.interval}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => runJob(job.key)}
+                    disabled={status === "loading"}
+                    className={`flex-shrink-0 text-xs text-white px-3 py-1.5 rounded-lg font-medium transition ${colorMap[job.color]}`}
+                  >
+                    {status === "loading" ? "実行中..." : "実行"}
+                  </button>
+                </div>
+
+                {/* 結果表示 */}
+                {status === "ok" && result && (
+                  <div className="mt-2 text-[11px] text-slate-600 bg-slate-50 rounded px-2 py-1.5 space-y-0.5">
+                    {job.key === "persona-post" && (
+                      <>
+                        <p>投稿: {result.posted?.length ?? 0}件 ({result.posted?.join(", ") || "なし"})</p>
+                        <p>スキップ: {result.skipped?.length ?? 0}件 / 失敗: {result.failed?.length ?? 0}件</p>
+                        <p>実行時刻: {result.jstHour}時台 (JST)</p>
+                      </>
+                    )}
+                    {job.key === "daily" && (
+                      <>
+                        <p>活性化: {result.activated?.join(", ") || "なし"}</p>
+                        <p>給与登録: {result.salaryPosted?.join(", ") || "なし"}</p>
+                        <p>サービス開始から {result.daysSinceLaunch} 日目</p>
+                      </>
+                    )}
+                    {job.key === "persona-generate" && (
+                      <>
+                        {result.skippedGen
+                          ? <p className="text-slate-400">今回は生成なし（確率により）</p>
+                          : <p>生成: {result.created?.join(", ") || "なし"} ({result.count}人)</p>
+                        }
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {status === "error" && err && (
+                  <p className="mt-2 text-[11px] text-red-600 bg-red-50 rounded px-2 py-1.5">{err}</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
 
       {/* 作成フォーム */}
       <form
