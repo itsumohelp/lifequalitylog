@@ -405,6 +405,7 @@ export const ModelName = {
   Notification: 'Notification',
   Notice: 'Notice',
   PersonaProfile: 'PersonaProfile',
+  UserTrophy: 'UserTrophy',
   WarikanTemplate: 'WarikanTemplate'
 } as const
 
@@ -421,7 +422,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "appLog" | "todo" | "record" | "account" | "session" | "user" | "verificationToken" | "circle" | "circleMember" | "snapshot" | "circleSnapshot" | "monthlySnapshot" | "expense" | "income" | "balanceTransaction" | "reaction" | "iosAuthToken" | "userInsight" | "notification" | "notice" | "personaProfile" | "warikanTemplate"
+    modelProps: "appLog" | "todo" | "record" | "account" | "session" | "user" | "verificationToken" | "circle" | "circleMember" | "snapshot" | "circleSnapshot" | "monthlySnapshot" | "expense" | "income" | "balanceTransaction" | "reaction" | "iosAuthToken" | "userInsight" | "notification" | "notice" | "personaProfile" | "userTrophy" | "warikanTemplate"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1979,6 +1980,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    UserTrophy: {
+      payload: Prisma.$UserTrophyPayload<ExtArgs>
+      fields: Prisma.UserTrophyFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.UserTrophyFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserTrophyPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.UserTrophyFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserTrophyPayload>
+        }
+        findFirst: {
+          args: Prisma.UserTrophyFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserTrophyPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.UserTrophyFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserTrophyPayload>
+        }
+        findMany: {
+          args: Prisma.UserTrophyFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserTrophyPayload>[]
+        }
+        create: {
+          args: Prisma.UserTrophyCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserTrophyPayload>
+        }
+        createMany: {
+          args: Prisma.UserTrophyCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.UserTrophyCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserTrophyPayload>[]
+        }
+        delete: {
+          args: Prisma.UserTrophyDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserTrophyPayload>
+        }
+        update: {
+          args: Prisma.UserTrophyUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserTrophyPayload>
+        }
+        deleteMany: {
+          args: Prisma.UserTrophyDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.UserTrophyUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.UserTrophyUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserTrophyPayload>[]
+        }
+        upsert: {
+          args: Prisma.UserTrophyUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserTrophyPayload>
+        }
+        aggregate: {
+          args: Prisma.UserTrophyAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateUserTrophy>
+        }
+        groupBy: {
+          args: Prisma.UserTrophyGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserTrophyGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.UserTrophyCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserTrophyCountAggregateOutputType> | number
+        }
+      }
+    }
     WarikanTemplate: {
       payload: Prisma.$WarikanTemplatePayload<ExtArgs>
       fields: Prisma.WarikanTemplateFieldRefs
@@ -2380,6 +2455,16 @@ export const PersonaProfileScalarFieldEnum = {
 export type PersonaProfileScalarFieldEnum = (typeof PersonaProfileScalarFieldEnum)[keyof typeof PersonaProfileScalarFieldEnum]
 
 
+export const UserTrophyScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  trophyKey: 'trophyKey',
+  earnedAt: 'earnedAt'
+} as const
+
+export type UserTrophyScalarFieldEnum = (typeof UserTrophyScalarFieldEnum)[keyof typeof UserTrophyScalarFieldEnum]
+
+
 export const WarikanTemplateScalarFieldEnum = {
   id: 'id',
   circleId: 'circleId',
@@ -2686,6 +2771,7 @@ export type GlobalOmitConfig = {
   notification?: Prisma.NotificationOmit
   notice?: Prisma.NoticeOmit
   personaProfile?: Prisma.PersonaProfileOmit
+  userTrophy?: Prisma.UserTrophyOmit
   warikanTemplate?: Prisma.WarikanTemplateOmit
 }
 

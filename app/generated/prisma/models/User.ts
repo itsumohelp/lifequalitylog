@@ -215,6 +215,7 @@ export type UserWhereInput = {
   isAiPersona?: Prisma.BoolFilter<"User"> | boolean
   notifLastReadAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   personaProfile?: Prisma.XOR<Prisma.PersonaProfileNullableScalarRelationFilter, Prisma.PersonaProfileWhereInput> | null
+  userTrophies?: Prisma.UserTrophyListRelationFilter
   accounts?: Prisma.AccountListRelationFilter
   sessions?: Prisma.SessionListRelationFilter
   circleMembers?: Prisma.CircleMemberListRelationFilter
@@ -240,6 +241,7 @@ export type UserOrderByWithRelationInput = {
   isAiPersona?: Prisma.SortOrder
   notifLastReadAt?: Prisma.SortOrderInput | Prisma.SortOrder
   personaProfile?: Prisma.PersonaProfileOrderByWithRelationInput
+  userTrophies?: Prisma.UserTrophyOrderByRelationAggregateInput
   accounts?: Prisma.AccountOrderByRelationAggregateInput
   sessions?: Prisma.SessionOrderByRelationAggregateInput
   circleMembers?: Prisma.CircleMemberOrderByRelationAggregateInput
@@ -268,6 +270,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   isAiPersona?: Prisma.BoolFilter<"User"> | boolean
   notifLastReadAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   personaProfile?: Prisma.XOR<Prisma.PersonaProfileNullableScalarRelationFilter, Prisma.PersonaProfileWhereInput> | null
+  userTrophies?: Prisma.UserTrophyListRelationFilter
   accounts?: Prisma.AccountListRelationFilter
   sessions?: Prisma.SessionListRelationFilter
   circleMembers?: Prisma.CircleMemberListRelationFilter
@@ -323,6 +326,7 @@ export type UserCreateInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
@@ -348,6 +352,7 @@ export type UserUncheckedCreateInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
@@ -373,6 +378,7 @@ export type UserUpdateInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
@@ -398,6 +404,7 @@ export type UserUncheckedUpdateInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -668,6 +675,20 @@ export type UserUpdateOneRequiredWithoutPersonaProfileNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPersonaProfileInput, Prisma.UserUpdateWithoutPersonaProfileInput>, Prisma.UserUncheckedUpdateWithoutPersonaProfileInput>
 }
 
+export type UserCreateNestedOneWithoutUserTrophiesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutUserTrophiesInput, Prisma.UserUncheckedCreateWithoutUserTrophiesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutUserTrophiesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutUserTrophiesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutUserTrophiesInput, Prisma.UserUncheckedCreateWithoutUserTrophiesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutUserTrophiesInput
+  upsert?: Prisma.UserUpsertWithoutUserTrophiesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutUserTrophiesInput, Prisma.UserUpdateWithoutUserTrophiesInput>, Prisma.UserUncheckedUpdateWithoutUserTrophiesInput>
+}
+
 export type UserCreateNestedOneWithoutWarikanTemplatesInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutWarikanTemplatesInput, Prisma.UserUncheckedCreateWithoutWarikanTemplatesInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutWarikanTemplatesInput
@@ -693,6 +714,7 @@ export type UserCreateWithoutAccountsInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
   snapshots?: Prisma.SnapshotCreateNestedManyWithoutUserInput
@@ -717,6 +739,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
   snapshots?: Prisma.SnapshotUncheckedCreateNestedManyWithoutUserInput
@@ -757,6 +780,7 @@ export type UserUpdateWithoutAccountsInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
   snapshots?: Prisma.SnapshotUpdateManyWithoutUserNestedInput
@@ -781,6 +805,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
   snapshots?: Prisma.SnapshotUncheckedUpdateManyWithoutUserNestedInput
@@ -805,6 +830,7 @@ export type UserCreateWithoutSessionsInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
   snapshots?: Prisma.SnapshotCreateNestedManyWithoutUserInput
@@ -829,6 +855,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
   snapshots?: Prisma.SnapshotUncheckedCreateNestedManyWithoutUserInput
@@ -869,6 +896,7 @@ export type UserUpdateWithoutSessionsInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
   snapshots?: Prisma.SnapshotUpdateManyWithoutUserNestedInput
@@ -893,6 +921,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
   snapshots?: Prisma.SnapshotUncheckedUpdateManyWithoutUserNestedInput
@@ -917,6 +946,7 @@ export type UserCreateWithoutCircleMembersInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   snapshots?: Prisma.SnapshotCreateNestedManyWithoutUserInput
@@ -941,6 +971,7 @@ export type UserUncheckedCreateWithoutCircleMembersInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   snapshots?: Prisma.SnapshotUncheckedCreateNestedManyWithoutUserInput
@@ -981,6 +1012,7 @@ export type UserUpdateWithoutCircleMembersInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   snapshots?: Prisma.SnapshotUpdateManyWithoutUserNestedInput
@@ -1005,6 +1037,7 @@ export type UserUncheckedUpdateWithoutCircleMembersInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   snapshots?: Prisma.SnapshotUncheckedUpdateManyWithoutUserNestedInput
@@ -1029,6 +1062,7 @@ export type UserCreateWithoutSnapshotsInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
@@ -1053,6 +1087,7 @@ export type UserUncheckedCreateWithoutSnapshotsInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
@@ -1093,6 +1128,7 @@ export type UserUpdateWithoutSnapshotsInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
@@ -1117,6 +1153,7 @@ export type UserUncheckedUpdateWithoutSnapshotsInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -1141,6 +1178,7 @@ export type UserCreateWithoutCircleSnapshotsInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
@@ -1165,6 +1203,7 @@ export type UserUncheckedCreateWithoutCircleSnapshotsInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
@@ -1205,6 +1244,7 @@ export type UserUpdateWithoutCircleSnapshotsInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
@@ -1229,6 +1269,7 @@ export type UserUncheckedUpdateWithoutCircleSnapshotsInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -1253,6 +1294,7 @@ export type UserCreateWithoutExpensesInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
@@ -1277,6 +1319,7 @@ export type UserUncheckedCreateWithoutExpensesInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
@@ -1306,6 +1349,7 @@ export type UserCreateWithoutClaimedExpensesInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
@@ -1330,6 +1374,7 @@ export type UserUncheckedCreateWithoutClaimedExpensesInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
@@ -1370,6 +1415,7 @@ export type UserUpdateWithoutExpensesInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
@@ -1394,6 +1440,7 @@ export type UserUncheckedUpdateWithoutExpensesInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -1429,6 +1476,7 @@ export type UserUpdateWithoutClaimedExpensesInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
@@ -1453,6 +1501,7 @@ export type UserUncheckedUpdateWithoutClaimedExpensesInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -1477,6 +1526,7 @@ export type UserCreateWithoutIncomesInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
@@ -1501,6 +1551,7 @@ export type UserUncheckedCreateWithoutIncomesInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
@@ -1541,6 +1592,7 @@ export type UserUpdateWithoutIncomesInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
@@ -1565,6 +1617,7 @@ export type UserUncheckedUpdateWithoutIncomesInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -1589,6 +1642,7 @@ export type UserCreateWithoutBalanceTransactionsInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
@@ -1613,6 +1667,7 @@ export type UserUncheckedCreateWithoutBalanceTransactionsInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
@@ -1653,6 +1708,7 @@ export type UserUpdateWithoutBalanceTransactionsInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
@@ -1677,6 +1733,7 @@ export type UserUncheckedUpdateWithoutBalanceTransactionsInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -1701,6 +1758,7 @@ export type UserCreateWithoutReactionsInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
@@ -1725,6 +1783,7 @@ export type UserUncheckedCreateWithoutReactionsInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
@@ -1765,6 +1824,7 @@ export type UserUpdateWithoutReactionsInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
@@ -1789,6 +1849,7 @@ export type UserUncheckedUpdateWithoutReactionsInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -1813,6 +1874,7 @@ export type UserCreateWithoutNotificationsInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
@@ -1837,6 +1899,7 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
@@ -1877,6 +1940,7 @@ export type UserUpdateWithoutNotificationsInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
@@ -1901,6 +1965,7 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -1924,6 +1989,7 @@ export type UserCreateWithoutPersonaProfileInput = {
   autoTagEnabled?: boolean
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
+  userTrophies?: Prisma.UserTrophyCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
@@ -1948,6 +2014,7 @@ export type UserUncheckedCreateWithoutPersonaProfileInput = {
   autoTagEnabled?: boolean
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
+  userTrophies?: Prisma.UserTrophyUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
@@ -1988,6 +2055,7 @@ export type UserUpdateWithoutPersonaProfileInput = {
   autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  userTrophies?: Prisma.UserTrophyUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
@@ -2012,6 +2080,123 @@ export type UserUncheckedUpdateWithoutPersonaProfileInput = {
   autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  userTrophies?: Prisma.UserTrophyUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
+  snapshots?: Prisma.SnapshotUncheckedUpdateManyWithoutUserNestedInput
+  circleSnapshots?: Prisma.CircleSnapshotUncheckedUpdateManyWithoutUserNestedInput
+  expenses?: Prisma.ExpenseUncheckedUpdateManyWithoutUserNestedInput
+  claimedExpenses?: Prisma.ExpenseUncheckedUpdateManyWithoutClaimeeNestedInput
+  incomes?: Prisma.IncomeUncheckedUpdateManyWithoutUserNestedInput
+  reactions?: Prisma.ReactionUncheckedUpdateManyWithoutUserNestedInput
+  balanceTransactions?: Prisma.BalanceTransactionUncheckedUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
+  warikanTemplates?: Prisma.WarikanTemplateUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutUserTrophiesInput = {
+  id?: string
+  name?: string | null
+  displayName?: string | null
+  email?: string | null
+  emailVerified?: Date | string | null
+  image?: string | null
+  autoTagEnabled?: boolean
+  isAiPersona?: boolean
+  notifLastReadAt?: Date | string | null
+  personaProfile?: Prisma.PersonaProfileCreateNestedOneWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
+  snapshots?: Prisma.SnapshotCreateNestedManyWithoutUserInput
+  circleSnapshots?: Prisma.CircleSnapshotCreateNestedManyWithoutUserInput
+  expenses?: Prisma.ExpenseCreateNestedManyWithoutUserInput
+  claimedExpenses?: Prisma.ExpenseCreateNestedManyWithoutClaimeeInput
+  incomes?: Prisma.IncomeCreateNestedManyWithoutUserInput
+  reactions?: Prisma.ReactionCreateNestedManyWithoutUserInput
+  balanceTransactions?: Prisma.BalanceTransactionCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
+  warikanTemplates?: Prisma.WarikanTemplateCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutUserTrophiesInput = {
+  id?: string
+  name?: string | null
+  displayName?: string | null
+  email?: string | null
+  emailVerified?: Date | string | null
+  image?: string | null
+  autoTagEnabled?: boolean
+  isAiPersona?: boolean
+  notifLastReadAt?: Date | string | null
+  personaProfile?: Prisma.PersonaProfileUncheckedCreateNestedOneWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
+  snapshots?: Prisma.SnapshotUncheckedCreateNestedManyWithoutUserInput
+  circleSnapshots?: Prisma.CircleSnapshotUncheckedCreateNestedManyWithoutUserInput
+  expenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutUserInput
+  claimedExpenses?: Prisma.ExpenseUncheckedCreateNestedManyWithoutClaimeeInput
+  incomes?: Prisma.IncomeUncheckedCreateNestedManyWithoutUserInput
+  reactions?: Prisma.ReactionUncheckedCreateNestedManyWithoutUserInput
+  balanceTransactions?: Prisma.BalanceTransactionUncheckedCreateNestedManyWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
+  warikanTemplates?: Prisma.WarikanTemplateUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutUserTrophiesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutUserTrophiesInput, Prisma.UserUncheckedCreateWithoutUserTrophiesInput>
+}
+
+export type UserUpsertWithoutUserTrophiesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutUserTrophiesInput, Prisma.UserUncheckedUpdateWithoutUserTrophiesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutUserTrophiesInput, Prisma.UserUncheckedCreateWithoutUserTrophiesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutUserTrophiesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutUserTrophiesInput, Prisma.UserUncheckedUpdateWithoutUserTrophiesInput>
+}
+
+export type UserUpdateWithoutUserTrophiesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  personaProfile?: Prisma.PersonaProfileUpdateOneWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
+  snapshots?: Prisma.SnapshotUpdateManyWithoutUserNestedInput
+  circleSnapshots?: Prisma.CircleSnapshotUpdateManyWithoutUserNestedInput
+  expenses?: Prisma.ExpenseUpdateManyWithoutUserNestedInput
+  claimedExpenses?: Prisma.ExpenseUpdateManyWithoutClaimeeNestedInput
+  incomes?: Prisma.IncomeUpdateManyWithoutUserNestedInput
+  reactions?: Prisma.ReactionUpdateManyWithoutUserNestedInput
+  balanceTransactions?: Prisma.BalanceTransactionUpdateManyWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
+  warikanTemplates?: Prisma.WarikanTemplateUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutUserTrophiesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  displayName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  autoTagEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  personaProfile?: Prisma.PersonaProfileUncheckedUpdateOneWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -2037,6 +2222,7 @@ export type UserCreateWithoutWarikanTemplatesInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberCreateNestedManyWithoutUserInput
@@ -2061,6 +2247,7 @@ export type UserUncheckedCreateWithoutWarikanTemplatesInput = {
   isAiPersona?: boolean
   notifLastReadAt?: Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedCreateNestedOneWithoutUserInput
+  userTrophies?: Prisma.UserTrophyUncheckedCreateNestedManyWithoutUserInput
   accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
   circleMembers?: Prisma.CircleMemberUncheckedCreateNestedManyWithoutUserInput
@@ -2101,6 +2288,7 @@ export type UserUpdateWithoutWarikanTemplatesInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUpdateManyWithoutUserNestedInput
@@ -2125,6 +2313,7 @@ export type UserUncheckedUpdateWithoutWarikanTemplatesInput = {
   isAiPersona?: Prisma.BoolFieldUpdateOperationsInput | boolean
   notifLastReadAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   personaProfile?: Prisma.PersonaProfileUncheckedUpdateOneWithoutUserNestedInput
+  userTrophies?: Prisma.UserTrophyUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   circleMembers?: Prisma.CircleMemberUncheckedUpdateManyWithoutUserNestedInput
@@ -2144,6 +2333,7 @@ export type UserUncheckedUpdateWithoutWarikanTemplatesInput = {
  */
 
 export type UserCountOutputType = {
+  userTrophies: number
   accounts: number
   sessions: number
   circleMembers: number
@@ -2159,6 +2349,7 @@ export type UserCountOutputType = {
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  userTrophies?: boolean | UserCountOutputTypeCountUserTrophiesArgs
   accounts?: boolean | UserCountOutputTypeCountAccountsArgs
   sessions?: boolean | UserCountOutputTypeCountSessionsArgs
   circleMembers?: boolean | UserCountOutputTypeCountCircleMembersArgs
@@ -2181,6 +2372,13 @@ export type UserCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
    * Select specific fields to fetch from the UserCountOutputType
    */
   select?: Prisma.UserCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountUserTrophiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.UserTrophyWhereInput
 }
 
 /**
@@ -2279,6 +2477,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   isAiPersona?: boolean
   notifLastReadAt?: boolean
   personaProfile?: boolean | Prisma.User$personaProfileArgs<ExtArgs>
+  userTrophies?: boolean | Prisma.User$userTrophiesArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   circleMembers?: boolean | Prisma.User$circleMembersArgs<ExtArgs>
@@ -2333,6 +2532,7 @@ export type UserSelectScalar = {
 export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "displayName" | "email" | "emailVerified" | "image" | "autoTagEnabled" | "isAiPersona" | "notifLastReadAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   personaProfile?: boolean | Prisma.User$personaProfileArgs<ExtArgs>
+  userTrophies?: boolean | Prisma.User$userTrophiesArgs<ExtArgs>
   accounts?: boolean | Prisma.User$accountsArgs<ExtArgs>
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   circleMembers?: boolean | Prisma.User$circleMembersArgs<ExtArgs>
@@ -2354,6 +2554,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name: "User"
   objects: {
     personaProfile: Prisma.$PersonaProfilePayload<ExtArgs> | null
+    userTrophies: Prisma.$UserTrophyPayload<ExtArgs>[]
     accounts: Prisma.$AccountPayload<ExtArgs>[]
     sessions: Prisma.$SessionPayload<ExtArgs>[]
     circleMembers: Prisma.$CircleMemberPayload<ExtArgs>[]
@@ -2772,6 +2973,7 @@ readonly fields: UserFieldRefs;
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   personaProfile<T extends Prisma.User$personaProfileArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$personaProfileArgs<ExtArgs>>): Prisma.Prisma__PersonaProfileClient<runtime.Types.Result.GetResult<Prisma.$PersonaProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  userTrophies<T extends Prisma.User$userTrophiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$userTrophiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserTrophyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   accounts<T extends Prisma.User$accountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$accountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   sessions<T extends Prisma.User$sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   circleMembers<T extends Prisma.User$circleMembersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$circleMembersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CircleMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -3226,6 +3428,30 @@ export type User$personaProfileArgs<ExtArgs extends runtime.Types.Extensions.Int
    */
   include?: Prisma.PersonaProfileInclude<ExtArgs> | null
   where?: Prisma.PersonaProfileWhereInput
+}
+
+/**
+ * User.userTrophies
+ */
+export type User$userTrophiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UserTrophy
+   */
+  select?: Prisma.UserTrophySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the UserTrophy
+   */
+  omit?: Prisma.UserTrophyOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserTrophyInclude<ExtArgs> | null
+  where?: Prisma.UserTrophyWhereInput
+  orderBy?: Prisma.UserTrophyOrderByWithRelationInput | Prisma.UserTrophyOrderByWithRelationInput[]
+  cursor?: Prisma.UserTrophyWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.UserTrophyScalarFieldEnum | Prisma.UserTrophyScalarFieldEnum[]
 }
 
 /**

@@ -48,8 +48,8 @@ export default function Header({ session }: HeaderProps) {
         <div className="flex items-center gap-2">
           {user ? (
             <div className="flex items-center gap-2">
-              {/* アイコン＋名前 */}
-              <div className="flex items-center gap-1">
+              {/* アイコン＋名前 → プロフィールへ */}
+              <Link href="/profile" className="flex items-center gap-1 active:opacity-70">
                 <div className="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center">
                   {user.image ? (
                     <Image
@@ -76,7 +76,7 @@ export default function Header({ session }: HeaderProps) {
                 <span className="text-[11px] text-slate-600 max-w-[90px] truncate">
                   {userName}
                 </span>
-              </div>
+              </Link>
 
               {/* サインアウトボタン */}
               <form action={handleSignOut}>

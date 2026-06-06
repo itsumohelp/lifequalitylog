@@ -104,6 +104,7 @@ export async function POST(req: NextRequest) {
 
   const jstNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
   const jstHour = jstNow.getUTCHours();
+  const jstDateStr = jstNow.toISOString().slice(0, 10).replace(/-/g, "");
   const yearMonth = `${jstNow.getUTCFullYear()}${String(jstNow.getUTCMonth() + 1).padStart(2, "0")}`;
 
   const profiles = await prisma.personaProfile.findMany({
@@ -127,7 +128,7 @@ export async function POST(req: NextRequest) {
       continue;
     }
 
-    if (!shouldPostNow(config, jstHour)) {
+    if (!shouldPostNow(config, jstHour, jstDateStr, profile.personaKey)) {
       skipped.push(profile.personaKey);
       continue;
     }

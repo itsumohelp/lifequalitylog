@@ -8,19 +8,35 @@ import { PersonaDef, ExpenseCategoryKey, PERSONA_MAP, PostSchedule } from "@/dat
 // 投稿判定
 // ──────────────────────────────────────────
 
+/** 文字列シードから 0〜1 の決定論的な値を返す単純なハッシュ */
+function seededRandom(seed: string): number {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) {
+    h = (Math.imul(31, h) + seed.charCodeAt(i)) | 0;
+  }
+  return ((h >>> 0) % 10000) / 10000;
+}
+
 /**
  * この5分枠でペルソナが投稿するかどうかを確率で判定する。
  * アクティブ時間帯・投稿頻度・日次ムラを考慮する。
+ * dailyMood は jstDateStr + personaKey から決定論的に計算するため、
+ * 同日の複数回呼び出しでも一貫したムラになる。
  */
-export function shouldPostNow(def: PostSchedule, jstHour: number): boolean {
+export function shouldPostNow(
+  def: PostSchedule,
+  jstHour: number,
+  jstDateStr: string,
+  personaKey: string,
+): boolean {
   const isActiveHour = def.activeHours.includes(jstHour);
   // 1日あたりのアクティブ5分枠数
   const activeSlotsPerDay = def.activeHours.length * 12;
   const baseProb = def.postFreqPerDay / activeSlotsPerDay;
   // アクティブ時間外は確率を5%に抑える
   const prob = isActiveHour ? baseProb : baseProb * 0.05;
-  // 当日のムラ（日によって多めに投稿したり少なめだったり）
-  const dailyMood = 0.5 + Math.random() * 1.0; // 0.5〜1.5倍
+  // 当日のムラ: 日付+ペルソナキーで固定され、0.5〜1.5倍の範囲
+  const dailyMood = 0.5 + seededRandom(`${jstDateStr}_${personaKey}`) * 1.0;
   return Math.random() < prob * dailyMood;
 }
 

@@ -123,6 +123,11 @@ export type Notice = Prisma.NoticeModel
  */
 export type PersonaProfile = Prisma.PersonaProfileModel
 /**
+ * Model UserTrophy
+ * 
+ */
+export type UserTrophy = Prisma.UserTrophyModel
+/**
  * Model WarikanTemplate
  * 
  */
