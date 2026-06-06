@@ -84,7 +84,7 @@ export default async function AnalysisPage() {
     }),
     // 投稿時間帯: JST換算で時刻別に集計
     prisma.$queryRawUnsafe<{ hour: number; count: bigint }[]>(
-      `SELECT EXTRACT(HOUR FROM created_at AT TIME ZONE 'Asia/Tokyo')::int AS hour, COUNT(*) AS count FROM "Expense" GROUP BY hour ORDER BY hour`
+      `SELECT EXTRACT(HOUR FROM "createdAt" AT TIME ZONE 'Asia/Tokyo')::int AS hour, COUNT(*) AS count FROM "Expense" GROUP BY hour ORDER BY hour`
     ),
   ]);
 
