@@ -71,6 +71,7 @@ export const ModelName = {
   UserInsight: 'UserInsight',
   Notification: 'Notification',
   Notice: 'Notice',
+  PersonaProfile: 'PersonaProfile',
   WarikanTemplate: 'WarikanTemplate'
 } as const
 
@@ -163,6 +164,7 @@ export const UserScalarFieldEnum = {
   emailVerified: 'emailVerified',
   image: 'image',
   autoTagEnabled: 'autoTagEnabled',
+  isAiPersona: 'isAiPersona',
   notifLastReadAt: 'notifLastReadAt'
 } as const
 
@@ -361,6 +363,20 @@ export const NoticeScalarFieldEnum = {
 } as const
 
 export type NoticeScalarFieldEnum = (typeof NoticeScalarFieldEnum)[keyof typeof NoticeScalarFieldEnum]
+
+
+export const PersonaProfileScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  personaKey: 'personaKey',
+  circleId: 'circleId',
+  activatedAt: 'activatedAt',
+  personaConfig: 'personaConfig',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PersonaProfileScalarFieldEnum = (typeof PersonaProfileScalarFieldEnum)[keyof typeof PersonaProfileScalarFieldEnum]
 
 
 export const WarikanTemplateScalarFieldEnum = {

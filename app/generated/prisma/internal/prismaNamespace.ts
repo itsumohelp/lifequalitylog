@@ -404,6 +404,7 @@ export const ModelName = {
   UserInsight: 'UserInsight',
   Notification: 'Notification',
   Notice: 'Notice',
+  PersonaProfile: 'PersonaProfile',
   WarikanTemplate: 'WarikanTemplate'
 } as const
 
@@ -420,7 +421,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "appLog" | "todo" | "record" | "account" | "session" | "user" | "verificationToken" | "circle" | "circleMember" | "snapshot" | "circleSnapshot" | "monthlySnapshot" | "expense" | "income" | "balanceTransaction" | "reaction" | "iosAuthToken" | "userInsight" | "notification" | "notice" | "warikanTemplate"
+    modelProps: "appLog" | "todo" | "record" | "account" | "session" | "user" | "verificationToken" | "circle" | "circleMember" | "snapshot" | "circleSnapshot" | "monthlySnapshot" | "expense" | "income" | "balanceTransaction" | "reaction" | "iosAuthToken" | "userInsight" | "notification" | "notice" | "personaProfile" | "warikanTemplate"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1904,6 +1905,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    PersonaProfile: {
+      payload: Prisma.$PersonaProfilePayload<ExtArgs>
+      fields: Prisma.PersonaProfileFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PersonaProfileFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonaProfilePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PersonaProfileFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonaProfilePayload>
+        }
+        findFirst: {
+          args: Prisma.PersonaProfileFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonaProfilePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PersonaProfileFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonaProfilePayload>
+        }
+        findMany: {
+          args: Prisma.PersonaProfileFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonaProfilePayload>[]
+        }
+        create: {
+          args: Prisma.PersonaProfileCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonaProfilePayload>
+        }
+        createMany: {
+          args: Prisma.PersonaProfileCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PersonaProfileCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonaProfilePayload>[]
+        }
+        delete: {
+          args: Prisma.PersonaProfileDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonaProfilePayload>
+        }
+        update: {
+          args: Prisma.PersonaProfileUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonaProfilePayload>
+        }
+        deleteMany: {
+          args: Prisma.PersonaProfileDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PersonaProfileUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PersonaProfileUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonaProfilePayload>[]
+        }
+        upsert: {
+          args: Prisma.PersonaProfileUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonaProfilePayload>
+        }
+        aggregate: {
+          args: Prisma.PersonaProfileAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePersonaProfile>
+        }
+        groupBy: {
+          args: Prisma.PersonaProfileGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PersonaProfileGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PersonaProfileCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PersonaProfileCountAggregateOutputType> | number
+        }
+      }
+    }
     WarikanTemplate: {
       payload: Prisma.$WarikanTemplatePayload<ExtArgs>
       fields: Prisma.WarikanTemplateFieldRefs
@@ -2090,6 +2165,7 @@ export const UserScalarFieldEnum = {
   emailVerified: 'emailVerified',
   image: 'image',
   autoTagEnabled: 'autoTagEnabled',
+  isAiPersona: 'isAiPersona',
   notifLastReadAt: 'notifLastReadAt'
 } as const
 
@@ -2288,6 +2364,20 @@ export const NoticeScalarFieldEnum = {
 } as const
 
 export type NoticeScalarFieldEnum = (typeof NoticeScalarFieldEnum)[keyof typeof NoticeScalarFieldEnum]
+
+
+export const PersonaProfileScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  personaKey: 'personaKey',
+  circleId: 'circleId',
+  activatedAt: 'activatedAt',
+  personaConfig: 'personaConfig',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PersonaProfileScalarFieldEnum = (typeof PersonaProfileScalarFieldEnum)[keyof typeof PersonaProfileScalarFieldEnum]
 
 
 export const WarikanTemplateScalarFieldEnum = {
@@ -2595,6 +2685,7 @@ export type GlobalOmitConfig = {
   userInsight?: Prisma.UserInsightOmit
   notification?: Prisma.NotificationOmit
   notice?: Prisma.NoticeOmit
+  personaProfile?: Prisma.PersonaProfileOmit
   warikanTemplate?: Prisma.WarikanTemplateOmit
 }
 

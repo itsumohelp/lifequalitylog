@@ -19,6 +19,7 @@ type FeedItem = {
   userId: string;
   userName: string;
   userImage: string | null;
+  isAiPersona?: boolean;
   amount: number;
   circleBalanceAfter?: number;
   snapshotDiff?: number | null;
@@ -155,6 +156,7 @@ export default async function DashboardPage({
             displayName: true,
             email: true,
             image: true,
+            isAiPersona: true,
           },
         },
       },
@@ -174,6 +176,7 @@ export default async function DashboardPage({
             displayName: true,
             email: true,
             image: true,
+            isAiPersona: true,
           },
         },
         claimee: {
@@ -190,7 +193,7 @@ export default async function DashboardPage({
       include: {
         circle: { select: { name: true } },
         actor: {
-          select: { id: true, name: true, displayName: true, image: true },
+          select: { id: true, name: true, displayName: true, image: true, isAiPersona: true },
         },
       },
     });
@@ -209,6 +212,7 @@ export default async function DashboardPage({
             displayName: true,
             email: true,
             image: true,
+            isAiPersona: true,
           },
         },
       },
@@ -366,8 +370,9 @@ export default async function DashboardPage({
           userId: s.userId,
           userName: s.user?.displayName || s.user?.name || "未設定",
           userImage: s.user?.image || null,
+          isAiPersona: s.user?.isAiPersona ?? false,
           amount: s.amount,
-          snapshotDiff: s.diffFromPrev, // データベースに保存された差分を使用
+          snapshotDiff: s.diffFromPrev,
           note: s.note,
           createdAt: s.createdAt.toISOString(),
         })),
@@ -381,6 +386,7 @@ export default async function DashboardPage({
           userId: e.userId,
           userName: e.user?.displayName || e.user?.name || "未設定",
           userImage: e.user?.image || null,
+          isAiPersona: e.user?.isAiPersona ?? false,
           amount: -e.amount,
           circleBalanceAfter: circleBalanceAfterMap.get(e.id),
           description: e.description,
@@ -407,6 +413,7 @@ export default async function DashboardPage({
           userId: i.userId,
           userName: i.user?.displayName || i.user?.name || "未設定",
           userImage: i.user?.image || null,
+          isAiPersona: i.user?.isAiPersona ?? false,
           amount: i.amount,
           description: i.description,
           source: i.source,
@@ -426,6 +433,7 @@ export default async function DashboardPage({
           userId: n.actorUserId,
           userName: n.actor?.displayName || n.actor?.name || "メンバー",
           userImage: n.actor?.image || null,
+          isAiPersona: n.actor?.isAiPersona ?? false,
           amount: 0,
           notificationMessage: n.message,
           notificationCollected: n.collected,
