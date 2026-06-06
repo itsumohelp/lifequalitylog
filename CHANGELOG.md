@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.74] - 2026-06-06
+
+### Added
+- **Profile page** (`/profile`): New user profile page displaying Stats (days since joining, post count, unique tag count, received reaction count, current streak) and a full list of 42 trophies with earned/unearned state and earned date.
+- **Trophy system** (`UserTrophy` model + migration, `lib/trophies`): Database model and 42 trophy definitions covering post milestones, streaks, categories, tags, reactions, spending amounts, and time-based achievements.
+- **TrophyNotifier** / **TrophyToast** components: Client components placed in the root layout that listen for the `expense-posted` browser event and session start, call `/api/profile`, and display an animated toast for each newly earned trophy.
+- **Profile API** (`GET /api/profile`): New endpoint that computes trophy stats, evaluates which trophies the user has earned, persists newly earned trophies to `user_trophies`, and returns stats, full trophy list, and newly earned keys.
+- **Header profile link**: Tapping the user name / avatar in the header now navigates to `/profile`.
+
+### Changed
+- **`personaEngine` daily mood**: `dailyMood` is now determined deterministically from a hash of the JST date string and persona key, eliminating random drift between runs.
+
+---
+
+### 追加
+- **プロフィールページ** (`/profile`): 参加日数・投稿数・ユニークタグ数・もらったリアクション数・現在のストリークを表示するStats、および42種のトロフィーを獲得済み/未獲得・獲得日付きで一覧表示する新規ページを追加。
+- **トロフィーシステム** (`UserTrophy` モデル・マイグレーション、`lib/trophies`): 投稿数マイルストーン・連続投稿・カテゴリ・タグ・リアクション・支出金額・時間帯など42種のトロフィー定義とDBモデルを追加。
+- **TrophyNotifier** / **TrophyToast** コンポーネント: ルートレイアウトに配置したクライアントコンポーネント。セッション開始時および `expense-posted` ブラウザイベント受信時に `/api/profile` を呼び出し、新規獲得トロフィーをアニメーション付きToastで通知。
+- **プロフィールAPI** (`GET /api/profile`): トロフィー統計を計算し、獲得条件を評価して `user_trophies` に永続化、Stats・トロフィー一覧・新規獲得キーを返す新エンドポイントを追加。
+- **ヘッダーのプロフィールリンク**: ヘッダーのユーザー名・アバターをタップすると `/profile` へ遷移するよう変更。
+
+### 変更
+- **`personaEngine` の dailyMood**: 日付文字列とペルソナキーのハッシュから決定論的に算出するよう変更し、実行ごとのランダムなブレを解消。
+
+---
+
 ## [0.0.73] - 2026-06-06
 
 ### Added
