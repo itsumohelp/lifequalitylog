@@ -456,11 +456,6 @@ export default function PublicFeed({
                                   </span>
                                 ))}
                               </div>
-                              {item.description && (
-                                <p className={`text-xs mt-0.5 ${isOwnMessage ? "text-slate-300" : "text-slate-600"}`}>
-                                  {item.description}
-                                </p>
-                              )}
                             </>
                           ) : item.kind === "income" ? (
                             <>
@@ -478,11 +473,6 @@ export default function PublicFeed({
                                   </span>
                                 ))}
                               </div>
-                              {item.description && (
-                                <p className={`text-xs mt-0.5 ${isOwnMessage ? "text-slate-300" : "text-slate-600"}`}>
-                                  {item.description}
-                                </p>
-                              )}
                             </>
                           ) : (
                             <>
