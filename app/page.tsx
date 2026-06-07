@@ -1,5 +1,4 @@
 import { auth, signIn } from "@/auth";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import WebViewAlert from "@/app/components/WebViewAlert";
 import LoginForm from "@/app/components/LoginForm";
@@ -12,10 +11,6 @@ type HomePageProps = {
 export default async function HomePage({ searchParams }: HomePageProps) {
   const session = await auth();
   const { callbackUrl } = await searchParams;
-
-  if (session) {
-    redirect(callbackUrl ? decodeURIComponent(callbackUrl) : "/dashboard");
-  }
 
   async function handleGoogleLogin() {
     "use server";
@@ -83,16 +78,36 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           <span className="text-slate-400 group-hover:translate-x-1 transition-transform text-lg">→</span>
         </Link>
 
-        {/* ログインカード */}
-        <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-sm">
-          <p className="text-center text-sm font-medium text-slate-700 mb-4">
-            無料ではじめる
-          </p>
-          <LoginForm action={handleGoogleLogin} callbackUrl={callbackUrl} />
-          <p className="text-center text-[11px] text-slate-400 mt-4">
-            Googleアカウントで30秒登録
-          </p>
-        </div>
+        {/* ログイン済み / 未ログインでカード切り替え */}
+        {session ? (
+          <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-sm space-y-3">
+            <p className="text-center text-sm font-medium text-slate-700">
+              ようこそ、{session.user?.name || "ゲスト"}さん
+            </p>
+            <Link
+              href="/dashboard"
+              className="block w-full text-center bg-slate-900 text-white rounded-xl py-3 text-sm font-semibold"
+            >
+              ダッシュボードへ →
+            </Link>
+            <Link
+              href="/dashboard/analytics"
+              className="block w-full text-center bg-sky-50 text-sky-700 border border-sky-200 rounded-xl py-3 text-sm font-semibold"
+            >
+              分析を見る →
+            </Link>
+          </div>
+        ) : (
+          <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-sm">
+            <p className="text-center text-sm font-medium text-slate-700 mb-4">
+              無料ではじめる
+            </p>
+            <LoginForm action={handleGoogleLogin} callbackUrl={callbackUrl} />
+            <p className="text-center text-[11px] text-slate-400 mt-4">
+              Googleアカウントで30秒登録
+            </p>
+          </div>
+        )}
 
       </div>
     </main>
