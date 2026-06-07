@@ -58,6 +58,11 @@ export type VerificationToken = Prisma.VerificationTokenModel
  */
 export type Circle = Prisma.CircleModel
 /**
+ * Model CircleFollow
+ * 
+ */
+export type CircleFollow = Prisma.CircleFollowModel
+/**
  * Model CircleMember
  * 
  */

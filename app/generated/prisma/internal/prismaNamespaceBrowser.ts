@@ -59,6 +59,7 @@ export const ModelName = {
   User: 'User',
   VerificationToken: 'VerificationToken',
   Circle: 'Circle',
+  CircleFollow: 'CircleFollow',
   CircleMember: 'CircleMember',
   Snapshot: 'Snapshot',
   CircleSnapshot: 'CircleSnapshot',
@@ -195,6 +196,17 @@ export const CircleScalarFieldEnum = {
 } as const
 
 export type CircleScalarFieldEnum = (typeof CircleScalarFieldEnum)[keyof typeof CircleScalarFieldEnum]
+
+
+export const CircleFollowScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  circleId: 'circleId',
+  lastCheckedAt: 'lastCheckedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type CircleFollowScalarFieldEnum = (typeof CircleFollowScalarFieldEnum)[keyof typeof CircleFollowScalarFieldEnum]
 
 
 export const CircleMemberScalarFieldEnum = {

@@ -53,6 +53,8 @@ type Props = {
   isLoggedIn: boolean;
   currentUserId: string | null;
   analytics: Analytics;
+  initialFollowerCount: number;
+  initialIsFollowing: boolean;
 };
 
 function formatYen(amount: number) {
@@ -100,6 +102,8 @@ export default function PublicFeed({
   isLoggedIn,
   currentUserId,
   analytics,
+  initialFollowerCount,
+  initialIsFollowing,
 }: Props) {
   const [activeTab, setActiveTab] = useState<"feed" | "analytics">("feed");
   const [localFeed, setLocalFeed] = useState<FeedItem[]>(initialFeed);
@@ -111,6 +115,9 @@ export default function PublicFeed({
   const [hasMoreHistory, setHasMoreHistory] = useState(true);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [followerCount, setFollowerCount] = useState(initialFollowerCount);
+  const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
+  const [isTogglingFollow, setIsTogglingFollow] = useState(false);
 
   // 特定のアイテムのリアクションを取得
   const fetchReactionsForItems = useCallback(async (items: FeedItem[]) => {
@@ -231,6 +238,36 @@ export default function PublicFeed({
     fetchReactions();
   }, [fetchReactions]);
 
+  // フォロー中のサークルを訪問したら lastCheckedAt を更新
+  useEffect(() => {
+    if (isLoggedIn && isFollowing) {
+      fetch(`/api/follow/${circle.id}`, { method: "PATCH" }).catch(() => {});
+    }
+  }, [circle.id, isLoggedIn, isFollowing]);
+
+  const toggleFollow = async () => {
+    if (!isLoggedIn) {
+      const callbackUrl = encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.href = `/?callbackUrl=${callbackUrl}`;
+      return;
+    }
+    if (isTogglingFollow) return;
+    setIsTogglingFollow(true);
+    try {
+      const method = isFollowing ? "DELETE" : "POST";
+      const res = await fetch(`/api/follow/${circle.id}`, { method });
+      if (res.ok) {
+        const data = await res.json();
+        setIsFollowing(data.isFollowing);
+        setFollowerCount(data.followerCount);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setIsTogglingFollow(false);
+    }
+  };
+
   // リアクションをトグル（ログイン時のみ）
   const toggleReaction = async (item: FeedItem, reactionType: ReactionType) => {
     if (!isLoggedIn) {
@@ -333,9 +370,28 @@ export default function PublicFeed({
     <div className="flex flex-col flex-1 min-h-0">
       {/* 残高ヘッダー */}
       <div className="flex-shrink-0 bg-sky-100 px-4 pt-3 pb-0">
-        <div className="flex items-center justify-center gap-2 mb-0.5">
-          <span className="text-sm text-slate-500">{circle.name}</span>
-          <span className="text-[10px] text-slate-400">👤 {analytics.memberCount}人</span>
+        <div className="flex items-center justify-between mb-0.5">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-slate-500">{circle.name}</span>
+            <span className="text-[10px] text-slate-400">👤 {analytics.memberCount}人</span>
+          </div>
+          <button
+            type="button"
+            onClick={toggleFollow}
+            disabled={isTogglingFollow}
+            className={`flex items-center gap-1.5 text-xs px-3 py-1 rounded-full border transition ${
+              isFollowing
+                ? "bg-sky-600 text-white border-sky-600"
+                : "bg-white text-sky-600 border-sky-300 hover:border-sky-500"
+            } ${isTogglingFollow ? "opacity-50" : ""}`}
+          >
+            {isFollowing ? "✓ フォロー中" : "+ フォロー"}
+            {followerCount > 0 && (
+              <span className={`text-[10px] ${isFollowing ? "text-sky-200" : "text-slate-400"}`}>
+                {followerCount}
+              </span>
+            )}
+          </button>
         </div>
         <div className="flex items-center justify-center gap-4 mb-3">
           <div className="text-center">

@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 
 export type InboxItem = {
   id: string;
-  kind: "claim" | "warikan_reminder" | "notice";
+  kind: "claim" | "warikan_reminder" | "notice" | "follow_update";
   title: string;
   body: string;
   circleName?: string;
@@ -111,6 +111,34 @@ export async function GET() {
       body: notice.body ?? "",
       itemUrl: notice.link ?? undefined,
       createdAt: notice.createdAt.toISOString(),
+      isRead,
+    });
+  }
+
+  // 4. フォロー中の公開サークルの新着投稿
+  const follows = await prisma.circleFollow.findMany({
+    where: { userId },
+    include: {
+      circle: { select: { id: true, name: true, isPublic: true } },
+    },
+  });
+
+  for (const follow of follows) {
+    if (!follow.circle.isPublic) continue;
+    const since = follow.lastCheckedAt ?? follow.createdAt;
+    const newCount = await prisma.expense.count({
+      where: { circleId: follow.circleId, createdAt: { gt: since } },
+    });
+    if (newCount === 0) continue;
+    const isRead = lastReadAt !== null && since <= lastReadAt;
+    items.push({
+      id: `follow-${follow.circleId}`,
+      kind: "follow_update",
+      title: `${follow.circle.name} に新しい投稿`,
+      body: `${newCount}件の新着記録があります`,
+      circleName: follow.circle.name,
+      itemUrl: `/c/${follow.circleId}`,
+      createdAt: since.toISOString(),
       isRead,
     });
   }

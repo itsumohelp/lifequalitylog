@@ -238,6 +238,16 @@ export default async function PublicCirclePage({ params }: PageParams) {
   ]);
 
   const totalMonthlyExpense = monthlyAggregate._sum.amount ?? 0;
+
+  // フォロワー数 + ログイン中ユーザーのフォロー状態
+  const [followerCount, currentUserFollow] = await Promise.all([
+    prisma.circleFollow.count({ where: { circleId } }),
+    currentUserId
+      ? prisma.circleFollow.findUnique({
+          where: { userId_circleId: { userId: currentUserId, circleId } },
+        })
+      : Promise.resolve(null),
+  ]);
   const analyticCategories = categoryRows
     .map((r) => ({
       category: r.category,
@@ -336,6 +346,8 @@ export default async function PublicCirclePage({ params }: PageParams) {
             categories: analyticCategories,
             topTags,
           }}
+          initialFollowerCount={followerCount}
+          initialIsFollowing={!!currentUserFollow}
         />
       </div>
     </div>
