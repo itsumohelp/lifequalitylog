@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.76] - 2026-06-07
+
+### Added
+- **Monthly average cards** (`/analysis`): Added two summary cards showing average monthly expense and average monthly income, computed from months that have actual data in the 6-month window.
+
+### Changed
+- **Monthly trend chart** (`/analysis`): Chart now displays paired bars for expense (red) and income (green) side-by-side per month, replacing the single expense-only bar.
+- **Tag analysis** (`/analysis`): "Most-used tags" section replaced with "Average spend per tag" — shows average amount per post for each tag (sorted by count), sourced from the latest 2,000 expenses.
+- **Stats row** (`/analysis`): "Total reactions" stat replaced with "👍 いいね count" (GOOD reactions only).
+
+### Removed
+- **Reaction breakdown section** (`/analysis`): Removed the per-type reaction grid (GOOD / CHECK / BAD / DOGEZA) from the analysis page.
+
+---
+
+### 追加
+- **月次平均カード** (`/analysis`): 直近6ヶ月のうちデータがある月のみを対象に、月平均支出と月平均収入を表示する2枚のサマリーカードを追加。
+
+### 変更
+- **月次推移グラフ** (`/analysis`): 支出のみの単一バーから、支出（赤）・収入（緑）を月ごとに並べた2本バー表示に変更。
+- **タグ分析** (`/analysis`): 「よく使われるタグ」を「タグ別 平均支出」に刷新。直近2,000件の支出を対象に、タグごとの1件あたり平均金額を件数順で表示するよう変更。
+- **統計行** (`/analysis`): 「総リアクション数」を「👍 いいね数」（GOODリアクションのみ）に変更。
+
+### 削除
+- **リアクション内訳セクション** (`/analysis`): GOOD・CHECK・BAD・DOGEZAのリアクション種別グリッドを分析ページから削除。
+
+---
+
 ## [0.0.75] - 2026-06-07
 
 ### Added
