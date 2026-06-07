@@ -21,19 +21,6 @@ const CATEGORY_COLORS: Record<string, string> = {
   OTHER: "#94a3b8",
 };
 
-const REACTION_EMOJI: Record<string, string> = {
-  CHECK: "✅",
-  GOOD: "👍",
-  BAD: "👎",
-  DOGEZA: "🙇",
-};
-
-const REACTION_LABELS: Record<string, string> = {
-  CHECK: "チェック",
-  GOOD: "いいね",
-  BAD: "うーん",
-  DOGEZA: "土下座",
-};
 
 function formatAmount(n: number): string {
   if (n >= 100_000_000) return `${(n / 100_000_000).toFixed(1)}億`;
@@ -57,10 +44,12 @@ export default async function AnalysisPage() {
     totalExpenses,
     totalIncomes,
     expenseAmountAgg,
+    incomeAmountAgg,
     categoryGroups,
     monthlyGroups,
-    recentForTags,
-    reactionGroups,
+    monthlyIncomeRaw,
+    recentForTagAmounts,
+    goodReactionCount,
     hourlyRaw,
   ] = await Promise.all([
     prisma.user.count(),
@@ -68,21 +57,23 @@ export default async function AnalysisPage() {
     prisma.expense.count(),
     prisma.income.count(),
     prisma.expense.aggregate({ _sum: { amount: true }, _avg: { amount: true } }),
+    prisma.income.aggregate({ _sum: { amount: true } }),
     prisma.expense.groupBy({ by: ["category"], _sum: { amount: true } }),
     prisma.monthlySnapshot.groupBy({
       by: ["yearMonth"],
       where: { yearMonth: { in: last6Months } },
       _sum: { totalExpense: true },
     }),
+    // 収入の月次集計（直近6ヶ月）
+    prisma.$queryRawUnsafe<{ ym: string; total: bigint }[]>(
+      `SELECT TO_CHAR("incomeDate" AT TIME ZONE 'Asia/Tokyo', 'YYYYMM') AS ym, SUM(amount) AS total FROM "Income" WHERE "incomeDate" >= NOW() - INTERVAL '6 months' GROUP BY ym`
+    ),
     prisma.expense.findMany({
-      select: { tags: true },
+      select: { tags: true, amount: true },
       orderBy: { createdAt: "desc" },
-      take: 1000,
+      take: 2000,
     }),
-    prisma.reaction.groupBy({
-      by: ["type"],
-      _count: { type: true },
-    }),
+    prisma.reaction.count({ where: { type: "GOOD" } }),
     // 投稿時間帯: JST換算で時刻別に集計
     prisma.$queryRawUnsafe<{ hour: number; count: bigint }[]>(
       `SELECT EXTRACT(HOUR FROM "createdAt" AT TIME ZONE 'Asia/Tokyo')::int AS hour, COUNT(*) AS count FROM "Expense" GROUP BY hour ORDER BY hour`
@@ -92,7 +83,6 @@ export default async function AnalysisPage() {
   const totalPosts = totalExpenses + totalIncomes;
   const totalExpenseAmount = expenseAmountAgg._sum.amount ?? 0;
   const avgExpenseAmount = Math.round(expenseAmountAgg._avg.amount ?? 0);
-  const totalReactions = reactionGroups.reduce((s, r) => s + r._count.type, 0);
 
   // カテゴリ別
   const totalAmount = categoryGroups.reduce((s, g) => s + (g._sum.amount ?? 0), 0);
@@ -108,27 +98,40 @@ export default async function AnalysisPage() {
 
   // 月次推移
   const monthlyMap = new Map(monthlyGroups.map((m) => [m.yearMonth, m._sum.totalExpense ?? 0]));
+  const monthlyIncomeMap = new Map(monthlyIncomeRaw.map((r) => [r.ym, Number(r.total)]));
   const monthlyTrend = last6Months.map((ym) => ({
     ym,
     label: `${parseInt(ym.slice(4))}月`,
     total: monthlyMap.get(ym) ?? 0,
+    income: monthlyIncomeMap.get(ym) ?? 0,
   }));
-  const maxMonthly = Math.max(...monthlyTrend.map((m) => m.total), 1);
+  const maxMonthly = Math.max(...monthlyTrend.map((m) => Math.max(m.total, m.income)), 1);
 
-  // タグ集計（テンプレートタグのみ）
+  // 月次平均（データのある月のみ）
+  const monthsWithExpense = monthlyTrend.filter((m) => m.total > 0);
+  const monthsWithIncome = monthlyTrend.filter((m) => m.income > 0);
+  const avgMonthlyExpense = monthsWithExpense.length > 0
+    ? Math.round(monthsWithExpense.reduce((s, m) => s + m.total, 0) / monthsWithExpense.length)
+    : 0;
+  const avgMonthlyIncome = monthsWithIncome.length > 0
+    ? Math.round(monthsWithIncome.reduce((s, m) => s + m.income, 0) / monthsWithIncome.length)
+    : 0;
+
+  // タグ別 平均金額・件数
   const templateTagSet = new Set<string>(ALL_CATEGORY_TAGS);
-  const tagCounts = new Map<string, number>();
-  for (const e of recentForTags) {
+  const tagData = new Map<string, { sum: number; count: number }>();
+  for (const e of recentForTagAmounts) {
     for (const tag of e.tags) {
       if (tag && templateTagSet.has(tag)) {
-        tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+        const cur = tagData.get(tag) ?? { sum: 0, count: 0 };
+        tagData.set(tag, { sum: cur.sum + e.amount, count: cur.count + 1 });
       }
     }
   }
-  const topTags = [...tagCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 16);
-
-  // リアクション内訳
-  const reactionMap = new Map(reactionGroups.map((r) => [r.type, r._count.type]));
+  const topTagsByAvg = [...tagData.entries()]
+    .map(([tag, { sum, count }]) => ({ tag, avg: Math.round(sum / count), count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 16);
 
   // 投稿時間帯（0〜23時）
   const hourlyMap = new Map(hourlyRaw.map((r) => [r.hour, Number(r.count)]));
@@ -168,8 +171,8 @@ export default async function AnalysisPage() {
         <div className="grid grid-cols-3 gap-3">
           {[
             { label: "総支出額", value: formatAmount(totalExpenseAmount) },
-            { label: "平均支出額", value: formatAmount(avgExpenseAmount) + "/件" },
-            { label: "総リアクション", value: totalReactions.toLocaleString() + "件" },
+            { label: "1件あたり平均", value: formatAmount(avgExpenseAmount) },
+            { label: "👍 いいね数", value: goodReactionCount.toLocaleString() + "件" },
           ].map((s) => (
             <div key={s.label} className="bg-white border border-slate-200 rounded-xl p-3 text-center">
               <p className="text-sm font-bold text-slate-900 tabular-nums leading-tight mt-1">{s.value}</p>
@@ -177,6 +180,22 @@ export default async function AnalysisPage() {
             </div>
           ))}
         </div>
+
+        {/* 月次平均 */}
+        {(avgMonthlyExpense > 0 || avgMonthlyIncome > 0) && (
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white border border-slate-200 rounded-xl p-4 text-center">
+              <p className="text-[10px] text-slate-400 mb-1">月平均 支出</p>
+              <p className="text-xl font-bold text-red-500 tabular-nums">{formatAmount(avgMonthlyExpense)}</p>
+              <p className="text-[10px] text-slate-400 mt-1">直近{monthsWithExpense.length}ヶ月の平均</p>
+            </div>
+            <div className="bg-white border border-slate-200 rounded-xl p-4 text-center">
+              <p className="text-[10px] text-slate-400 mb-1">月平均 収入</p>
+              <p className="text-xl font-bold text-emerald-500 tabular-nums">{avgMonthlyIncome > 0 ? formatAmount(avgMonthlyIncome) : "—"}</p>
+              <p className="text-[10px] text-slate-400 mt-1">直近{monthsWithIncome.length}ヶ月の平均</p>
+            </div>
+          </div>
+        )}
 
         {/* カテゴリ別支出 */}
         <div className="bg-white border border-slate-200 rounded-xl p-4">
@@ -206,19 +225,22 @@ export default async function AnalysisPage() {
           )}
         </div>
 
-        {/* 月次支出推移 */}
+        {/* 月次推移（支出・収入） */}
         <div className="bg-white border border-slate-200 rounded-xl p-4">
-          <h2 className="text-sm font-semibold text-slate-700 mb-4">月次 支出推移</h2>
-          <div className="flex items-end gap-1.5" style={{ height: "100px" }}>
+          <h2 className="text-sm font-semibold text-slate-700 mb-1">月次 支出・収入推移</h2>
+          <div className="flex items-center gap-3 mb-3">
+            <span className="flex items-center gap-1 text-[10px] text-slate-400"><span className="w-2.5 h-2.5 rounded-sm bg-red-400 inline-block" />支出</span>
+            <span className="flex items-center gap-1 text-[10px] text-slate-400"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-400 inline-block" />収入</span>
+          </div>
+          <div className="flex items-end gap-2" style={{ height: "100px" }}>
             {monthlyTrend.map((m) => {
-              const barH = m.total > 0 ? Math.max(6, Math.round((m.total / maxMonthly) * 76)) : 0;
+              const expH = m.total > 0 ? Math.max(4, Math.round((m.total / maxMonthly) * 76)) : 0;
+              const incH = m.income > 0 ? Math.max(4, Math.round((m.income / maxMonthly) * 76)) : 0;
               return (
                 <div key={m.ym} className="flex-1 flex flex-col items-center gap-1">
-                  <span className="text-[9px] text-slate-400 leading-none h-3">
-                    {m.total > 0 ? formatAmount(m.total) : ""}
-                  </span>
-                  <div className="w-full flex items-end" style={{ height: "76px" }}>
-                    <div className="w-full rounded-t bg-sky-400" style={{ height: `${barH}px` }} />
+                  <div className="w-full flex items-end justify-center gap-0.5" style={{ height: "76px" }}>
+                    <div className="flex-1 rounded-t bg-red-400" style={{ height: `${expH}px` }} />
+                    <div className="flex-1 rounded-t bg-emerald-400" style={{ height: `${incH}px` }} />
                   </div>
                   <span className="text-[10px] text-slate-500">{m.label}</span>
                 </div>
@@ -261,53 +283,34 @@ export default async function AnalysisPage() {
           </div>
         </div>
 
-        {/* リアクション内訳 */}
+        {/* タグ別 平均金額 */}
         <div className="bg-white border border-slate-200 rounded-xl p-4">
-          <h2 className="text-sm font-semibold text-slate-700 mb-3">リアクション</h2>
-          {totalReactions === 0 ? (
-            <p className="text-sm text-slate-400 text-center py-4">まだリアクションがありません</p>
-          ) : (
-            <div className="grid grid-cols-4 gap-2">
-              {(["GOOD", "CHECK", "BAD", "DOGEZA"] as const).map((type) => {
-                const count = reactionMap.get(type) ?? 0;
-                const pct = totalReactions > 0 ? Math.round((count / totalReactions) * 100) : 0;
-                return (
-                  <div key={type} className="text-center bg-slate-50 rounded-xl py-3">
-                    <span className="text-2xl">{REACTION_EMOJI[type]}</span>
-                    <p className="text-sm font-bold text-slate-900 mt-1 tabular-nums">{count.toLocaleString()}</p>
-                    <p className="text-[10px] text-slate-400">{REACTION_LABELS[type]}</p>
-                    {totalReactions > 0 && (
-                      <p className="text-[9px] text-slate-400">{pct}%</p>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* よく使われるタグ */}
-        <div className="bg-white border border-slate-200 rounded-xl p-4">
-          <h2 className="text-sm font-semibold text-slate-700 mb-3">よく使われるタグ</h2>
-          {topTags.length === 0 ? (
+          <h2 className="text-sm font-semibold text-slate-700 mb-1">タグ別 平均支出</h2>
+          <p className="text-[10px] text-slate-400 mb-3">タグごとの1件あたり平均金額（直近2,000件）</p>
+          {topTagsByAvg.length === 0 ? (
             <p className="text-sm text-slate-400 text-center py-4">データがまだありません</p>
           ) : (
-            <div className="flex flex-wrap gap-2">
-              {topTags.map(([tag, count], i) => {
-                const opacity = Math.max(0.4, 1 - i * 0.04);
+            <div className="space-y-2.5">
+              {topTagsByAvg.map(({ tag, avg, count }, i) => {
+                const maxAvg = topTagsByAvg[0].avg;
+                const pct = maxAvg > 0 ? Math.round((avg / maxAvg) * 100) : 0;
+                const opacity = Math.max(0.5, 1 - i * 0.04);
                 return (
-                  <span
-                    key={tag}
-                    className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border"
-                    style={{
-                      backgroundColor: `rgba(14,165,233,${opacity * 0.15})`,
-                      borderColor: `rgba(14,165,233,${opacity * 0.4})`,
-                      color: `rgba(2,132,199,${Math.min(1, opacity + 0.2)})`,
-                    }}
-                  >
-                    {tag}
-                    <span className="text-[10px] opacity-70">{count}</span>
-                  </span>
+                  <div key={tag}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-slate-700">{tag}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-slate-400">{count}件</span>
+                        <span className="text-xs font-medium text-slate-700">{formatAmount(avg)}</span>
+                      </div>
+                    </div>
+                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full"
+                        style={{ width: `${pct}%`, backgroundColor: `rgba(14,165,233,${opacity})` }}
+                      />
+                    </div>
+                  </div>
                 );
               })}
             </div>

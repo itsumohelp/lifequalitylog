@@ -68,6 +68,13 @@ export default function SettingsPage() {
   const [newCircleName, setNewCircleName] = useState("");
   const [isCreatingCircle, setIsCreatingCircle] = useState(false);
   const [isSavingImageOptOut, setIsSavingImageOptOut] = useState(false);
+  const [followedCircles, setFollowedCircles] = useState<{
+    circleId: string;
+    circleName: string;
+    isPublic: boolean;
+    followerCount: number;
+  }[]>([]);
+  const [isUnfollowing, setIsUnfollowing] = useState<string | null>(null);
   const [autoTagEnabled, setAutoTagEnabled] = useState(false);
   const [isSavingAutoTag, setIsSavingAutoTag] = useState(false);
   const [isNativeApp, setIsNativeApp] = useState(true); // SSR安全のためtrueで初期化
@@ -147,7 +154,20 @@ export default function SettingsPage() {
       }
     };
 
+    const fetchFollows = async () => {
+      try {
+        const res = await fetch("/api/follow");
+        if (res.ok) {
+          const data = await res.json();
+          setFollowedCircles(data.follows || []);
+        }
+      } catch {
+        // ignore
+      }
+    };
+
     fetchUser();
+    fetchFollows();
   }, []);
 
   const handleSaveDisplayName = async () => {
@@ -178,6 +198,21 @@ export default function SettingsPage() {
       setMessage({ type: "error", text: "通信エラーが発生しました" });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleUnfollow = async (circleId: string) => {
+    if (isUnfollowing) return;
+    setIsUnfollowing(circleId);
+    try {
+      const res = await fetch(`/api/follow/${circleId}`, { method: "DELETE" });
+      if (res.ok) {
+        setFollowedCircles((prev) => prev.filter((f) => f.circleId !== circleId));
+      }
+    } catch {
+      // ignore
+    } finally {
+      setIsUnfollowing(null);
     }
   };
 
@@ -1176,6 +1211,50 @@ export default function SettingsPage() {
               >
                 閉じる
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* フォロー中のサークル */}
+        {followedCircles.length > 0 && (
+          <div className="mt-6 border-t border-slate-200 pt-4">
+            <h3 className="text-sm font-medium text-slate-700 mb-3">
+              フォロー中のサークル
+            </h3>
+            <div className="space-y-2">
+              {followedCircles.map((f) => (
+                <div
+                  key={f.circleId}
+                  className="flex items-center justify-between bg-white border border-slate-200 rounded-lg px-3 py-2.5"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <a
+                      href={f.isPublic ? `/c/${f.circleId}` : undefined}
+                      className={`text-sm font-medium truncate ${f.isPublic ? "text-sky-600" : "text-slate-400"}`}
+                    >
+                      {f.circleName}
+                    </a>
+                    {!f.isPublic && (
+                      <span className="text-[10px] text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                        非公開になりました
+                      </span>
+                    )}
+                    {f.isPublic && f.followerCount > 0 && (
+                      <span className="text-[10px] text-slate-400">
+                        {f.followerCount}人
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleUnfollow(f.circleId)}
+                    disabled={isUnfollowing === f.circleId}
+                    className="text-[11px] text-slate-500 border border-slate-200 rounded-full px-2.5 py-0.5 hover:border-red-300 hover:text-red-500 transition disabled:opacity-50 flex-shrink-0 ml-2"
+                  >
+                    {isUnfollowing === f.circleId ? "..." : "解除"}
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
         )}

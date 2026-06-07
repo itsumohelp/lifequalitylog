@@ -15,6 +15,7 @@ import MiniBalanceChart, {
   type BalanceDataPoint,
 } from "@/app/componets/MiniBalanceChart";
 import { ALL_CATEGORY_TAGS } from "@/lib/tags";
+import OnboardingModal from "@/app/components/OnboardingModal";
 
 type ReactionData = {
   counts: Record<ReactionType, number>;
@@ -325,6 +326,8 @@ export default function UnifiedChat({
   const pendingInsightCircleIdRef = useRef<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isSeedingDemo, setIsSeedingDemo] = useState(false);
 
   // 割り勘
   type WarikanMember = { userId: string; name: string; image: string | null; paid: number };
@@ -1352,6 +1355,14 @@ export default function UnifiedChat({
     }
   }, [feed]);
 
+  // 初回ユーザー：オンボーディングモーダルを表示
+  useEffect(() => {
+    if (isLocalStorageAvailable() && !localStorage.getItem("onboarding-v1") && initialFeed.length === 0) {
+      setShowOnboarding(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // サークル切り替え時に一番下にスクロール + 一時的なアイテムを削除
   useEffect(() => {
     // 集計・ヘルプ・招待などの一時的なアイテムを削除（お知らせは残す）
@@ -1934,6 +1945,14 @@ export default function UnifiedChat({
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
+      {/* オンボーディングモーダル */}
+      {showOnboarding && adminCircleIds[0] && (
+        <OnboardingModal
+          firstCircleId={adminCircleIds[0]}
+          onComplete={() => setShowOnboarding(false)}
+        />
+      )}
+
       {/* 合計残高ヘッダー */}
       <div className="flex-shrink-0 bg-sky-100 px-3 py-1.5 border-b border-sky-200">
         <div className="flex items-center justify-between gap-2">
@@ -2143,9 +2162,34 @@ export default function UnifiedChat({
           )}
 
           {filteredFeed.length === 0 ? (
-            <div className="text-center text-slate-500 mt-8">
-              <p className="mb-2">最近の記録がありません</p>
-              <p className="text-sm">支出や残高を入力してください</p>
+            <div className="flex flex-col items-center text-slate-500 mt-12 gap-4 px-6">
+              <span className="text-4xl">📭</span>
+              <div className="text-center">
+                <p className="font-medium text-slate-700 mb-1">まだ記録がありません</p>
+                <p className="text-sm">下の入力欄から支出・収入を記録してみましょう</p>
+              </div>
+              {adminCircleIds.includes(selectedCircleId) && (
+                <button
+                  type="button"
+                  disabled={isSeedingDemo}
+                  onClick={async () => {
+                    setIsSeedingDemo(true);
+                    try {
+                      const res = await fetch("/api/demo/seed", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ circleId: selectedCircleId }),
+                      });
+                      if (res.ok || res.status === 409) window.location.reload();
+                    } finally {
+                      setIsSeedingDemo(false);
+                    }
+                  }}
+                  className="text-sm text-emerald-600 border border-emerald-200 bg-emerald-50 px-4 py-2 rounded-full hover:bg-emerald-100 disabled:opacity-50 transition"
+                >
+                  {isSeedingDemo ? "生成中..." : "🎲 サンプルデータで試してみる"}
+                </button>
+              )}
             </div>
           ) : (
             Object.entries(groupedFeed).map(([date, items]) => (
@@ -2997,6 +3041,29 @@ export default function UnifiedChat({
               <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
             </svg>
           </button>
+
+          {/* LPボタン */}
+          <Link
+            href="/"
+            className="flex-shrink-0 p-2.5 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 active:bg-slate-300 active:scale-95 transition"
+            title="サービス紹介"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="2" y1="12" x2="22" y2="12" />
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+            </svg>
+          </Link>
 
           {/* 設定ボタン */}
           <Link
@@ -3993,41 +4060,29 @@ export default function UnifiedChat({
                     ) : (
                       <>
                         {(selectedItem.tags || []).map((tag, idx) => (
-                          <span
+                          <button
                             key={idx}
-                            className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700"
+                            type="button"
+                            onClick={() => handleRemoveTag(selectedItem, tag)}
+                            disabled={isTagging}
+                            className="text-xs px-2.5 py-1 rounded-full bg-sky-100 text-sky-700 active:bg-sky-200 transition disabled:opacity-50"
+                            aria-label={`${tag}を削除`}
                           >
                             {tag}
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveTag(selectedItem, tag)}
-                              disabled={isTagging}
-                              className="text-sky-400 hover:text-sky-600 leading-none disabled:opacity-50"
-                              aria-label={`${tag}を削除`}
-                            >
-                              ✕
-                            </button>
-                          </span>
+                          </button>
                         ))}
                         {(selectedItem.autoTags || []).map((tag, idx) => (
-                          <span
+                          <button
                             key={`auto-${idx}`}
-                            className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-amber-500 text-white"
-                            title="自動タグ"
+                            type="button"
+                            onClick={() => handleRemoveAutoTag(selectedItem, tag)}
+                            disabled={isTagging}
+                            className="text-xs px-2.5 py-1 rounded-full bg-amber-500 text-white active:bg-amber-600 transition disabled:opacity-50"
+                            title="自動タグ（タップで削除）"
+                            aria-label={`自動タグ ${tag}を削除`}
                           >
                             ✦ {tag}
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleRemoveAutoTag(selectedItem, tag)
-                              }
-                              disabled={isTagging}
-                              className="text-yellow-100 hover:text-white leading-none disabled:opacity-50"
-                              aria-label={`自動タグ ${tag}を削除`}
-                            >
-                              ✕
-                            </button>
-                          </span>
+                          </button>
                         ))}
                       </>
                     )}

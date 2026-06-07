@@ -392,6 +392,7 @@ export const ModelName = {
   User: 'User',
   VerificationToken: 'VerificationToken',
   Circle: 'Circle',
+  CircleFollow: 'CircleFollow',
   CircleMember: 'CircleMember',
   Snapshot: 'Snapshot',
   CircleSnapshot: 'CircleSnapshot',
@@ -422,7 +423,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "appLog" | "todo" | "record" | "account" | "session" | "user" | "verificationToken" | "circle" | "circleMember" | "snapshot" | "circleSnapshot" | "monthlySnapshot" | "expense" | "income" | "balanceTransaction" | "reaction" | "iosAuthToken" | "userInsight" | "notification" | "notice" | "personaProfile" | "userTrophy" | "warikanTemplate"
+    modelProps: "appLog" | "todo" | "record" | "account" | "session" | "user" | "verificationToken" | "circle" | "circleFollow" | "circleMember" | "snapshot" | "circleSnapshot" | "monthlySnapshot" | "expense" | "income" | "balanceTransaction" | "reaction" | "iosAuthToken" | "userInsight" | "notification" | "notice" | "personaProfile" | "userTrophy" | "warikanTemplate"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1015,6 +1016,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.CircleCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.CircleCountAggregateOutputType> | number
+        }
+      }
+    }
+    CircleFollow: {
+      payload: Prisma.$CircleFollowPayload<ExtArgs>
+      fields: Prisma.CircleFollowFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CircleFollowFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CircleFollowPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CircleFollowFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CircleFollowPayload>
+        }
+        findFirst: {
+          args: Prisma.CircleFollowFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CircleFollowPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CircleFollowFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CircleFollowPayload>
+        }
+        findMany: {
+          args: Prisma.CircleFollowFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CircleFollowPayload>[]
+        }
+        create: {
+          args: Prisma.CircleFollowCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CircleFollowPayload>
+        }
+        createMany: {
+          args: Prisma.CircleFollowCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CircleFollowCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CircleFollowPayload>[]
+        }
+        delete: {
+          args: Prisma.CircleFollowDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CircleFollowPayload>
+        }
+        update: {
+          args: Prisma.CircleFollowUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CircleFollowPayload>
+        }
+        deleteMany: {
+          args: Prisma.CircleFollowDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CircleFollowUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CircleFollowUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CircleFollowPayload>[]
+        }
+        upsert: {
+          args: Prisma.CircleFollowUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CircleFollowPayload>
+        }
+        aggregate: {
+          args: Prisma.CircleFollowAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCircleFollow>
+        }
+        groupBy: {
+          args: Prisma.CircleFollowGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CircleFollowGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CircleFollowCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CircleFollowCountAggregateOutputType> | number
         }
       }
     }
@@ -2272,6 +2347,17 @@ export const CircleScalarFieldEnum = {
 export type CircleScalarFieldEnum = (typeof CircleScalarFieldEnum)[keyof typeof CircleScalarFieldEnum]
 
 
+export const CircleFollowScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  circleId: 'circleId',
+  lastCheckedAt: 'lastCheckedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type CircleFollowScalarFieldEnum = (typeof CircleFollowScalarFieldEnum)[keyof typeof CircleFollowScalarFieldEnum]
+
+
 export const CircleMemberScalarFieldEnum = {
   id: 'id',
   circleId: 'circleId',
@@ -2758,6 +2844,7 @@ export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   verificationToken?: Prisma.VerificationTokenOmit
   circle?: Prisma.CircleOmit
+  circleFollow?: Prisma.CircleFollowOmit
   circleMember?: Prisma.CircleMemberOmit
   snapshot?: Prisma.SnapshotOmit
   circleSnapshot?: Prisma.CircleSnapshotOmit

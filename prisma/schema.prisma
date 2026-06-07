@@ -87,6 +87,7 @@ model User {
   isAiPersona   Boolean   @default(false) @map("is_ai_persona")
   personaProfile PersonaProfile?
   userTrophies   UserTrophy[]
+  circleFollows  CircleFollow[]
   accounts      Account[]
   sessions      Session[]
   circleMembers CircleMember[]
@@ -131,6 +132,21 @@ model Circle {
   balanceTransactions BalanceTransaction[]
   notifications      Notification[]
   warikanTemplates   WarikanTemplate[]
+  followers          CircleFollow[]
+}
+
+model CircleFollow {
+  id            String    @id @default(cuid())
+  userId        String    @map("user_id")
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  circleId      String    @map("circle_id")
+  circle        Circle    @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  lastCheckedAt DateTime? @map("last_checked_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  @@unique([userId, circleId])
+  @@index([userId])
+  @@index([circleId])
+  @@map("circle_follows")
 }
 
 model CircleMember {

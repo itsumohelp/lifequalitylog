@@ -212,5 +212,16 @@ export async function POST(req: NextRequest) {
     hasPost: posted.length > 0,
   }));
 
+  // 毎回いいねジョブを実行（日次予算でペルソナごとに自然な上限が決まる）
+  try {
+    const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
+    await fetch(`${baseUrl}/api/cron/persona-react`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${process.env.CRON_SECRET}` },
+    });
+  } catch {
+    // いいねジョブの失敗は投稿ジョブに影響させない
+  }
+
   return NextResponse.json({ posted, skipped, failed, jstHour });
 }
