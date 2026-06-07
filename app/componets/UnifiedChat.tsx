@@ -4060,41 +4060,29 @@ export default function UnifiedChat({
                     ) : (
                       <>
                         {(selectedItem.tags || []).map((tag, idx) => (
-                          <span
+                          <button
                             key={idx}
-                            className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700"
+                            type="button"
+                            onClick={() => handleRemoveTag(selectedItem, tag)}
+                            disabled={isTagging}
+                            className="text-xs px-2.5 py-1 rounded-full bg-sky-100 text-sky-700 active:bg-sky-200 transition disabled:opacity-50"
+                            aria-label={`${tag}を削除`}
                           >
                             {tag}
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveTag(selectedItem, tag)}
-                              disabled={isTagging}
-                              className="text-sky-400 hover:text-sky-600 leading-none disabled:opacity-50"
-                              aria-label={`${tag}を削除`}
-                            >
-                              ✕
-                            </button>
-                          </span>
+                          </button>
                         ))}
                         {(selectedItem.autoTags || []).map((tag, idx) => (
-                          <span
+                          <button
                             key={`auto-${idx}`}
-                            className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-amber-500 text-white"
-                            title="自動タグ"
+                            type="button"
+                            onClick={() => handleRemoveAutoTag(selectedItem, tag)}
+                            disabled={isTagging}
+                            className="text-xs px-2.5 py-1 rounded-full bg-amber-500 text-white active:bg-amber-600 transition disabled:opacity-50"
+                            title="自動タグ（タップで削除）"
+                            aria-label={`自動タグ ${tag}を削除`}
                           >
                             ✦ {tag}
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleRemoveAutoTag(selectedItem, tag)
-                              }
-                              disabled={isTagging}
-                              className="text-yellow-100 hover:text-white leading-none disabled:opacity-50"
-                              aria-label={`自動タグ ${tag}を削除`}
-                            >
-                              ✕
-                            </button>
-                          </span>
+                          </button>
                         ))}
                       </>
                     )}
