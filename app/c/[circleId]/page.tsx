@@ -215,6 +215,46 @@ export default async function PublicCirclePage({ params }: PageParams) {
     circleBalanceAfterMap.set(tx.id, runningBalance);
   }
 
+  // 集計データ（当月）
+  const jstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  const startOfMonth = new Date(
+    Date.UTC(jstNow.getUTCFullYear(), jstNow.getUTCMonth(), 1) - 9 * 60 * 60 * 1000,
+  );
+  const [categoryRows, tagExpenses, memberCount, monthlyAggregate] = await Promise.all([
+    prisma.expense.groupBy({
+      by: ["category"],
+      where: { circleId, createdAt: { gte: startOfMonth } },
+      _sum: { amount: true },
+    }),
+    prisma.expense.findMany({
+      where: { circleId, createdAt: { gte: startOfMonth } },
+      select: { tags: true },
+    }),
+    prisma.circleMember.count({ where: { circleId } }),
+    prisma.expense.aggregate({
+      where: { circleId, createdAt: { gte: startOfMonth } },
+      _sum: { amount: true },
+    }),
+  ]);
+
+  const totalMonthlyExpense = monthlyAggregate._sum.amount ?? 0;
+  const analyticCategories = categoryRows
+    .map((r) => ({
+      category: r.category,
+      amount: r._sum.amount ?? 0,
+      pct: totalMonthlyExpense > 0 ? Math.round(((r._sum.amount ?? 0) / totalMonthlyExpense) * 100) : 0,
+    }))
+    .sort((a, b) => b.amount - a.amount);
+
+  const tagCounts = new Map<string, number>();
+  for (const e of tagExpenses) {
+    for (const tag of e.tags) tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+  }
+  const topTags = Array.from(tagCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([t]) => t);
+
   // スナップショットの差分を計算
   const snapshotDiffMap = new Map<string, number | null>();
   for (let i = 0; i < snapshots.length; i++) {
@@ -290,6 +330,12 @@ export default async function PublicCirclePage({ params }: PageParams) {
           initialBalance={initialBalance}
           isLoggedIn={!!currentUserId}
           currentUserId={currentUserId}
+          analytics={{
+            totalMonthlyExpense,
+            memberCount,
+            categories: analyticCategories,
+            topTags,
+          }}
         />
       </div>
     </div>

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { getCategoryEmoji } from "@/lib/expenseParser";
+import { getCategoryEmoji, getCategoryLabel } from "@/lib/expenseParser";
 import { getAvatarColor, getAvatarInitial } from "@/lib/avatar";
 import type {
   ExpenseCategory,
@@ -35,6 +35,13 @@ type FeedItem = {
   createdAt: string;
 };
 
+type Analytics = {
+  totalMonthlyExpense: number;
+  memberCount: number;
+  categories: { category: string; amount: number; pct: number }[];
+  topTags: string[];
+};
+
 type Props = {
   circle: {
     id: string;
@@ -45,6 +52,7 @@ type Props = {
   initialBalance: number;
   isLoggedIn: boolean;
   currentUserId: string | null;
+  analytics: Analytics;
 };
 
 function formatYen(amount: number) {
@@ -91,7 +99,9 @@ export default function PublicFeed({
   initialBalance,
   isLoggedIn,
   currentUserId,
+  analytics,
 }: Props) {
+  const [activeTab, setActiveTab] = useState<"feed" | "analytics">("feed");
   const [localFeed, setLocalFeed] = useState<FeedItem[]>(initialFeed);
   const [currentInitialBalance, setCurrentInitialBalance] =
     useState(initialBalance);
@@ -322,18 +332,110 @@ export default function PublicFeed({
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* 残高ヘッダー */}
-      <div className="flex-shrink-0 bg-sky-100 px-4 py-3">
-        <div className="flex items-center justify-center gap-2 mb-1">
+      <div className="flex-shrink-0 bg-sky-100 px-4 pt-3 pb-0">
+        <div className="flex items-center justify-center gap-2 mb-0.5">
           <span className="text-sm text-slate-500">{circle.name}</span>
+          <span className="text-[10px] text-slate-400">👤 {analytics.memberCount}人</span>
         </div>
-        <div className="flex items-center justify-center">
-          <span className="font-semibold text-slate-900 text-2xl">
-            ¥{formatYen(circle.currentBalance)}
-          </span>
+        <div className="flex items-center justify-center gap-4 mb-3">
+          <div className="text-center">
+            <div className="font-semibold text-slate-900 text-2xl">
+              ¥{formatYen(circle.currentBalance)}
+            </div>
+            <div className="text-[10px] text-slate-400">残高</div>
+          </div>
+          {analytics.totalMonthlyExpense > 0 && (
+            <div className="text-center">
+              <div className="font-semibold text-red-500 text-xl">
+                ¥{formatYen(analytics.totalMonthlyExpense)}
+              </div>
+              <div className="text-[10px] text-slate-400">今月の支出</div>
+            </div>
+          )}
+        </div>
+        {/* タブ */}
+        <div className="flex border-t border-sky-200">
+          {(["feed", "analytics"] as const).map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+              className={`flex-1 py-2 text-xs font-medium transition ${
+                activeTab === tab
+                  ? "text-sky-700 border-b-2 border-sky-500"
+                  : "text-slate-400"
+              }`}
+            >
+              {tab === "feed" ? "📋 フィード" : "📊 集計"}
+            </button>
+          ))}
         </div>
       </div>
 
+      {/* 集計タブ */}
+      {activeTab === "analytics" && (
+        <div className="flex-1 overflow-y-auto px-4 py-4 bg-slate-50 min-h-0 space-y-5">
+          {analytics.totalMonthlyExpense === 0 ? (
+            <div className="text-center text-slate-400 text-sm mt-12">
+              <p className="text-3xl mb-2">📭</p>
+              <p>今月の支出データがありません</p>
+            </div>
+          ) : (
+            <>
+              {/* カテゴリ別 */}
+              <div>
+                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">カテゴリ別支出</h3>
+                <div className="space-y-2.5">
+                  {analytics.categories.map((cat) => (
+                    <div key={cat.category}>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-slate-700">
+                          {getCategoryEmoji(cat.category as ExpenseCategory)} {getCategoryLabel(cat.category as ExpenseCategory)}
+                        </span>
+                        <span className="text-slate-500">¥{formatYen(cat.amount)} <span className="text-slate-400">({cat.pct}%)</span></span>
+                      </div>
+                      <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-2 bg-sky-400 rounded-full transition-all"
+                          style={{ width: `${cat.pct}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* よく使うタグ */}
+              {analytics.topTags.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">よく使うタグ</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {analytics.topTags.map((tag) => (
+                      <span key={tag} className="text-sm px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-700">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ログイン誘導 */}
+          {!isLoggedIn && (
+            <div className="bg-white rounded-2xl border border-slate-100 p-4 text-center">
+              <p className="text-sm font-medium text-slate-700 mb-1">あなたも記録してみませんか？</p>
+              <p className="text-xs text-slate-400 mb-3">無料・Google アカウントで30秒登録</p>
+              <Link href="/" className="inline-block bg-slate-900 text-white text-sm font-medium px-5 py-2 rounded-full">
+                無料で始める →
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* フィード表示 */}
+      {activeTab === "feed" && (
       <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto px-3 py-4 space-y-4 bg-slate-50 min-h-0"
@@ -535,9 +637,10 @@ export default function PublicFeed({
           </div>
         )}
       </div>
+      )} {/* end activeTab === "feed" */}
 
-      {/* 未ログイン時のログイン促進バナー */}
-      {!isLoggedIn && (
+      {/* 未ログイン時のログイン促進バナー（フィードタブのみ） */}
+      {!isLoggedIn && activeTab === "feed" && (
         <div className="flex-shrink-0 bg-white border-t border-slate-200 p-3">
           <Link
             href="/"
