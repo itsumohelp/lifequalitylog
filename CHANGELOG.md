@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.75] - 2026-06-07
+
+### Added
+- **Income tag selection UI** (`UnifiedChat`): Tag chips (給料/副業/ボーナス/家賃/売上/投資/仕送り) are now displayed when the input mode is set to income, allowing users to select multiple tags before submitting.
+
+### Changed
+- **Income API** (`POST /api/income`): Now accepts an optional `tags` field from the request body and merges it with NLP-parsed tags (deduped via `Set`) before saving to the database.
+- **Dashboard monthly expense** (`/dashboard`): Current-month expense is now aggregated directly from the `Expense` table using a JST month-start boundary, replacing the previous `MonthlySnapshot`-based calculation that had UTC/JST timezone inconsistencies.
+
+---
+
+### 追加
+- **収入タグ選択UI** (`UnifiedChat`): 入力モードが収入のとき、給料・副業・ボーナス・家賃・売上・投資・仕送りのタグチップを表示し、複数選択して送信できるよう追加。
+
+### 変更
+- **収入API** (`POST /api/income`): リクエストボディの `tags` フィールドを受け取り、NLP解析済みタグと重複排除してマージしてからDBに保存するよう変更。
+- **ダッシュボードの当月支出** (`/dashboard`): 当月支出をUTC/JST不整合のある `MonthlySnapshot` から `Expense` テーブルのJST月初起点による直接集計に変更。
+
+---
+
 ## [0.0.74] - 2026-06-06
 
 ### Added
