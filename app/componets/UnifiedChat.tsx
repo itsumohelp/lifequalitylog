@@ -15,6 +15,7 @@ import MiniBalanceChart, {
   type BalanceDataPoint,
 } from "@/app/componets/MiniBalanceChart";
 import { ALL_CATEGORY_TAGS } from "@/lib/tags";
+import OnboardingModal from "@/app/components/OnboardingModal";
 
 type ReactionData = {
   counts: Record<ReactionType, number>;
@@ -325,6 +326,8 @@ export default function UnifiedChat({
   const pendingInsightCircleIdRef = useRef<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isSeedingDemo, setIsSeedingDemo] = useState(false);
 
   // 割り勘
   type WarikanMember = { userId: string; name: string; image: string | null; paid: number };
@@ -1352,6 +1355,14 @@ export default function UnifiedChat({
     }
   }, [feed]);
 
+  // 初回ユーザー：オンボーディングモーダルを表示
+  useEffect(() => {
+    if (isLocalStorageAvailable() && !localStorage.getItem("onboarding-v1") && initialFeed.length === 0) {
+      setShowOnboarding(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // サークル切り替え時に一番下にスクロール + 一時的なアイテムを削除
   useEffect(() => {
     // 集計・ヘルプ・招待などの一時的なアイテムを削除（お知らせは残す）
@@ -1934,6 +1945,14 @@ export default function UnifiedChat({
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
+      {/* オンボーディングモーダル */}
+      {showOnboarding && adminCircleIds[0] && (
+        <OnboardingModal
+          firstCircleId={adminCircleIds[0]}
+          onComplete={() => setShowOnboarding(false)}
+        />
+      )}
+
       {/* 合計残高ヘッダー */}
       <div className="flex-shrink-0 bg-sky-100 px-3 py-1.5 border-b border-sky-200">
         <div className="flex items-center justify-between gap-2">
@@ -2143,9 +2162,34 @@ export default function UnifiedChat({
           )}
 
           {filteredFeed.length === 0 ? (
-            <div className="text-center text-slate-500 mt-8">
-              <p className="mb-2">最近の記録がありません</p>
-              <p className="text-sm">支出や残高を入力してください</p>
+            <div className="flex flex-col items-center text-slate-500 mt-12 gap-4 px-6">
+              <span className="text-4xl">📭</span>
+              <div className="text-center">
+                <p className="font-medium text-slate-700 mb-1">まだ記録がありません</p>
+                <p className="text-sm">下の入力欄から支出・収入を記録してみましょう</p>
+              </div>
+              {adminCircleIds.includes(selectedCircleId) && (
+                <button
+                  type="button"
+                  disabled={isSeedingDemo}
+                  onClick={async () => {
+                    setIsSeedingDemo(true);
+                    try {
+                      const res = await fetch("/api/demo/seed", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ circleId: selectedCircleId }),
+                      });
+                      if (res.ok || res.status === 409) window.location.reload();
+                    } finally {
+                      setIsSeedingDemo(false);
+                    }
+                  }}
+                  className="text-sm text-emerald-600 border border-emerald-200 bg-emerald-50 px-4 py-2 rounded-full hover:bg-emerald-100 disabled:opacity-50 transition"
+                >
+                  {isSeedingDemo ? "生成中..." : "🎲 サンプルデータで試してみる"}
+                </button>
+              )}
             </div>
           ) : (
             Object.entries(groupedFeed).map(([date, items]) => (
