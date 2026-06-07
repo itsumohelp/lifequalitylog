@@ -226,19 +226,21 @@ export default async function DashboardPage({
     const jstMonth = jstNow.getUTCMonth();
     const jstDate = jstNow.getUTCDate();
 
-    // 当月の月次集計を取得（全サークル分）
-    const yearMonth = `${jstYear}${String(jstMonth + 1).padStart(2, "0")}`;
-    const monthlySnapshotsAll = await prisma.monthlySnapshot.findMany({
+    // 当月の支出を直接集計（MonthlySnapshotのUTC/JST不整合を回避）
+    const startOfMonth = new Date(
+      Date.UTC(jstYear, jstMonth, 1) - 9 * 60 * 60 * 1000,
+    );
+    const monthlyExpenseByCircle = await prisma.expense.groupBy({
+      by: ["circleId"],
       where: {
         circleId: { in: circleIds },
-        yearMonth,
+        createdAt: { gte: startOfMonth },
       },
+      _sum: { amount: true },
     });
-
-    // サークルごとのMonthlySnapshotをマップに変換
-    const monthlySnapshotMap = new Map<string, number>();
-    for (const ms of monthlySnapshotsAll) {
-      monthlySnapshotMap.set(ms.circleId, ms.totalExpense);
+    const monthlyExpenseMap = new Map<string, number>();
+    for (const item of monthlyExpenseByCircle) {
+      monthlyExpenseMap.set(item.circleId, item._sum.amount || 0);
     }
 
     // 全期間の支出をサークルごとに集計
@@ -267,7 +269,7 @@ export default async function DashboardPage({
 
     for (const circleId of circleIds) {
       const circleData = circlesWithAdmin.find((c) => c.id === circleId);
-      const circleMonthlyExpense = monthlySnapshotMap.get(circleId) || 0;
+      const circleMonthlyExpense = monthlyExpenseMap.get(circleId) || 0;
       const circleAllTimeExpense = allTimeExpenseMap.get(circleId) || 0;
 
       // サークル別残高リストに追加（currentBalanceキャッシュを使用）

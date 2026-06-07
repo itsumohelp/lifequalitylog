@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   const userId = session.user.id as string;
 
   try {
-    const { circleId, text } = await request.json();
+    const { circleId, text, tags: extraTags = [] } = await request.json();
 
     if (!circleId || !text) {
       return NextResponse.json(
@@ -73,7 +73,8 @@ export async function POST(request: Request) {
     });
     const incomeDate = new Date();
     let autoTags: string[] = [];
-    if (userPref?.autoTagEnabled && parsed.tags.length === 0) {
+    const mergedTags = [...new Set([...parsed.tags, ...extraTags])];
+    if (userPref?.autoTagEnabled && mergedTags.length === 0) {
       autoTags = await computeAutoTagsForIncome(
         circleId,
         parsed.amount,
@@ -90,7 +91,7 @@ export async function POST(request: Request) {
         description: text,
         source: parsed.place,
         category,
-        tags: parsed.tags,
+        tags: mergedTags,
         autoTags,
         incomeDate,
       },
