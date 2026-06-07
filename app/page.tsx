@@ -84,7 +84,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           className="flex items-center justify-between bg-gradient-to-r from-violet-50 to-sky-50 border border-violet-100 rounded-2xl px-4 py-3.5 mb-6 group"
         >
           <div>
-            <div className="text-sm font-semibold text-slate-800">家計を分析してみる</div>
+            <div className="text-sm font-semibold text-slate-800">利用者の傾向を見てみる</div>
             <div className="text-xs text-slate-400 mt-0.5">ログイン不要・無料で試せる</div>
           </div>
           <span className="text-slate-400 group-hover:translate-x-1 transition-transform text-lg">→</span>
