@@ -24,10 +24,7 @@ function classifySegment(
 
 export default async function ExplorePage() {
   const now = new Date();
-  const jstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-  const jstYear = jstNow.getUTCFullYear();
-  const jstMonth = jstNow.getUTCMonth();
-  const startOfMonth = new Date(Date.UTC(jstYear, jstMonth, 1) - 9 * 60 * 60 * 1000);
+  const startOfMonth = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
   const publicCircles = await prisma.circle.findMany({
     where: { isPublic: true },
