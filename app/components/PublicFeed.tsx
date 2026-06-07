@@ -55,6 +55,7 @@ type Props = {
   analytics: Analytics;
   initialFollowerCount: number;
   initialIsFollowing: boolean;
+  isMember?: boolean;
 };
 
 function formatYen(amount: number) {
@@ -104,6 +105,7 @@ export default function PublicFeed({
   analytics,
   initialFollowerCount,
   initialIsFollowing,
+  isMember = false,
 }: Props) {
   const [activeTab, setActiveTab] = useState<"feed" | "analytics">("feed");
   const [localFeed, setLocalFeed] = useState<FeedItem[]>(initialFeed);
@@ -375,23 +377,30 @@ export default function PublicFeed({
             <span className="text-sm text-slate-500">{circle.name}</span>
             <span className="text-[10px] text-slate-400">👤 {analytics.memberCount}人</span>
           </div>
-          <button
-            type="button"
-            onClick={toggleFollow}
-            disabled={isTogglingFollow}
-            className={`flex items-center gap-1.5 text-xs px-3 py-1 rounded-full border transition ${
-              isFollowing
-                ? "bg-sky-600 text-white border-sky-600"
-                : "bg-white text-sky-600 border-sky-300 hover:border-sky-500"
-            } ${isTogglingFollow ? "opacity-50" : ""}`}
-          >
-            {isFollowing ? "✓ フォロー中" : "+ フォロー"}
-            {followerCount > 0 && (
-              <span className={`text-[10px] ${isFollowing ? "text-sky-200" : "text-slate-400"}`}>
-                {followerCount}
-              </span>
-            )}
-          </button>
+          {isMember ? (
+            <span className="text-[11px] text-slate-400 px-3 py-1 rounded-full border border-slate-200 bg-white">
+              参加中
+              {followerCount > 0 && <span className="ml-1 text-slate-300">{followerCount}</span>}
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={toggleFollow}
+              disabled={isTogglingFollow}
+              className={`flex items-center gap-1.5 text-xs px-3 py-1 rounded-full border transition ${
+                isFollowing
+                  ? "bg-sky-600 text-white border-sky-600"
+                  : "bg-white text-sky-600 border-sky-300 hover:border-sky-500"
+              } ${isTogglingFollow ? "opacity-50" : ""}`}
+            >
+              {isFollowing ? "✓ フォロー中" : "+ フォロー"}
+              {followerCount > 0 && (
+                <span className={`text-[10px] ${isFollowing ? "text-sky-200" : "text-slate-400"}`}>
+                  {followerCount}
+                </span>
+              )}
+            </button>
+          )}
         </div>
         <div className="flex items-center justify-center gap-4 mb-3">
           <div className="text-center">

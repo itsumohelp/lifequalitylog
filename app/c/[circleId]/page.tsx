@@ -240,11 +240,16 @@ export default async function PublicCirclePage({ params }: PageParams) {
   const totalMonthlyExpense = monthlyAggregate._sum.amount ?? 0;
 
   // フォロワー数 + ログイン中ユーザーのフォロー状態
-  const [followerCount, currentUserFollow] = await Promise.all([
+  const [followerCount, currentUserFollow, currentUserMembership] = await Promise.all([
     prisma.circleFollow.count({ where: { circleId } }),
     currentUserId
       ? prisma.circleFollow.findUnique({
           where: { userId_circleId: { userId: currentUserId, circleId } },
+        })
+      : Promise.resolve(null),
+    currentUserId
+      ? prisma.circleMember.findUnique({
+          where: { circleId_userId: { circleId, userId: currentUserId } },
         })
       : Promise.resolve(null),
   ]);
@@ -348,6 +353,7 @@ export default async function PublicCirclePage({ params }: PageParams) {
           }}
           initialFollowerCount={followerCount}
           initialIsFollowing={!!currentUserFollow}
+          isMember={!!currentUserMembership}
         />
       </div>
     </div>

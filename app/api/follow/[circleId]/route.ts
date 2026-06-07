@@ -27,9 +27,15 @@ export async function POST(_req: Request, { params }: Params) {
   const { circleId } = await params;
   const userId = session.user.id;
 
-  const circle = await prisma.circle.findUnique({ where: { id: circleId }, select: { isPublic: true } });
+  const [circle, membership] = await Promise.all([
+    prisma.circle.findUnique({ where: { id: circleId }, select: { isPublic: true } }),
+    prisma.circleMember.findUnique({ where: { circleId_userId: { circleId, userId } } }),
+  ]);
   if (!circle?.isPublic) {
     return NextResponse.json({ error: "Circle not found or not public" }, { status: 404 });
+  }
+  if (membership) {
+    return NextResponse.json({ error: "Already a member" }, { status: 400 });
   }
 
   await prisma.circleFollow.upsert({
