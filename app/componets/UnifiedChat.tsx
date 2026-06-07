@@ -287,6 +287,7 @@ export default function UnifiedChat({
   );
   const [inputMode, setInputMode] = useState<InputMode>("expense");
   const [input, setInput] = useState("");
+  const [incomeTags, setIncomeTags] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -1724,6 +1725,7 @@ export default function UnifiedChat({
           body: JSON.stringify({
             circleId: selectedCircleId,
             text: submitInput.trim(),
+            tags: incomeTags,
           }),
         });
 
@@ -1733,6 +1735,8 @@ export default function UnifiedChat({
           setError(data.error || "エラーが発生しました");
           return;
         }
+
+        setIncomeTags([]);
 
         const newItem: FeedItem = {
           id: `income-${data.income.id}`,
@@ -3020,6 +3024,29 @@ export default function UnifiedChat({
         {/* 入力フォーム：モード切替 + 入力 + 送信（タイムライン時は非表示） */}
         {!isTimeline && (
           <form onSubmit={handleSubmit} className="px-3 pb-3 pt-1">
+            {/* 収入タグ選択 */}
+            {inputMode === "income" && (
+              <div className="flex flex-wrap gap-1.5 pb-2">
+                {["給料", "副業", "ボーナス", "家賃", "売上", "投資", "仕送り"].map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() =>
+                      setIncomeTags((prev) =>
+                        prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+                      )
+                    }
+                    className={`text-[11px] px-2.5 py-0.5 rounded-full border transition ${
+                      incomeTags.includes(tag)
+                        ? "bg-emerald-600 text-white border-emerald-600"
+                        : "bg-white text-slate-600 border-slate-300 hover:border-emerald-400"
+                    }`}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="flex items-center gap-2">
               {/* モード切替トグル */}
               <div className="flex-shrink-0 flex bg-slate-100 rounded-lg p-0.5">
